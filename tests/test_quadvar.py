@@ -1,4 +1,6 @@
 import pyssage.quadvar
+import pyssage.graph
+from tests.test_common import test_transect
 
 
 def test_wrap_transect():
@@ -14,3 +16,9 @@ def test_wrap_transect():
     start = 4
     for i in range(steps):
         assert answer[i] == pyssage.quadvar.wrap_transect(start - i, n)
+
+
+def test_ttlqv():
+    result = pyssage.quadvar.ttlqv(test_transect())
+    pyssage.graph.draw_quadvar_result(result, "TTLQV Test")
+    # assert False

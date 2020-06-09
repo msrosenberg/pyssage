@@ -1,7 +1,5 @@
-from typing import Union
 import numpy
-
-Number = Union[int, float]
+from pyssage.classes import Number
 
 
 def wrap_transect(x: int, n: int) -> int:
@@ -21,10 +19,14 @@ def wrap_transect(x: int, n: int) -> int:
         return x
 
 
-def ttlqv(transect: numpy.array, min_block_size: int, max_block_size: int, block_step: int = 1, wrap: bool = False,
-          unit_scale: Number = 1):
+def ttlqv(transect: numpy.array, min_block_size: int = 1, max_block_size: int= 0, block_step: int = 1,
+          wrap: bool = False, unit_scale: Number = 1):
     n = len(transect)
     output = []
+    if max_block_size == 0:
+        max_block_size = n // 2
+    if max_block_size < 2:
+        max_block_size = 2
     for b in range(min_block_size, max_block_size + 1, block_step):
         cnt = 0
         qv = 0
