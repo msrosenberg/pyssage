@@ -230,6 +230,24 @@ def two_nlv(transect: numpy.ndarray, min_block_size: int = 1, max_block_size: in
         else:
             end_start_pos = n - 2*b
         for start_pos in range(end_start_pos):
+            # sum1 = 0
+            # sum2 = 0
+            # for i in range(start_pos, start_pos + b):
+            #     j = wrap_transect(i, n)
+            #     sum1 += transect[j]
+            # for i in range(start_pos + b, start_pos + 2*b):
+            #     j = wrap_transect(i, n)
+            #     sum2 += transect[j]
+            # term1 = (sum1 - sum2)**2
+            # sum1 = 0
+            # sum2 = 0
+            # for i in range(start_pos + 1, start_pos + b + 1):
+            #     j = wrap_transect(i, n)
+            #     sum1 += transect[j]
+            # for i in range(start_pos + b + 1, start_pos + 2*b + 1):
+            #     j = wrap_transect(i, n)
+            #     sum2 += transect[j]
+            # term2 = (sum1 - sum2)**2
             sum1 = 0
             sum2 = 0
             for i in range(start_pos, start_pos + b):
@@ -239,15 +257,15 @@ def two_nlv(transect: numpy.ndarray, min_block_size: int = 1, max_block_size: in
                 j = wrap_transect(i, n)
                 sum2 += transect[j]
             term1 = (sum1 - sum2)**2
-            sum1 = 0
-            sum2 = 0
-            for i in range(start_pos + 1, start_pos + b + 1):
-                j = wrap_transect(i, n)
-                sum1 += transect[j]
-            for i in range(start_pos + b + 1, start_pos + 2*b + 1):
-                j = wrap_transect(i, n)
-                sum2 += transect[j]
-            term2 = (sum1 - sum2)**2
+            # trick to speed up computation; do not have to fully recompute the 3rd and 4th blocks, just adjust
+            # the sums based on cells on either end
+            i = wrap_transect(start_pos, n)
+            j = wrap_transect(start_pos + b, n)
+            sum3 = sum1 - transect[i] + transect[j]
+            i = wrap_transect(start_pos + b, n)
+            j = wrap_transect(start_pos + 2*b, n)
+            sum4 = sum2 - transect[i] + transect[j]
+            term2 = (sum3 - sum4)**2
             cnt += 1
             qv += abs(term1 - term2)
         if cnt > 0:
@@ -319,81 +337,6 @@ def three_nlv(transect: numpy.ndarray, min_block_size: int = 1, max_block_size: 
             output.append([b*unit_scale, qv])
     return numpy.array(output)
 
-"""
-procedure Calc_3NLV(DatMat,OutMat : TpasMatrix; outcol,maxxb : integer;
-          range : double; DoWrap : boolean);
-var
-   jj,endp,
-   cnt,i,j,b,maxb : integer;
-   term1,term2,sum1,sum2,sum3 : double;
-   good : boolean;
-begin
-     maxb := trunc(DatMat.nrows * range);
-     maxb := Min(maxb,maxxb);
-     for b := 1 to maxb do if ContinueProgress then begin
-         cnt := 0;
-         OutMat[b,outcol] := 0.0;
-         if DoWrap then endp := DatMat.nrows
-         else endp := DatMat.nrows - 3 * b;
-         for i := 1 to endp do if ContinueProgress then begin
-             good := true;
-             sum1 := 0.0; sum2 := 0.0; sum3 := 0.0;
-             for j := i to i + b - 1 do begin
-                 jj := WrapTransect(j,DatMat.nrows);
-                 if DatMat.IsNum[jj,1] then
-                    sum1 := sum1 + DatMat[jj,1]
-                 else good := false;
-             end;
-             for j := i + b to i + 2 * b - 1 do begin
-                 jj := WrapTransect(j,DatMat.nrows);
-                 if DatMat.IsNum[jj,1] then
-                    sum2 := sum2 + DatMat[jj,1]
-                 else good := false;
-             end;
-             for j := i + 2 * b to i + 3 * b - 1 do begin
-                 jj := WrapTransect(j,DatMat.nrows);
-                 if DatMat.IsNum[jj,1] then
-                    sum3 := sum3 + DatMat[jj,1]
-                 else good := false;
-             end;
-             term1 := sqr(sum1 - 2.0 * sum2 + sum3);
-             sum1 := 0.0; sum2 := 0.0; sum3 := 0.0;
-             for j := i + 1 to i + b do begin
-                 jj := WrapTransect(j,DatMat.nrows);
-                 if DatMat.IsNum[jj,1] then
-                    sum1 := sum1 + DatMat[jj,1]
-                 else good := false;
-             end;
-             for j := i + b + 1 to i + 2 * b do begin
-                 jj := WrapTransect(j,DatMat.nrows);
-                 if DatMat.IsNum[jj,1] then
-                    sum2 := sum2 + DatMat[jj,1]
-                 else good := false;
-             end;
-             for j := i + 2 * b + 1 to i + 3 * b do begin
-                 jj := WrapTransect(j,DatMat.nrows);
-                 if DatMat.IsNum[jj,1] then
-                    sum3 := sum3 + DatMat[jj,1]
-                 else good := false;
-             end;
-             term2 := sqr(sum1 - 2.0 * sum2 + sum3);
-             if good then begin
-                inc(cnt);
-                OutMat[b,outcol] := OutMat[b,outcol] + abs(term1 - term2);
-             end;
-         end;
-         if (cnt > 0) then
-            OutMat[b,outcol] := OutMat[b,outcol] / (8.0 * b * cnt)
-         else OutMat.IsEmpty[b,outcol] := true;
-         ProgressIncrement;
-     end;
-     if ContinueProgress then
-        for i := maxb+1 to maxxb do ProgressIncrement;
-end;
-
-"""
-
-
 
 """
 
@@ -447,8 +390,6 @@ begin
      if ContinueProgress then
         for i := maxb+1 to maxxb do ProgressIncrement;
 end;
-
-
 
 
 """

@@ -2568,3 +2568,13 @@ def test_3nlv():
     pyssage.graph.draw_quadvar_result(result, "3NLV Test")
     for i in range(333):
         assert answer[i] == round(result[i, 1], 5)
+
+
+"""
+Notes:
+
+2NLV and 3NLV do not have the same formula as in the passage manual; in particular the denominator is not the 
+same. Need to check references and see if there is a good reason why.
+
+"""
+
