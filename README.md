@@ -4,7 +4,8 @@ PySSaGE is a collection of python versions of analyses originally part of the *P
 2]((https://www.passagesoftware.net)) (Rosenberg and Anderson 2011) software packages for spatial analysis.
 
 So far the following analyses have been implemented:
-* TTLQV - Two-Term Local Quadrat Variance Analysis (Hill, 1973)
+* TTLQV: Two-Term Local Quadrat Variance Analysis (Hill, 1973)
+* 3TLQV: Three-Term Local Quadrat Variance Analysis (Hill, 1973)
 
 A more thorough manual will be forthcoming...
 
