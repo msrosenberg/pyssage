@@ -6,12 +6,16 @@ PySSaGE is a collection of python versions of analyses originally part of the *P
 So far the following analyses have been implemented:
 * TTLQV: Two-Term Local Quadrat Variance Analysis (Hill, 1973)
 * 3TLQV: Three-Term Local Quadrat Variance Analysis (Hill, 1973)
+* PQV: Paired Quadrat Variance Analysis
+* tQV: Triplet Quadrat Variance Analysis (Dale, 1999)
 
 A more thorough manual will be forthcoming...
 
 
 
 ## References
+
+* Dale, M.R T. (1999) *Spatial Pattern Analysis in Plant Ecology.* Cambridge: Cambridge University Press.
 
 * Hill, M.O. (1973) The intensity of spatial pattern in plant communities. *Journal of Ecology* 61:225-235.
 
