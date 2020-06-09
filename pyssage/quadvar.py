@@ -191,25 +191,26 @@ def tqv(transect: numpy.ndarray, min_block_size: int = 1, max_block_size: int = 
     """
     n = len(transect)
     output = []
-    max_block_size = check_block_size(max_block_size, n, 2)
+    max_block_size = check_block_size(max_block_size, n, 3)
     for b in range(min_block_size, max_block_size + 1, block_step):
         cnt = 0
         qv = 0
         if wrap:
             end_start_pos = n
         else:
-            end_start_pos = n - b
+            end_start_pos = n - 2*b
         for start_pos in range(end_start_pos):
             for i in range(end_start_pos):
                 j = wrap_transect(i + b, n)
+                k = wrap_transect(i + 2*b, n)
                 cnt += 1
-                qv += (transect[i] - transect[j])**2
-        qv /= 2*cnt
+                qv += (transect[i] - 2*transect[j] + transect[k])**2
+        qv /= 4*cnt
         output.append([b*unit_scale, qv])
     return numpy.array(output)
 
-""":arg
 
+"""
 procedure Calc_tQV(DatMat,OutMat : TpasMatrix; outcol,maxxb : integer;
           range : double; DoWrap : boolean);
 var
