@@ -2,7 +2,7 @@ import numpy
 from pyssage.classes import Number
 # from datetime import datetime
 
-__all__ = ["ttlqv", "three_tlqv", "pqv"]
+__all__ = ["ttlqv", "three_tlqv", "pqv", "tqv", "two_nlv", "three_nlv"]
 
 
 def wrap_transect(x: int, n: int) -> int:
