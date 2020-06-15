@@ -1,7 +1,7 @@
-from typing import Optional
+from typing import Optional, Tuple
 from math import sqrt, sin, cos, acos, pi, atan
 import numpy
-from pyssage.classes import Point, Triangle, VoronoiEdge, VoronoiTessellation
+from pyssage.classes import Point, Triangle, VoronoiEdge, VoronoiTessellation, VoronoiPolygon
 
 # __all__ = ["euc_dist_matrix"]
 
@@ -81,7 +81,7 @@ def create_point_list(x: numpy.ndarray, y: numpy.ndarray) -> list:
     return point_list
 
 
-def calculate_delaunay_triangles(x: numpy.ndarray, y: numpy.ndarray) -> list:
+def calculate_delaunay_triangles(x: numpy.ndarray, y: numpy.ndarray) -> Tuple[list, list]:
     """
     Calculate the triangles that are used to form a delaunay tessellation or connection scheme
 
@@ -99,9 +99,9 @@ def calculate_delaunay_triangles(x: numpy.ndarray, y: numpy.ndarray) -> list:
     else:
         dmax = dy
     # create extra-large triangle to encompass the entire observed set of points
-    t_point1 = Point(xmid - 2*dmax, ymid - dmax)
-    t_point2 = Point(xmid, ymid + dmax)
-    t_point3 = Point(xmid + 2*dmax, ymid - dmax)
+    t_point1 = Point(xmid - 2*dmax, ymid - dmax, False)
+    t_point2 = Point(xmid, ymid + dmax, False)
+    t_point3 = Point(xmid + 2*dmax, ymid - dmax, False)
 
     triangle = Triangle(t_point1, t_point2, t_point3)
     triangle.find_circle()
@@ -150,7 +150,7 @@ def calculate_delaunay_triangles(x: numpy.ndarray, y: numpy.ndarray) -> list:
                 triangle.find_circle()
                 triangle_list.append(triangle)
 
-    return triangle_list
+    return triangle_list, point_list
 
 
 def delaunay_tessellation(x: numpy.ndarray, y: numpy.ndarray):
@@ -158,12 +158,11 @@ def delaunay_tessellation(x: numpy.ndarray, y: numpy.ndarray):
     if n != len(y):
         raise ValueError("Coordinate vectors must be same length")
 
-    triangles = calculate_delaunay_triangles(x, y)
+    triangles, points = calculate_delaunay_triangles(x, y)
 
     # create connections here
 
-    # tessellation = calculate_tessellation(x, y, triangles)
-    tessellation = calculate_tessellation(triangles)
+    tessellation = calculate_tessellation(triangles, points)
 
     # return tessellation, connections
     return triangles, tessellation
@@ -216,8 +215,6 @@ begin
      if DoTimeStamp then EndTimeStamp;
 end;
 
-
-
 """
 
 """
@@ -247,98 +244,289 @@ end;
 """
 
 
-# def euclidean_angle(x1: float, y1: float, x2: float, y2: float) -> float:
-#     # This will calculate the angle between the two points
-#     # The output ranges from 0 to pi (0 to 180 degrees)
-#     dy = abs(y1 - y2)
-#     dx = abs(x1 - x2)
-#     if dy == 0:
-#         return 0
-#     elif dx == 0:
-#         return pi / 2
-#     else:
-#         angle = atan(dy/dx)
-#         if (y2 > y1) and (x2 > x1):
-#             result = angle
-#         elif (y2 > y1) and (x1 < x1):
-#             result = pi - angle
-#         elif (y2 < y1) and (x2 > x1):
-#             result = pi - angle
-#         elif (y2 < y1) and (x1 < x1):
-#             result = angle
-#         else:
-#             return 0
-#         while result > pi:
-#             result -= pi
-#         return result
-#
-#
-# def euclidean_angle360(x1: float, y1: float, x2: float, y2: float) -> float:
-#     # This will calculate the angle from point 1 to point 2
-#     # The output ranges from 0 to 2pi (0 to 360 degrees)
-#     dy = y2 - y1
-#     dx = x2 - x1
-#     if dy == 0:
-#         if dx < 0:
-#             return pi
-#         else:
-#             return 0
-#     elif dx == 0:
-#         if dy < 0:
-#             return 3*pi/2
-#         else:
-#             return pi / 2
-#     else:
-#         angle = atan(abs(dy)/abs(dx))
-#         if (dy > 0) and (dx > 0):
-#             return angle
-#         elif (dy > 0) and (dx < 0):
-#             return pi - angle
-#         elif (dy < 0) and (dx > 0):
-#             return 2*pi - angle
-#         elif (dy < 0) and (dx < 0):
-#             return pi + angle
-#         else:
-#             return 0
+def euclidean_angle(x1: float, y1: float, x2: float, y2: float) -> float:
+    # This will calculate the angle between the two points
+    # The output ranges from 0 to pi (0 to 180 degrees)
+    dy = abs(y1 - y2)
+    dx = abs(x1 - x2)
+    if dy == 0:
+        return 0
+    elif dx == 0:
+        return pi / 2
+    else:
+        angle = atan(dy/dx)
+        if (y2 > y1) and (x2 > x1):
+            result = angle
+        elif (y2 > y1) and (x1 < x1):
+            result = pi - angle
+        elif (y2 < y1) and (x2 > x1):
+            result = pi - angle
+        elif (y2 < y1) and (x1 < x1):
+            result = angle
+        else:
+            return 0
+        while result > pi:
+            result -= pi
+        return result
 
 
-# def calculate_tessellation(x: numpy.ndarray, y: numpy.ndarray, triangle_list: list):
-def calculate_tessellation(triangle_list: list):
+def euclidean_angle360(x1: float, y1: float, x2: float, y2: float) -> float:
+    # This will calculate the angle from point 1 to point 2
+    # The output ranges from 0 to 2pi (0 to 360 degrees)
+    dy = y2 - y1
+    dx = x2 - x1
+    if dy == 0:
+        if dx < 0:
+            return pi
+        else:
+            return 0
+    elif dx == 0:
+        if dy < 0:
+            return 3*pi/2
+        else:
+            return pi / 2
+    else:
+        angle = atan(abs(dy)/abs(dx))
+        if (dy > 0) and (dx > 0):
+            return angle
+        elif (dy > 0) and (dx < 0):
+            return pi - angle
+        elif (dy < 0) and (dx > 0):
+            return 2*pi - angle
+        elif (dy < 0) and (dx < 0):
+            return pi + angle
+        else:
+            return 0
+
+
+# # def calculate_tessellation(x: numpy.ndarray, y: numpy.ndarray, triangle_list: list):
+# def calculate_tessellation(triangle_list: list):
+#     # vertices and edges
+#     vertex_list = []
+#     edge_list = []
+#     for i, triangle1 in enumerate(triangle_list):
+#         vertex_list.append(triangle1.center())
+#         for j in range(i + 1, len(triangle_list)):
+#             triangle2 = triangle_list[j]
+#             cnt = 0
+#             # check to see if triangles have common edge
+#             for k in range(3):
+#                 for kk in range(3):
+#                     if triangle1.points[kk] == triangle2.points[k]:
+#                         cnt += 1
+#             if cnt > 1:
+#                 new_edge = VoronoiEdge()
+#                 edge_list.append(new_edge)
+#
+#                 # find right and left polygons
+#                 if triangle2.yc == triangle1.yc:
+#                     if triangle2.xc > triangle2.xc:
+#                         new_edge.start_vertex = triangle1.center()
+#                         new_edge.end_vertex = triangle2.center()
+#                     else:
+#                         new_edge.start_vertex = triangle2.center()
+#                         new_edge.end_vertex = triangle1.center()
+#                 else:
+#                     if triangle2.yc > triangle2.yc:
+#                         new_edge.start_vertex = triangle1.center()
+#                         new_edge.end_vertex = triangle2.center()
+#                     else:
+#                         new_edge.start_vertex = triangle2.center()
+#                         new_edge.end_vertex = triangle1.center()
+#     tessellation = VoronoiTessellation()
+#     for v in vertex_list:
+#         tessellation.vertices.append(v)
+#     for e in edge_list:
+#         tessellation.edges.append(e)
+#     return tessellation
+
+
+# def calculate_tessellation_full(x: numpy.ndarray, y: numpy.ndarray, triangle_list: list):
+def calculate_tessellation(triangle_list: list, point_list: list) -> VoronoiTessellation:
+    """
+    calculate Delaunay tessellation from previous calculated triangles and store in a modified
+    Voronoi data store, including info on polygons, edges, and vertices of the tessellation
+    """
     # vertices and edges
+    triangle_edges = {t.center: [] for t in triangle_list}
+    # triangle_dict = {t.center: t for t in triangle_list}
     vertex_list = []
     edge_list = []
+    # point_list = create_point_list(x, y)
+    polygon_list = []
+    point_to_polygon = {}
+    for i, p in enumerate(point_list):
+        new_polygon = VoronoiPolygon()
+        polygon_list.append(new_polygon)
+        new_polygon.point = p
+        new_polygon.name = "Polygon surrounding point " + str(i)
+        point_to_polygon[p] = new_polygon
+    # create an extra polygon to represent the outside area
+    inf_polygon = VoronoiPolygon()
+    polygon_list.append(inf_polygon)
+    inf_polygon.name = "Infinity"
+    inf_polygon.infinity = True
+
     for i, triangle1 in enumerate(triangle_list):
-        vertex_list.append(triangle1.center())
+        vertex_list.append(triangle1.center)
         for j in range(i + 1, len(triangle_list)):
             triangle2 = triangle_list[j]
-            cnt = 0
             # check to see if triangles have common edge
+            common_pnts = []
             for k in range(3):
                 for kk in range(3):
                     if triangle1.points[kk] == triangle2.points[k]:
-                        cnt += 1
-            if cnt > 1:
+                        common_pnts.append(triangle1.points[kk])
+            if len(common_pnts) > 1:
                 new_edge = VoronoiEdge()
                 edge_list.append(new_edge)
-
+                # associate new edge with triangles
+                triangle_edges[triangle1.center].append(new_edge)
+                triangle_edges[triangle2.center].append(new_edge)
                 # find right and left polygons
                 if triangle2.yc == triangle1.yc:
                     if triangle2.xc > triangle2.xc:
-                        new_edge.start_vertex = triangle1.center()
-                        new_edge.end_vertex = triangle2.center()
+                        new_edge.start_vertex = triangle1.center
+                        new_edge.end_vertex = triangle2.center
                     else:
-                        new_edge.start_vertex = triangle2.center()
-                        new_edge.end_vertex = triangle1.center()
+                        new_edge.start_vertex = triangle2.center
+                        new_edge.end_vertex = triangle1.center
+                    if common_pnts[0] not in point_list:  # one of the three boundary points
+                        if common_pnts[1].y > triangle1.yc:
+                            lp = common_pnts[1]
+                            rp = common_pnts[0]
+                        else:
+                            lp = common_pnts[0]
+                            rp = common_pnts[1]
+                    else:
+                        if common_pnts[0].y > triangle1.yc:
+                            lp = common_pnts[0]
+                            rp = common_pnts[1]
+                        else:
+                            lp = common_pnts[1]
+                            rp = common_pnts[0]
                 else:
-                    if triangle2.yc > triangle2.yc:
-                        new_edge.start_vertex = triangle1.center()
-                        new_edge.end_vertex = triangle2.center()
+                    if triangle2.yc > triangle1.yc:
+                        new_edge.start_vertex = triangle1.center
+                        new_edge.end_vertex = triangle2.center
                     else:
-                        new_edge.start_vertex = triangle2.center()
-                        new_edge.end_vertex = triangle1.center()
+                        new_edge.start_vertex = triangle2.center
+                        new_edge.end_vertex = triangle1.center
+                    if common_pnts[0] not in point_list:
+                        if euclidean_angle(triangle1.xc, triangle1.yc, common_pnts[1].x, common_pnts[1].y) > \
+                                euclidean_angle(triangle1.xc, triangle1.yc, triangle2.xc, triangle2.yc):
+                            lp = common_pnts[1]
+                            rp = common_pnts[0]
+                        else:
+                            lp = common_pnts[0]
+                            rp = common_pnts[1]
+                    elif common_pnts[1] not in point_list:
+                        if euclidean_angle(triangle1.xc, triangle1.yc, common_pnts[0].x, common_pnts[0].y) > \
+                                euclidean_angle(triangle1.xc, triangle1.yc, triangle2.xc, triangle2.yc):
+                            lp = common_pnts[0]
+                            rp = common_pnts[1]
+                        else:
+                            lp = common_pnts[1]
+                            rp = common_pnts[0]
+                    else:
+                        if common_pnts[0].x > common_pnts[1].x:
+                            lp = common_pnts[1]
+                            rp = common_pnts[0]
+                        else:
+                            lp = common_pnts[0]
+                            rp = common_pnts[1]
+                # attach edge to the right and left polygons
+                if lp in point_to_polygon:
+                    new_edge.left_polygon = point_to_polygon[lp]
+                else:
+                    new_edge.left_polygon = inf_polygon
+                if rp in point_to_polygon:
+                    new_edge.right_polygon = point_to_polygon[rp]
+                else:
+                    new_edge.right_polygon = inf_polygon
+                new_edge.left_polygon.edges.append(new_edge)
+                new_edge.right_polygon.edges.append(new_edge)
+
+    # find CW and CCW edges of both start and end vertices for edges
+    for edge in edge_list:
+        # find predecessor edges
+        other_edges = [e for e in triangle_edges[edge.start_vertex]]
+        other_edges.remove(edge)
+        if len(other_edges) == 2:
+            edge1 = other_edges[0]
+            edge2 = other_edges[1]
+            edge_angle = euclidean_angle360(edge.start_vertex.x, edge.start_vertex.y,
+                                            edge.end_vertex.x, edge.end_vertex.y)
+            if edge1.start_vertex == edge.start_vertex:
+                edge_angle1 = euclidean_angle360(edge.start_vertex.x, edge.start_vertex.y, edge.end_vertex.x,
+                                                 edge.end_vertex.y)
+            else:
+                edge_angle1 = euclidean_angle360(edge.end_vertex.x, edge.end_vertex.y, edge.start_vertex.x,
+                                                 edge.start_vertex.y)
+            if edge2.start_vertex == edge.start_vertex:
+                edge_angle2 = euclidean_angle360(edge.start_vertex.x, edge.start_vertex.y, edge.end_vertex.x,
+                                                 edge.end_vertex.y)
+            else:
+                edge_angle2 = euclidean_angle360(edge.end_vertex.x, edge.end_vertex.y, edge.start_vertex.x,
+                                                 edge.start_vertex.y)
+            if edge_angle < edge_angle1:
+                if (edge_angle1 < edge_angle2) or (edge_angle > edge_angle2):
+                    edge.ccw_predecessor = edge1
+                    edge.cw_predecessor = edge2
+                else:
+                    edge.ccw_predecessor = edge2
+                    edge.cw_predecessor = edge1
+            elif (edge_angle < edge_angle2) or (edge_angle1 > edge_angle2):
+                edge.ccw_predecessor = edge2
+                edge.cw_predecessor = edge1
+            elif edge_angle1 < edge_angle2:
+                edge.ccw_predecessor = edge1
+                edge.cw_predecessor = edge2
+        elif len(other_edges) == 1:
+            edge.ccw_predecessor = other_edges[0]
+            edge.cw_predecessor = other_edges[0]
+        # find successor edges
+        other_edges = [e for e in triangle_edges[edge.end_vertex]]
+        other_edges.remove(edge)
+        if len(other_edges) == 2:
+            edge1 = other_edges[0]
+            edge2 = other_edges[1]
+            edge_angle = euclidean_angle360(edge.start_vertex.x, edge.start_vertex.y,
+                                            edge.end_vertex.x, edge.end_vertex.y)
+            if edge1.start_vertex == edge.end_vertex:
+                edge_angle1 = euclidean_angle360(edge.start_vertex.x, edge.start_vertex.y, edge.end_vertex.x,
+                                                 edge.end_vertex.y)
+            else:
+                edge_angle1 = euclidean_angle360(edge.end_vertex.x, edge.end_vertex.y, edge.start_vertex.x,
+                                                 edge.start_vertex.y)
+            if edge2.start_vertex == edge.end_vertex:
+                edge_angle2 = euclidean_angle360(edge.start_vertex.x, edge.start_vertex.y, edge.end_vertex.x,
+                                                 edge.end_vertex.y)
+            else:
+                edge_angle2 = euclidean_angle360(edge.end_vertex.x, edge.end_vertex.y, edge.start_vertex.x,
+                                                 edge.start_vertex.y)
+            if edge_angle < edge_angle1:
+                if (edge_angle1 < edge_angle2) or (edge_angle > edge_angle2):
+                    edge.ccw_successor = edge1
+                    edge.cw_successor = edge2
+                else:
+                    edge.ccw_successor = edge2
+                    edge.cw_successor = edge1
+            elif (edge_angle < edge_angle2) or (edge_angle1 > edge_angle2):
+                edge.ccw_successor = edge2
+                edge.cw_successor = edge1
+            elif edge_angle1 < edge_angle2:
+                edge.ccw_successor = edge1
+                edge.cw_successor = edge2
+        elif len(other_edges) == 1:
+            edge.ccw_predecessor = other_edges[0]
+            edge.cw_predecessor = other_edges[0]
+
     tessellation = VoronoiTessellation()
     for v in vertex_list:
         tessellation.vertices.append(v)
     for e in edge_list:
         tessellation.edges.append(e)
+    for p in polygon_list:
+        tessellation.polygons.append(p)
     return tessellation
