@@ -74,7 +74,9 @@ def sph_dist_matrix(lon: numpy.ndarray, lat: numpy.ndarray) -> numpy.ndarray:
 
 
 def create_point_list(x: numpy.ndarray, y: numpy.ndarray) -> list:
-    # turn coord arrays into a list of points
+    """
+    create a list of Points from a pair of vectors containing x and y coordinates
+    """
     point_list = []
     for i in range(len(x)):
         point_list.append(Point(x[i], y[i]))
@@ -166,8 +168,15 @@ def delaunay_tessellation(x: numpy.ndarray, y: numpy.ndarray, output_frmt: str =
 
 
 def euclidean_angle(x1: float, y1: float, x2: float, y2: float) -> float:
-    # This will calculate the angle between the two points
-    # The output ranges from 0 to pi (0 to 180 degrees)
+    """
+    This will calculate the angle between the two points, reporting a value between 0 and pi
+
+    :param x1: x-coordinate of first point
+    :param y1: y-coordinate of first point
+    :param x2: x-coordinate of second point
+    :param y2: y-coordinate of second point
+    :return: angle as a value between 0 and pi
+    """
     dy = abs(y1 - y2)
     dx = abs(x1 - x2)
     if dy == 0:
@@ -192,8 +201,15 @@ def euclidean_angle(x1: float, y1: float, x2: float, y2: float) -> float:
 
 
 def euclidean_angle360(x1: float, y1: float, x2: float, y2: float) -> float:
-    # This will calculate the angle from point 1 to point 2
-    # The output ranges from 0 to 2pi (0 to 360 degrees)
+    """
+    This will calculate the angle between the two points, reporting a value between 0 and 2 pi
+
+    :param x1: x-coordinate of first point
+    :param y1: y-coordinate of first point
+    :param x2: x-coordinate of second point
+    :param y2: y-coordinate of second point
+    :return: angle as a value between 0 and 2 pi
+    """
     dy = y2 - y1
     dx = x2 - x1
     if dy == 0:
@@ -467,6 +483,9 @@ def delaunay_connections(triangle_list: list, point_list: list, output_frmt: str
 
 
 def setup_connection_output(output_frmt: str, n: int):
+    """
+    checks that the output format for a connection function is valid and returns the correct type of data storage
+    """
     if output_frmt == "boolmatrix":
         return numpy.zeros((n, n), dtype=bool)
     elif output_frmt == "binmatrix":
@@ -480,6 +499,10 @@ def setup_connection_output(output_frmt: str, n: int):
 
 
 def store_connection(output, i: int, j: int, output_frmt: str):
+    """
+    stores a connection into the data storage, based on the specific format
+    automatically symmetrizes matrix storage
+    """
     if output_frmt == "boolmatrix":
         output[i, j] = True
         output[j, i] = True
@@ -599,8 +622,9 @@ def least_diagonal_network(x: numpy.ndarray, y: numpy.ndarray, distances: numpy.
     good_pairs = []
     m1, m2 = 1, 1
     b1, b2 = 0, 0
+    # work through all pairs from closest to farthest
     for d in dists:
-        i, j = d[1], d[2]
+        i, j = d[1], d[2]  # need the point indices, not the actual distance
         if x[i] != x[j]:
             vertical1 = False
             m1 = (y[i] - y[j]) / (x[i] - x[j])  # calculate slope
