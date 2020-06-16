@@ -67,3 +67,49 @@ def draw_tessellation(tessellation, coords, title: str = "") -> None:
     if title != "":
         axs.set_title(title)
     pyplot.show()
+
+
+def check_connection_format(con_frmt: str) -> None:
+    valid_formats = ("boolmatrix", "binmatrix", "revbinmatrix", "pairlist")
+    if con_frmt not in valid_formats:
+        raise ValueError("{} is not a valid connection format".format(con_frmt))
+
+
+def draw_connections(connections, coords, connection_frmt: str = "boolmatrix", title: str = ""):
+    check_connection_format(connection_frmt)
+    fig, axs = pyplot.subplots()
+    minx = min(coords[:, 0])
+    maxx = max(coords[:, 0])
+    miny = min(coords[:, 1])
+    maxy = max(coords[:, 1])
+    if connection_frmt == "pairlist":
+        for c in connections:
+            p1 = coords[c[0]]
+            p2 = coords[c[1]]
+            x = [p1[0], p2[0]]
+            y = [p1[1], p2[1]]
+            line = Line2D(x, y)
+            axs.add_line(line)
+    else:
+        n = len(coords)
+        for i in range(n):
+            for j in range(i):
+                if (connection_frmt == "boolmatrix") and connections[i, j]:
+                    connect = True
+                elif (connection_frmt == "binmatrix") and (connections[i, j] == 1):
+                    connect = True
+                elif (connection_frmt == "revbinmatrix") and (connections[i, j] == 0):
+                    connect = True
+                else:
+                    connect = False
+                if connect:
+                    x = [coords[i, 0], coords[j, 0]]
+                    y = [coords[i, 1], coords[j, 1]]
+                    line = Line2D(x, y)
+                    axs.add_line(line)
+    pyplot.scatter(coords[:, 0], coords[:, 1], color="black")
+    axs.set_xlim(minx-1, maxx+1)
+    axs.set_ylim(miny-1, maxy+1)
+    if title != "":
+        axs.set_title(title)
+    pyplot.show()

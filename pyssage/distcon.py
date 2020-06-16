@@ -153,95 +153,16 @@ def calculate_delaunay_triangles(x: numpy.ndarray, y: numpy.ndarray) -> Tuple[li
     return triangle_list, point_list
 
 
-def delaunay_tessellation(x: numpy.ndarray, y: numpy.ndarray):
+def delaunay_tessellation(x: numpy.ndarray, y: numpy.ndarray, output_frmt: str = "boolmatrix"):
     n = len(x)
     if n != len(y):
         raise ValueError("Coordinate vectors must be same length")
 
     triangles, points = calculate_delaunay_triangles(x, y)
-
-    # create connections here
-
+    connections = delaunay_connections(triangles, points, output_frmt)
     tessellation = calculate_tessellation(triangles, points)
 
-    # return tessellation, connections
-    return triangles, tessellation
-
-
-"""
-procedure DelaunayTessellation(Crds : TpasCoordinates; DoCon,DoTess : boolean; ConName,TessName : string);
-var
-   Triangles : TObjectList;
-   ConMat : TpasBooleanMatrix;
-   TessMat : TpasVoronoi;
-   i,j,n : integer;
-begin
-     if DoTimeStamp then StartTimeStamp('Delaunay/Dirichlet Tessellation');
-     Triangles := TObjectList.Create;
-     n := Crds.N;
-     case Crds.Dimensions of
-          2 : CalcDelaunayTriangles(Crds,Triangles);
-          3 : CalcDelaunayTetrahedra(Crds,Triangles);
-     end;
-     if ContinueProgress and DoCon then begin
-        ConMat := TpasBooleanMatrix.Create(n);
-        ConMat.MatrixName := ConName;
-        { Set Connections Matrix }
-        for i := 1 to Crds.N do
-            for j := 1 to Crds.N do
-                if Crds.IsGood[i] and Crds.IsGood[j] then
-                   ConMat[i,j] := false;
-        case Crds.Dimensions of
-             2 : CalcDelaunayConnections(ConMat,Triangles);
-             3 : CalcDelaunayConnections3D(ConMat,Triangles);
-        end;
-        if ContinueProgress then begin
-           Data_AddData(ConMat);
-           OutputAddLine('Delaunay connection matrix "' + ConName +
-             '" constructed for coordinates "' + Crds.MatrixName +'".');
-        end else ConMat.Free;
-     end;
-     if ContinueProgress and DoTess and (Crds.Dimensions = 2) then begin
-        CalcTesselation(Crds,Triangles,TessMat);
-        if ContinueProgress then begin
-           TessMat.MatrixName := TessName;
-           Data_AddData(TessMat);
-           OutputAddLine('Dirichlet Tessellation "' + TessName +
-             '" constructed for coordinates "' + Crds.MatrixName +'".');
-        end else TessMat.Free;
-     end;
-     OutputAddBlankLine;
-     Triangles.Free;
-     if DoTimeStamp then EndTimeStamp;
-end;
-
-"""
-
-"""
-
-{ procedure to calculate connections from the triangles }
-procedure CalcDelaunayConnections(CMat : TpasBooleanMatrix; TriList : TObjectList);
-var
-   ii,jj,i : integer;
-   T : TpasTriangle;
-begin
-     ProgressRefresh(TriList.Count,'Making connections...');
-     //if not HideinTray then ProgressForm.Show;
-     // fill in connection matrix
-     for i := 0 to TriList.Count - 1 do if ContinueProgress then begin
-         T := TpasTriangle(TriList[i]);
-         for ii := 1 to 2 do
-             for jj := ii + 1 to 3 do
-                 if (T.points[ii] <= CMat.n) and (T.points[jj] <= CMat.n) then begin
-                    CMat[T.points[ii],T.points[jj]] := true;
-                    CMat[T.points[jj],T.points[ii]] := true;
-                 end;
-         ProgressIncrement;
-     end;
-     ProgressClose;
-end;
-
-"""
+    return tessellation, connections
 
 
 def euclidean_angle(x1: float, y1: float, x2: float, y2: float) -> float:
@@ -530,3 +451,366 @@ def calculate_tessellation(triangle_list: list, point_list: list) -> VoronoiTess
     for p in polygon_list:
         tessellation.polygons.append(p)
     return tessellation
+
+
+def delaunay_connections(triangle_list: list, point_list: list, output_frmt: str = "boolmatrix"):
+    n = len(point_list)
+    output = setup_connection_output(output_frmt, n)
+    for triangle in triangle_list:
+        for i in range(3):
+            p1 = triangle.points[i]
+            for j in range(i):
+                p2 = triangle.points[j]
+                if (p1 in point_list) and (p2 in point_list):
+                    store_connection(output, point_list.index(p1), point_list.index(p2), output_frmt)
+    return output
+
+
+def setup_connection_output(output_frmt: str, n: int):
+    if output_frmt == "boolmatrix":
+        return numpy.zeros((n, n), dtype=bool)
+    elif output_frmt == "binmatrix":
+        return numpy.zeros((n, n), dtype=int)
+    elif output_frmt == "revbinmatrix":
+        return numpy.ones((n, n), dtype=int)
+    elif output_frmt == "pairlist":
+        return []
+    else:
+        raise ValueError("{} is not a valid output format for connections".format(output_frmt))
+
+
+def store_connection(output, i: int, j: int, output_frmt: str):
+    if output_frmt == "boolmatrix":
+        output[i, j] = True
+        output[j, i] = True
+    elif output_frmt == "binmatrix":
+        output[i, j] = 1
+        output[j, i] = 1
+    elif output_frmt == "revbinmatrix":
+        output[i, j] = 0
+        output[j, i] = 0
+    elif output_frmt == "pairlist":
+        output.append([i, j])
+
+
+def check_input_distance_matrix(distances: numpy.ndarray) -> int:
+    if distances.ndim != 2:
+        raise ValueError("distance matrix must be two-dimensional")
+    elif distances.shape[0] != distances.shape[1]:
+        raise ValueError("distance matrix must be square")
+    else:
+        return len(distances)
+
+
+def relative_neighborhood_network(distances: numpy.ndarray, output_frmt: str = "boolmatrix"):
+    """
+    calculate connections among points based on a relative neighborhood network
+    """
+    n = check_input_distance_matrix(distances)
+    output = setup_connection_output(output_frmt, n)
+    for i in range(n):
+        for j in range(i):
+            good = True
+            for k in range(n):
+                if (k != i) and (k != j):
+                    if (distances[k, j] < distances[i, j]) and (distances[k, i] < distances[i, j]):
+                        good = False
+            if good:
+                store_connection(output, i, j, output_frmt)
+    return output
+
+
+def gabriel_network(distances: numpy.ndarray, output_frmt: str = "boolmatrix"):
+    """
+    calculate connections among points based on a Gabriel network
+    """
+    n = check_input_distance_matrix(distances)
+    output = setup_connection_output(output_frmt, n)
+    sq_distances = numpy.square(distances)
+    for i in range(n):
+        for j in range(i):
+            good = True
+            for k in range(n):
+                if (k != i) and (k != j):
+                    if sq_distances[i, j] > sq_distances[k, j] + sq_distances[k, i]:
+                        good = False
+            if good:
+                store_connection(output, i, j, output_frmt)
+    return output
+
+
+def minimum_spanning_tree(distances: numpy.ndarray, output_frmt: str = "boolmatrix"):
+    """
+    calculate connections among points based on a minimum spanning tree
+
+    Although I invented this algorithm myself, it sort of follows the suggestion made in Kruskal, Joseph B., Jr. 1956.
+    On the shortest spanning subtree of a graph and the traveling salesman problem.  Proceedings of the
+    American Mathematical Society 7(1):48-50.
+    """
+    n = check_input_distance_matrix(distances)
+    output = setup_connection_output(output_frmt, n)
+    used = [i for i in range(n)]
+    cnt = 1
+    while cnt < n:
+        new_point = cnt
+        old_point = 0
+        for i in range(cnt):
+            for j in range(cnt, n):
+                if distances[used[i], used[j]] < distances[used[old_point], used[new_point]]:
+                    old_point, new_point = i, j
+        # make connection
+        store_connection(output, used[old_point], used[new_point], output_frmt)
+        used[cnt], used[new_point] = used[new_point], used[cnt]  # swap out a used point with an unused point
+        cnt += 1
+    return output
+
+
+def connect_distance_range(distances: numpy.ndarray, maxdist: float, mindist: float = 0,
+                           output_frmt: str = "boolmatrix"):
+    """
+    calculate connections based on a distance range, defined by maxdist and mindist
+
+    points are not connected to themselves, even with a distance of zero
+    """
+    n = check_input_distance_matrix(distances)
+    output = setup_connection_output(output_frmt, n)
+    for i in range(n):
+        for j in range(i):
+            if mindist <= distances[i, j] <= maxdist:
+                store_connection(output, i, j, output_frmt)
+    return output
+
+
+def least_diagonal_network(x: numpy.ndarray, y: numpy.ndarray, distances: numpy.ndarray,
+                           output_frmt: str = "boolmatrix"):
+    """
+    calculate connections among points based on a least diagonal network
+    """
+    n = check_input_distance_matrix(distances)
+    if (n != len(x)) or (n != len(y)):
+        raise ValueError("The coordinate arrays and the distance matrix must have the same length")
+    output = setup_connection_output(output_frmt, n)
+    # flatten distances into one dimension (half matrix only), but also track position in matrix
+    dists = []
+    for i in range(n):
+        for j in range(i):
+            dists.append([distances[i, j], i, j])
+    dists.sort()
+    good_pairs = []
+    m1, m2 = 1, 1
+    b1, b2 = 0, 0
+    for d in dists:
+        i, j = d[1], d[2]
+        if x[i] != x[j]:
+            vertical1 = False
+            m1 = (y[i] - y[j]) / (x[i] - x[j])  # calculate slope
+            b1 = y[i] - m1*x[i]  # calculate intercept
+        else:
+            vertical1 = True
+        # compare to previously added links
+        k = 0
+        good = True
+        while k < len(good_pairs):
+            pair = good_pairs[k]
+            pair1, pair2 = pair[0], pair[1]
+            # if (pair[0] != i) and (pair[1] != i) and (pair[0] != j) and (pair[1] != j):
+            if (i not in pair) and (j not in pair):
+                if x[pair1] != x[pair2]:
+                    vertical2 = False
+                    m2 = (y[pair1] - y[pair2]) / (x[[pair1]] - x[pair2])  # calculate slope
+                    b2 = y[pair1] - m2*x[pair1]  # calculate intercept
+                else:
+                    vertical2 = True
+                check = True
+                xc, yc = x[i], y[j]  # defaults; likely unnecessary
+                if vertical1 and vertical2:
+                    # if both line segments are vertical, they overlap if either point of one pair is between both
+                    # points of the other pair
+                    check = False
+                    if x[i] == x[pair1]:
+                        if (y[i] < y[pair1] < y[j]) or (y[i] > y[pair1] > y[j]) or \
+                                (y[i] < y[pair2] < y[j]) or (y[i] > y[pair2] > y[j]):
+                            good = False
+                elif vertical1:
+                    # one segment is vertical; calculate the y at that x position
+                    xc = x[i]
+                    yc = m2*xc + b2
+                elif vertical2:
+                    # one segment is vertical; calculate the y at that x position
+                    xc = x[pair1]
+                    yc = m1*xc + b1
+                elif m1 == m2:
+                    # segments have identical slopes; can only overlap if they have identical projected intercepts
+                    check = False
+                    if b1 == b2:
+                        # segments do have identical intercepts; they overlap if either point of one pair is between
+                        # both points of the other pair
+                        if (y[i] < y[pair1] < y[j]) or (y[i] > y[pair1] > y[j]) or \
+                                (y[i] < y[pair1] < y[j]) or (y[i] > y[pair1] > y[j]):
+                            good = False
+                else:
+                    xc = (b2 - b1) / (m1 - m2)
+                    yc = m1*xc + b1
+                if check:  # did not get pre-checked from one of the parallel slope cases above
+                    # xc, yc is the projected crossing point of the two line segments; the segments overlap if
+                    # this point falls within both segments
+                    if (((x[i] <= xc <= x[j]) or (x[i] >= xc >= x[j])) and
+                        ((y[i] <= yc <= y[j]) or (y[i] >= yc >= y[j]))) and \
+                            (((x[pair1] <= xc <= x[pair2]) or (x[pair1] >= xc >= x[pair2])) and
+                             ((y[pair1] <= yc <= y[pair2]) or (y[pair1] >= yc >= y[pair2]))):
+                        good = False
+            if good:
+                k += 1
+            else:
+                k = len(good_pairs)
+        if good:
+            good_pairs.append([i, j])
+    for pair in good_pairs:
+        store_connection(output, pair[0], pair[1], output_frmt)
+    return output
+
+
+"""
+
+procedure NearestNeighborConnections(Dists : TpasSymmetricMatrix; NewName : string;
+          nd : integer; OutputDists : boolean);
+procedure DistanceClassBasedConnections(DistMat : TpasSymmetricMatrix;
+          DC : TpasDistClass; IncClass : TpasBooleanArray; NewName : string);
+
+
+procedure NearestNeighborConnections(Dists : TpasSymmetricMatrix; NewName : string;
+          nd : integer; OutputDists : boolean);
+var
+   n,i,j,k : integer;
+   ConMat : TpasBooleanMatrix;
+   darray : TpasDoubleArray;
+   iarray : TpasIntegerArray;
+   OutMat : TpasMatrix;
+   IntOut : TpasBooleanArray;
+   Header : TpasTableHeader;
+begin
+     if DoTimeStamp then StartTimeStamp('Nearest-Neighbor Connections');
+     n := Dists.N;
+     ConMat := TpasBooleanMatrix.Create(n);
+     ConMat.MatrixName := NewName;
+     ProgressRefresh(n,'Calculating connections...');
+     SetLength(darray,n+1);
+     SetLength(iarray,n+1);
+     if OutputDists then begin
+        OutMat := TpasMatrix.Create(n,nd+1);
+     end else OutMat := nil;
+
+     for i := 1 to n do if ContinueProgress then begin
+         if OutputDists then OutMat.StrData[i,1] := Dists.RCLabel[i];
+         k := 0;
+         for j := 1 to n do begin
+             ConMat[i,j] := false;
+             if (i <> j) and not Dists.IsEmpty[i,j] then begin
+                inc(k);
+                darray[k] := Dists[i,j];
+                iarray[k] := j;
+             end;
+         end;
+         if (k > 0) then begin
+            if (nd < k) then begin
+               SortDists(k,darray,iarray);
+               for j := 1 to nd do begin
+                   ConMat[i,iarray[j]] := true;
+                   ConMat[iarray[j],i] := true;
+                   if OutputDists then OutMat[i,j+1] := Dists[i,iarray[j]];
+               end;
+               j := nd;
+               // add ties
+               while (j < k) do
+                     if (darray[j] = darray[j+1]) then begin
+                        inc(j);
+                        ConMat[i,iarray[j]] := true;
+                        ConMat[iarray[j],i] := true;
+                     end else j := k;
+            end else begin
+                for j := 1 to k do begin
+                    ConMat[i,iarray[j]] := true;
+                    ConMat[iarray[j],i] := true;
+                    if OutputDists then OutMat[i,j+1] := Dists[i,iarray[j]];
+                end;
+            end;
+         end;
+         ProgressIncrement;
+     end;
+     ProgressClose;
+     if ContinueProgress then begin
+        Data_AddData(ConMat);
+        OutputAddLine('Nearest neighbor connection matrix "' + NewName +
+           '" constructed for distance matrix "'+Dists.MatrixName+'".');
+        if (nd = 1) then OutputAddLine('  Connected first nearest neighbor.')
+        else OutputAddLine('  Connected ' + IntToStr(nd) + ' nearest neighbors.');
+        OutputAddBlankLine;
+        if OutputDists then begin
+           SetLength(IntOut,OutMat.ncols);
+           Header := TpasTableHeader.Create;
+           Header.AddBase('Point');
+           for i := 1 to nd do Header.AddBase(IntToStr(i));
+           Header.AddOther(2,2,nd+1,'Distance to nth nearest neighbor');
+           for i := 0 to OutMat.ncols - 1 do IntOut[i] := false;
+           WriteOutputTable(OutMat,IntOut,Header,'Nearest Neighbor Distances',nil);
+           OutMat.Free;
+           IntOut := nil;
+           Header.Free;
+        end;
+     end else ConMat.Free;
+     if DoTimeStamp then EndTimeStamp;
+end;
+
+
+procedure DistanceClassBasedConnections(DistMat : TpasSymmetricMatrix;
+          DC : TpasDistClass; IncClass : TpasBooleanArray; NewName : string);
+var
+   i,j,c,cnt,n : integer;
+   ConMat : TpasBooleanMatrix;
+   outstr : string;
+begin
+     if DoTimeStamp then StartTimeStamp('Distance Class Connections');
+     n := DistMat.N;
+     ConMat := TpasBooleanMatrix.Create(n);
+     ConMat.MatrixName := NewName;
+     ProgressRefresh(n,'Calculating connections...');
+     for i := 1 to n do if ContinueProgress then begin
+         for j := 1 to i - 1 do
+             if not DistMat.IsEmpty[i,j] then begin
+                c := DC.FindClass(DistMat[i,j]);
+                if IncClass[c-1] then begin
+                   ConMat[i,j] := true;
+                   ConMat[j,i] := true;
+                end else begin
+                    ConMat[i,j] := false;
+                    ConMat[j,i] := false;
+                end;
+             end;
+         ProgressIncrement;
+     end;
+     ProgressClose;
+     if ContinueProgress then begin
+        Data_AddData(ConMat);
+        OutputAddLine('Connection matrix "' + NewName +
+           '" constructed from distance matrix "'+DistMat.MatrixName+
+           '" and distance classes "' +DC.MatrixName+'".');
+        //outstr := '  Included class';
+        cnt := 0;
+        for i := 0 to DC.N - 1 do
+            if IncClass[i] then inc(cnt);
+        if (cnt > 1) then outstr := '  Included class '
+        else outstr := '  Included classes ';
+        j := 0;
+        for i := 0 to DC.N - 1 do
+            if IncClass[i] then begin
+               inc(j);
+               outstr := outstr + DC.DClassName[i+1];
+               if (j < cnt) then outstr := outstr + ', ';
+            end;
+        OutputAddLine(outstr);
+        OutputAddBlankLine;
+     end else ConMat.Free;
+     if DoTimeStamp then EndTimeStamp;
+end;
+
+"""
