@@ -135,3 +135,5 @@ def test_nearest_neighbor_connections():
     distances = pyssage.distcon.sph_dist_matrix(coords[:, 0], coords[:, 1])
     connections = pyssage.distcon.nearest_neighbor_connections(distances, 1)
     pyssage.graph.draw_connections(connections, coords)
+    connections = pyssage.distcon.nearest_neighbor_connections(distances, 2)
+    pyssage.graph.draw_connections(connections, coords)

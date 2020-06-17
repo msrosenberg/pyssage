@@ -752,67 +752,6 @@ def nearest_neighbor_connections(distances: numpy.ndarray, k: int = 1, output_fr
 
 """
 
-procedure NearestNeighborConnections(Dists : TpasSymmetricMatrix; NewName : string;
-          nd : integer; OutputDists : boolean);
-procedure DistanceClassBasedConnections(DistMat : TpasSymmetricMatrix;
-          DC : TpasDistClass; IncClass : TpasBooleanArray; NewName : string);
-
-
-procedure NearestNeighborConnections(Dists : TpasSymmetricMatrix; NewName : string;
-          nd : integer; OutputDists : boolean);
-var
-   n,i,j,k : integer;
-   ConMat : TpasBooleanMatrix;
-   darray : TpasDoubleArray;
-   iarray : TpasIntegerArray;
-   OutMat : TpasMatrix;
-   IntOut : TpasBooleanArray;
-   Header : TpasTableHeader;
-begin
-
-     SetLength(darray,n+1);
-     SetLength(iarray,n+1);
-
-     for i := 1 to n do if ContinueProgress then begin
-
-         k := 0;
-         for j := 1 to n do begin
-             ConMat[i,j] := false;
-             if (i <> j) and not Dists.IsEmpty[i,j] then begin
-                inc(k);
-                darray[k] := Dists[i,j];
-                iarray[k] := j;
-             end;
-         end;
-         if (k > 0) then begin
-            if (nd < k) then begin
-               SortDists(k,darray,iarray);
-               for j := 1 to nd do begin
-                   ConMat[i,iarray[j]] := true;
-                   ConMat[iarray[j],i] := true;
-                   if OutputDists then OutMat[i,j+1] := Dists[i,iarray[j]];
-               end;
-               j := nd;
-               // add ties
-               while (j < k) do
-                     if (darray[j] = darray[j+1]) then begin
-                        inc(j);
-                        ConMat[i,iarray[j]] := true;
-                        ConMat[iarray[j],i] := true;
-                     end else j := k;
-            end else begin
-                for j := 1 to k do begin
-                    ConMat[i,iarray[j]] := true;
-                    ConMat[iarray[j],i] := true;
-                    if OutputDists then OutMat[i,j+1] := Dists[i,iarray[j]];
-                end;
-            end;
-         end;
-     end;
-
-
-
-
 procedure DistanceClassBasedConnections(DistMat : TpasSymmetricMatrix;
           DC : TpasDistClass; IncClass : TpasBooleanArray; NewName : string);
 var
