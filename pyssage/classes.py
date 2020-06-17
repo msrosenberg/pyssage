@@ -4,7 +4,7 @@ from math import sqrt
 Number = Union[int, float]
 
 
-_DEF_CONNECTION = "pointlist"
+_DEF_CONNECTION = "pairlist"
 
 
 class Point:
