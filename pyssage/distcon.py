@@ -482,6 +482,39 @@ def delaunay_connections(triangle_list: list, point_list: list, output_frmt: str
     return output
 
 
+def convert_connection_format(input_data, input_frmt: str, output_frmt: str):
+    """
+    convert from one connection format to another
+
+    if input format is a pair list, we assume that the largest indexed point is the number of points
+    (or put another way, we assume the last point is not unconnected from all of the others)
+    """
+    if input_frmt == "pairlist":
+        n = max(numpy.ndarray(input_data))
+    else:
+        n = len(input_data)
+    output = setup_connection_output(output_frmt, n)
+    if input_frmt == "pairlist":
+        for i in input_data:
+            store_connection(output, i[0], i[1], output_frmt)
+    elif input_frmt == "boolmatrix":
+        for i in range(n):
+            for j in range(i):
+                if input_data[i, j]:
+                    store_connection(output, i, j, output_frmt)
+    elif input_frmt == "binmatrix":
+        for i in range(n):
+            for j in range(i):
+                if input_data[i, j] == 1:
+                    store_connection(output, i, j, output_frmt)
+    elif input_frmt == "revbinmatrix":
+        for i in range(n):
+            for j in range(i):
+                if input_data[i, j] == 0:
+                    store_connection(output, i, j, output_frmt)
+    return output
+
+
 def setup_connection_output(output_frmt: str, n: int):
     """
     checks that the output format for a connection function is valid and returns the correct type of data storage
