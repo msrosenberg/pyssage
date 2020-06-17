@@ -727,6 +727,29 @@ def least_diagonal_network(x: numpy.ndarray, y: numpy.ndarray, distances: numpy.
     return output
 
 
+def nearest_neighbor_connections(distances: numpy.ndarray, k: int = 1, output_frmt: str = _DEF_CONNECTION):
+    """
+    connect each point to it's k nearest neighbors
+
+    individual points can be connected to more than k points because of ties and because a pair are not necessarily
+    each other's nearest neighbors
+    """
+    n = check_input_distance_matrix(distances)
+    output = setup_connection_output(output_frmt, n)
+    for i in range(n):
+        dists = []
+        for j in range(n):
+            if j != i:
+                dists.append([distances[i, j], j])
+        dists.sort()
+        c = k
+        while dists[c][0] == dists[c+1][0]:  # this accounts for ties
+            c += 1
+        for p in range(c):  # connect the c closest points to the ith point
+            store_connection(output, i, dists[p][1], output_frmt)
+    return output
+
+
 """
 
 procedure NearestNeighborConnections(Dists : TpasSymmetricMatrix; NewName : string;
@@ -746,19 +769,12 @@ var
    IntOut : TpasBooleanArray;
    Header : TpasTableHeader;
 begin
-     if DoTimeStamp then StartTimeStamp('Nearest-Neighbor Connections');
-     n := Dists.N;
-     ConMat := TpasBooleanMatrix.Create(n);
-     ConMat.MatrixName := NewName;
-     ProgressRefresh(n,'Calculating connections...');
+
      SetLength(darray,n+1);
      SetLength(iarray,n+1);
-     if OutputDists then begin
-        OutMat := TpasMatrix.Create(n,nd+1);
-     end else OutMat := nil;
 
      for i := 1 to n do if ContinueProgress then begin
-         if OutputDists then OutMat.StrData[i,1] := Dists.RCLabel[i];
+
          k := 0;
          for j := 1 to n do begin
              ConMat[i,j] := false;
@@ -792,31 +808,9 @@ begin
                 end;
             end;
          end;
-         ProgressIncrement;
      end;
-     ProgressClose;
-     if ContinueProgress then begin
-        Data_AddData(ConMat);
-        OutputAddLine('Nearest neighbor connection matrix "' + NewName +
-           '" constructed for distance matrix "'+Dists.MatrixName+'".');
-        if (nd = 1) then OutputAddLine('  Connected first nearest neighbor.')
-        else OutputAddLine('  Connected ' + IntToStr(nd) + ' nearest neighbors.');
-        OutputAddBlankLine;
-        if OutputDists then begin
-           SetLength(IntOut,OutMat.ncols);
-           Header := TpasTableHeader.Create;
-           Header.AddBase('Point');
-           for i := 1 to nd do Header.AddBase(IntToStr(i));
-           Header.AddOther(2,2,nd+1,'Distance to nth nearest neighbor');
-           for i := 0 to OutMat.ncols - 1 do IntOut[i] := false;
-           WriteOutputTable(OutMat,IntOut,Header,'Nearest Neighbor Distances',nil);
-           OutMat.Free;
-           IntOut := nil;
-           Header.Free;
-        end;
-     end else ConMat.Free;
-     if DoTimeStamp then EndTimeStamp;
-end;
+
+
 
 
 procedure DistanceClassBasedConnections(DistMat : TpasSymmetricMatrix;

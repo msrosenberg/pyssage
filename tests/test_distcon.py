@@ -128,3 +128,10 @@ def test_least_diagonal_network():
     connections = pyssage.distcon.least_diagonal_network(coords[:, 0], coords[:, 1], distances)
     pyssage.graph.draw_connections(connections, coords)
     # assert False
+
+
+def test_nearest_neighbor_connections():
+    coords = test_coords()
+    distances = pyssage.distcon.sph_dist_matrix(coords[:, 0], coords[:, 1])
+    connections = pyssage.distcon.nearest_neighbor_connections(distances, 1)
+    pyssage.graph.draw_connections(connections, coords)
