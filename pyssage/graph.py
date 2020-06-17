@@ -1,4 +1,4 @@
-from pyssage.classes import Number
+from pyssage.classes import Number, _DEF_CONNECTION
 import matplotlib.pyplot as pyplot
 from matplotlib.lines import Line2D
 # import matplotlib.patches as mpatches
@@ -75,7 +75,7 @@ def check_connection_format(con_frmt: str) -> None:
         raise ValueError("{} is not a valid connection format".format(con_frmt))
 
 
-def draw_connections(connections, coords, connection_frmt: str = "boolmatrix", title: str = ""):
+def draw_connections(connections, coords, connection_frmt: str = _DEF_CONNECTION, title: str = ""):
     check_connection_format(connection_frmt)
     fig, axs = pyplot.subplots()
     minx = min(coords[:, 0])

@@ -1,7 +1,7 @@
 from typing import Optional, Tuple
 from math import sqrt, sin, cos, acos, pi, atan
 import numpy
-from pyssage.classes import Point, Triangle, VoronoiEdge, VoronoiTessellation, VoronoiPolygon
+from pyssage.classes import Point, Triangle, VoronoiEdge, VoronoiTessellation, VoronoiPolygon, _DEF_CONNECTION
 
 # __all__ = ["euc_dist_matrix"]
 
@@ -155,7 +155,7 @@ def calculate_delaunay_triangles(x: numpy.ndarray, y: numpy.ndarray) -> Tuple[li
     return triangle_list, point_list
 
 
-def delaunay_tessellation(x: numpy.ndarray, y: numpy.ndarray, output_frmt: str = "boolmatrix"):
+def delaunay_tessellation(x: numpy.ndarray, y: numpy.ndarray, output_frmt: str = _DEF_CONNECTION):
     n = len(x)
     if n != len(y):
         raise ValueError("Coordinate vectors must be same length")
@@ -469,7 +469,7 @@ def calculate_tessellation(triangle_list: list, point_list: list) -> VoronoiTess
     return tessellation
 
 
-def delaunay_connections(triangle_list: list, point_list: list, output_frmt: str = "boolmatrix"):
+def delaunay_connections(triangle_list: list, point_list: list, output_frmt: str = _DEF_CONNECTION):
     n = len(point_list)
     output = setup_connection_output(output_frmt, n)
     for triangle in triangle_list:
@@ -525,7 +525,7 @@ def check_input_distance_matrix(distances: numpy.ndarray) -> int:
         return len(distances)
 
 
-def relative_neighborhood_network(distances: numpy.ndarray, output_frmt: str = "boolmatrix"):
+def relative_neighborhood_network(distances: numpy.ndarray, output_frmt: str = _DEF_CONNECTION):
     """
     calculate connections among points based on a relative neighborhood network
     """
@@ -543,7 +543,7 @@ def relative_neighborhood_network(distances: numpy.ndarray, output_frmt: str = "
     return output
 
 
-def gabriel_network(distances: numpy.ndarray, output_frmt: str = "boolmatrix"):
+def gabriel_network(distances: numpy.ndarray, output_frmt: str = _DEF_CONNECTION):
     """
     calculate connections among points based on a Gabriel network
     """
@@ -562,7 +562,7 @@ def gabriel_network(distances: numpy.ndarray, output_frmt: str = "boolmatrix"):
     return output
 
 
-def minimum_spanning_tree(distances: numpy.ndarray, output_frmt: str = "boolmatrix"):
+def minimum_spanning_tree(distances: numpy.ndarray, output_frmt: str = _DEF_CONNECTION):
     """
     calculate connections among points based on a minimum spanning tree
 
@@ -589,7 +589,7 @@ def minimum_spanning_tree(distances: numpy.ndarray, output_frmt: str = "boolmatr
 
 
 def connect_distance_range(distances: numpy.ndarray, maxdist: float, mindist: float = 0,
-                           output_frmt: str = "boolmatrix"):
+                           output_frmt: str = _DEF_CONNECTION):
     """
     calculate connections based on a distance range, defined by maxdist and mindist
 
@@ -605,7 +605,7 @@ def connect_distance_range(distances: numpy.ndarray, maxdist: float, mindist: fl
 
 
 def least_diagonal_network(x: numpy.ndarray, y: numpy.ndarray, distances: numpy.ndarray,
-                           output_frmt: str = "boolmatrix"):
+                           output_frmt: str = _DEF_CONNECTION):
     """
     calculate connections among points based on a least diagonal network
     """

@@ -4,6 +4,9 @@ from math import sqrt
 Number = Union[int, float]
 
 
+_DEF_CONNECTION = "pointlist"
+
+
 class Point:
     def __init__(self, x: float = 0, y: float = 0, real: bool = True):
         self.x = x
