@@ -137,3 +137,21 @@ def test_nearest_neighbor_connections():
     pyssage.graph.draw_connections(connections, coords)
     connections = pyssage.distcon.nearest_neighbor_connections(distances, 2)
     pyssage.graph.draw_connections(connections, coords)
+
+
+def test_geodesic_distances():
+    coords = test_coords()
+    distances = pyssage.distcon.sph_dist_matrix(coords[:, 0], coords[:, 1])
+    # test a fully connected network
+    connections = pyssage.distcon.minimum_spanning_tree(distances, output_frmt="boolmatrix")
+    geodists, trace = pyssage.distcon.shortest_path_distances(distances, connections)
+    print()
+    for i in range(20):
+        print(0, i, pyssage.distcon.trace_path(0, i, trace), geodists[0, i])
+
+    # test a partially connected network
+    connections = pyssage.distcon.nearest_neighbor_connections(distances, 1, output_frmt="boolmatrix")
+    geodists, trace = pyssage.distcon.shortest_path_distances(distances, connections)
+    print()
+    for i in range(20):
+        print(0, i, pyssage.distcon.trace_path(0, i, trace), geodists[0, i])

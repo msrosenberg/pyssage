@@ -750,6 +750,60 @@ def nearest_neighbor_connections(distances: numpy.ndarray, k: int = 1, output_fr
     return output
 
 
+def shortest_path_distances(distances: numpy.ndarray, connections: numpy.ndarray) -> Tuple[numpy.ndarray, dict]:
+    """
+    create a shortest-path/geodesic distance matrix from a set of inter-point distances and a connection/network
+    scheme
+
+    the connections must be given in the boolean matrix format
+
+    This uses the Floyd-Warshall algorithm
+    See Corman, T.H., Leiserson, C.E., and Rivest, R.L., 'Introduction to Algorithms', section 26.2, p. 558-562.
+
+    trace_mat is a dictionary tracing the shortest path
+
+    the algorithm will work on connection networks which are not fully spanning (i.e., there are no paths between
+    some pairs of points), reporting infinity for the distance between such pairs
+    """
+    n = len(distances)
+    output = numpy.copy(distances)
+    empty = numpy.invert(connections)
+    trace_mat = {(i, j): j for i in range(n) for j in range(n)}
+    for k in range(n):
+        for i in range(n):
+            for j in range(n):
+                if (not empty[i, k]) and (not empty[j, k]):
+                    if empty[i, j]:
+                        output[i, j] = output[i, k] + output[k, j]
+                        empty[i, j] = False
+                        trace_mat[i, j] = trace_mat[i, k]
+                    else:
+                        if output[i, j] > output[i, k] + output[k, j]:
+                            output[i, j] = output[i, k] + output[k, j]
+                            trace_mat[i, j] = trace_mat[i, k]
+    # the following removes "connections" among point pairs with no connected path
+    for i in range(n):
+        for j in range(n):
+            if (trace_mat[i, j] == j) and not connections[i, j]:
+                trace_mat.pop((i, j))  # remove path from trace matrix
+                output[i, j] = float("inf")  # change distance to infinity
+    return output, trace_mat
+
+
+def trace_path(i: int, j: int, trace_matrix: dict) -> list:
+    """
+    given the trace matrix from the geodesic distance/shortest path function, report the path between points i and j
+    """
+    if (i, j) not in trace_matrix:  # no path between i and j
+        return []
+    else:
+        output = [i]
+        while i != j:
+            i = trace_matrix[i, j]
+            output.append(i)
+        return output
+
+
 """
 
 procedure DistanceClassBasedConnections(DistMat : TpasSymmetricMatrix;
@@ -802,5 +856,81 @@ begin
      end else ConMat.Free;
      if DoTimeStamp then EndTimeStamp;
 end;
+
+
+
+procedure CreateDistClasses(DistMat : TpasSymmetricMatrix; DCName : string;
+            DoManual,DoWidth,DoClass : boolean; nc,np : integer; w : double;
+            UpList,LowList : TStringList);
+// Note: this routine is only used in batch mode
+var
+   Distances : TpasDoubleArray;
+   total,cnt,r,c : integer;
+   NewDC : TpasDistClass;
+   DoLow : boolean;
+   fstr : string;
+begin
+     fstr := FormatFloatStr(OutputDecs);
+     SetLength(Distances,DistMat.ValidN + 1);
+     cnt := 0;
+     for r := 1 to DistMat.N do
+         for c := 1 to r - 1 do
+             if not DistMat.IsEmpty[r,c] then begin
+                inc(cnt);
+                Distances[cnt] := DistMat[r,c];
+             end;
+     sort(cnt,Distances);
+     total := length(Distances) - 1;
+     DoLow := false;
+     // find # of classes
+     if DoManual then begin
+        nc := UpList.Count;
+        if (LowList.Count > 0) then DoLow := true;
+     end else if not DoClass then begin
+          if DoWidth then nc := 1
+          else begin
+               nc := total div np;
+               if (total mod np <> 0) then inc(nc);
+          end;
+     end;
+     // create new dc
+     if DoManual and (LowList.Count > 0) then NewDC := TpasDistClass.Create(nc,false)
+     else NewDC := TpasDistClass.Create(nc,true);
+     NewDC.MatrixName := DCName;
+     // set boundaries
+     if DoManual then begin
+        for c := 1 to nc do begin
+            NewDC.UpperBound[c] := StrToFloat(UpList[c-1]);
+            if DoLow then NewDC.LowerBound[c] := StrToFloat(LowList[c-1]);
+        end;
+     end else if DoWidth then begin
+         for c := 1 to nc - 1 do
+             if DoClass then
+                NewDC.UpperBound[c] := c * Distances[total] / nc
+             else NewDC.UpperBound[c] := w * c;
+         NewDC.UpperBound[nc] := Distances[total] + 1.0;
+     end else begin
+         for c := 1 to nc - 1 do
+             if DoClass then
+                NewDC.UpperBound[c] := Distances[Round(total * c / nc)]
+             else NewDC.UpperBound[c] := Distances[c * np];
+         NewDC.UpperBound[nc] := Distances[total] + 1.0;
+     end;
+     Data_AddData(NewDC);
+     OutputAddLine('Distance classes "' + NewDC.MatrixName +
+               '" constructed for distance matrix "' + DistMat.MatrixName+ '".');
+     if DoManual then OutputAddLine('  Manual bounds')
+     else if DoWidth then begin
+          if DoClass then
+             OutputAddLine('  Equal width classes; # of classes = ' + IntToStr(nc))
+          else OutputAddLine('  Equal width classes; width = ' + format(fstr,[w]));
+     end else begin
+         if DoClass then
+            OutputAddLine('  Equal count per class; # of classes = ' + IntToStr(nc))
+         else OutputAddLine('  Equal count per class; # of pairs = ' + IntToStr(np));
+     end;
+     OutputAddBlankLine;
+end;
+
 
 """
