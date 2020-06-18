@@ -6,22 +6,22 @@ from tests.test_common import test_coords, load_answer
 
 
 def test_delaunay_tessellation():
+    # answer calculated from PASSaGE 2 and exported as a binary connection matrix
+    answer = load_answer("delaunay_answer.txt")
+
     coords = test_coords()
-    tessellation, connections = pyssage.distcon.delaunay_tessellation(coords[:, 0], coords[:, 1])
-    pyssage.graph.draw_tessellation(tessellation, coords[:, 0], coords[:, 1], "tessellation")
-    pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1], title="connections as pair list")
-    # _, connections = pyssage.distcon.delaunay_tessellation(coords[:, 0], coords[:, 1], output_frmt="binmatrix")
-    # pyssage.graph.draw_connections(connections, coords, connection_frmt="binmatrix",
-    #                                title="connections as binary matrix")
-    # _, connections = pyssage.distcon.delaunay_tessellation(coords[:, 0], coords[:, 1], output_frmt="revbinmatrix")
-    # pyssage.graph.draw_connections(connections, coords, connection_frmt="revbinmatrix",
-    #                                title="connections as reverse binary matrix")
-    # _, connections = pyssage.distcon.delaunay_tessellation(coords[:, 0], coords[:, 1], output_frmt="boolmatrix")
-    # pyssage.graph.draw_connections(connections, coords, connection_frmt="pairlist",
-    #                                title="connections as boolean matrix")
+    tessellation, connections = pyssage.distcon.delaunay_tessellation(coords[:, 0], coords[:, 1],
+                                                                      output_frmt="binmatrix")
+    pyssage.graph.draw_tessellation(tessellation, coords[:, 0], coords[:, 1], "Tessellation Test")
+    pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1], connection_frmt="binmatrix",
+                                   title="Delaunay Connections Test")
+    for i in range(len(answer)):
+        for j in range(len(answer)):
+            assert answer[i, j] == connections[i, j]
 
 
 def test_euc_dist_matrix():
+    # answer calculated from PASSaGE 2 and exported to 5 decimals
     answer = load_answer("euc_distmat_answer.txt")
 
     coords = test_coords()
@@ -32,6 +32,7 @@ def test_euc_dist_matrix():
 
 
 def test_sph_dist_matrix():
+    # answer calculated from PASSaGE 2 and exported to 5 decimals
     answer = load_answer("sph_distmat_answer.txt")
 
     coords = test_coords()
@@ -92,69 +93,126 @@ def test_setup_connection_output():
 
 
 def test_relative_neighborhood_network():
+    # answer calculated from PASSaGE 2 and exported as a binary connection matrix
+    answer = load_answer("rel_neighbor_answer.txt")
+
     coords = test_coords()
     distances = pyssage.distcon.sph_dist_matrix(coords[:, 0], coords[:, 1])
-    connections = pyssage.distcon.relative_neighborhood_network(distances)
-    pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1])
-    # assert False
+    connections = pyssage.distcon.relative_neighborhood_network(distances, output_frmt="binmatrix")
+    pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1], connection_frmt="binmatrix",
+                                   title="Relative Neighborhood Network Test")
+    for i in range(len(answer)):
+        for j in range(len(answer)):
+            assert answer[i, j] == connections[i, j]
 
 
 def test_gabriel_network():
+    # answer calculated from PASSaGE 2 and exported as a binary connection matrix
+    answer = load_answer("gabriel_answer.txt")
+
     coords = test_coords()
     distances = pyssage.distcon.sph_dist_matrix(coords[:, 0], coords[:, 1])
-    connections = pyssage.distcon.gabriel_network(distances)
-    pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1])
-    # assert False
+    connections = pyssage.distcon.gabriel_network(distances, output_frmt="binmatrix")
+    pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1], connection_frmt="binmatrix",
+                                   title="Gabriel Graph/Network Test")
+    for i in range(len(answer)):
+        for j in range(len(answer)):
+            assert answer[i, j] == connections[i, j]
 
 
 def test_minimum_spanning_tree():
+    # answer calculated from PASSaGE 2 and exported as a binary connection matrix
+    answer = load_answer("minspan_answer.txt")
+
     coords = test_coords()
     distances = pyssage.distcon.sph_dist_matrix(coords[:, 0], coords[:, 1])
-    connections = pyssage.distcon.minimum_spanning_tree(distances)
-    pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1])
-    # assert False
+    connections = pyssage.distcon.minimum_spanning_tree(distances, output_frmt="binmatrix")
+    pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1], connection_frmt="binmatrix",
+                                   title="Minimum-Spanning Tree Test")
+    for i in range(len(answer)):
+        for j in range(len(answer)):
+            assert answer[i, j] == connections[i, j]
 
 
 def test_connect_distance_range():
+    # # answer2 calculated from PASSaGE 2 and exported as a binary connection matrix
+    # answer = load_answer("distance_based_connect_25-100_answer.txt")
+
     coords = test_coords()
     distances = pyssage.distcon.sph_dist_matrix(coords[:, 0], coords[:, 1])
-    connections = pyssage.distcon.connect_distance_range(distances, mindist=10, maxdist=50)
-    pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1])
-    # assert False
+    connections = pyssage.distcon.connect_distance_range(distances, mindist=25, maxdist=100, output_frmt="binmatrix")
+    pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1], connection_frmt="binmatrix",
+                                   title="Distance-based Connections (25-100) Test")
+    # for i in range(len(answer)):
+    #     for j in range(len(answer)):
+    #         assert answer[i, j] == connections[i, j]
+    #
+    # answer = load_answer("distance_based_connect_50-150_answer.txt")
+    # connections = pyssage.distcon.connect_distance_range(distances, mindist=50, maxdist=150, output_frmt="binmatrix")
+    # pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1], connection_frmt="binmatrix",
+    #                                title="Distance-based Connections (50-150) Test")
+    # for i in range(len(answer)):
+    #     for j in range(len(answer)):
+    #         assert answer[i, j] == connections[i, j]
 
 
 def test_least_diagonal_network():
+    # answer calculated from PASSaGE 2 and exported as a binary connection matrix
+    answer = load_answer("least_diag_answer.txt")
+
     coords = test_coords()
     distances = pyssage.distcon.sph_dist_matrix(coords[:, 0], coords[:, 1])
-    connections = pyssage.distcon.least_diagonal_network(coords[:, 0], coords[:, 1], distances)
-    pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1])
-    # assert False
+    connections = pyssage.distcon.least_diagonal_network(coords[:, 0], coords[:, 1], distances, output_frmt="binmatrix")
+    pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1], connection_frmt="binmatrix",
+                                   title="Least Diagonal Network Test")
+    for i in range(len(answer)):
+        for j in range(len(answer)):
+            assert answer[i, j] == connections[i, j]
 
 
 def test_nearest_neighbor_connections():
+    # answer calculated from PASSaGE 2 and exported as a binary connection matrix
+    answer = load_answer("nearest_neighbor_1_answer.txt")
+
     coords = test_coords()
     distances = pyssage.distcon.sph_dist_matrix(coords[:, 0], coords[:, 1])
-    connections = pyssage.distcon.nearest_neighbor_connections(distances, 1)
-    pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1])
-    connections = pyssage.distcon.nearest_neighbor_connections(distances, 2)
-    pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1])
+    connections = pyssage.distcon.nearest_neighbor_connections(distances, 1, output_frmt="binmatrix")
+    pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1], connection_frmt="binmatrix",
+                                   title="Nearest Neighbor (k=1) Test")
+    for i in range(len(answer)):
+        for j in range(len(answer)):
+            assert answer[i, j] == connections[i, j]
+
+    answer = load_answer("nearest_neighbor_2_answer.txt")
+    connections = pyssage.distcon.nearest_neighbor_connections(distances, 2, output_frmt="binmatrix")
+    pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1], connection_frmt="binmatrix",
+                                   title="Nearest Neighbor (k=1) Test")
+    for i in range(len(answer)):
+        for j in range(len(answer)):
+            assert answer[i, j] == connections[i, j]
 
 
-def test_geodesic_distances():
+def test_shortest_path_distances():
+    # answer calculated from PASSaGE 2 and exported to 5 decimals
+    answer = load_answer("shortest_path_minspan_answer.txt")
+
     coords = test_coords()
     distances = pyssage.distcon.sph_dist_matrix(coords[:, 0], coords[:, 1])
+
     # test a fully connected network
     connections = pyssage.distcon.minimum_spanning_tree(distances, output_frmt="boolmatrix")
     geodists, trace = pyssage.distcon.shortest_path_distances(distances, connections)
-    # print()
-    # for i in range(20):
-    #     print(0, i, pyssage.distcon.trace_path(0, i, trace), geodists[0, i])
     pyssage.graph.draw_shortest_path(connections, coords[:, 0], coords[:, 1], trace, 0, 300,
                                      connection_frmt="boolmatrix")
+    for i in range(len(answer)):
+        for j in range(len(answer)):
+            assert round(answer[i, j], 0) == round(geodists[i, j], 0)
+            # rounding differences are adding up; a number of the estimated distances are marginally different at
+            # even 1 decimal place (just a single digit) (others are different by one digit at 2, 3, 4, or 5 decimals)
 
     # test a partially connected network
     connections = pyssage.distcon.nearest_neighbor_connections(distances, 1, output_frmt="boolmatrix")
-    geodists, trace = pyssage.distcon.shortest_path_distances(distances, connections)
+    _, _ = pyssage.distcon.shortest_path_distances(distances, connections)
     # print()
     # for i in range(20):
     #     print(0, i, pyssage.distcon.trace_path(0, i, trace), geodists[0, i])
