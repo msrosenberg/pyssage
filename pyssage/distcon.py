@@ -768,6 +768,9 @@ def shortest_path_distances(distances: numpy.ndarray, connections: numpy.ndarray
     n = len(distances)
     output = numpy.copy(distances)
     empty = numpy.invert(connections)
+    # for the purposes of this algorithm, points must be connected to themselves
+    for i in range(n):
+        empty[i, i] = False
     trace_mat = {(i, j): j for i in range(n) for j in range(n)}
     for k in range(n):
         for i in range(n):
@@ -784,9 +787,10 @@ def shortest_path_distances(distances: numpy.ndarray, connections: numpy.ndarray
     # the following removes "connections" among point pairs with no connected path
     for i in range(n):
         for j in range(n):
-            if (trace_mat[i, j] == j) and not connections[i, j]:
-                trace_mat.pop((i, j))  # remove path from trace matrix
-                output[i, j] = float("inf")  # change distance to infinity
+            if i != j:  # points cannot be unconnected from themselves
+                if (trace_mat[i, j] == j) and not connections[i, j]:
+                    trace_mat.pop((i, j))  # remove path from trace matrix
+                    output[i, j] = float("inf")  # change distance to infinity
     return output, trace_mat
 
 
@@ -807,6 +811,7 @@ def trace_path(i: int, j: int, trace_matrix: dict) -> list:
 def distance_classes(nclasses: int, dist_matrix: numpy.ndarray):
     distances = dist_matrix.flatten().sort()
     total = len(distances)
+
 
 """
 
