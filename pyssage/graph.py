@@ -1,5 +1,6 @@
 from pyssage.classes import Number, _DEF_CONNECTION
 import pyssage.distcon
+import pyssage.utils
 import matplotlib.pyplot as pyplot
 from matplotlib.lines import Line2D
 # import matplotlib.patches as mpatches
@@ -163,6 +164,38 @@ def draw_shortest_path(connections, xcoords: numpy.ndarray, ycoords: numpy.ndarr
     pyplot.scatter(xcoords, ycoords, color="black", zorder=2)
     axs.set_xlim(minx-1, maxx+1)
     axs.set_ylim(miny-1, maxy+1)
+    if title != "":
+        axs.set_title(title)
+    pyplot.show()
+
+
+def draw_distance_class_distribution(dist_matrix: numpy.ndarray, dist_class: numpy.ndarray, title: str = ""):
+    fig, axs = pyplot.subplots()
+    distances = pyssage.utils.flatten_half(dist_matrix)
+    distances.sort()
+    total = len(distances)
+    y = [i+1 for i in range(total)]
+    r = []
+    i = 0
+    c = 0
+    while c < len(dist_class) and i < total:
+        if distances[i] >= dist_class[c, 1]:
+            r.append(i+1)
+            c += 1
+        i += 1
+    r.append(total)
+
+    axs.plot(distances, y, zorder=1)
+    for i in range(len(dist_class)):
+        c = dist_class[i]
+        upper = c[1]
+        y = [0, r[i], r[i]]
+        x = [upper, upper, 0]
+        line = Line2D(x, y, color="red", zorder=2)
+        axs.add_line(line)
+
+    axs.set_xlabel("Distance")
+    axs.set_ylabel("Cumulative Count")
     if title != "":
         axs.set_title(title)
     pyplot.show()

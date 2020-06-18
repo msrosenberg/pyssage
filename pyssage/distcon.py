@@ -2,6 +2,7 @@ from typing import Optional, Tuple
 from math import sqrt, sin, cos, acos, pi, atan
 import numpy
 from pyssage.classes import Point, Triangle, VoronoiEdge, VoronoiTessellation, VoronoiPolygon, _DEF_CONNECTION, Number
+import pyssage.utils
 
 # __all__ = ["euc_dist_matrix"]
 
@@ -808,7 +809,7 @@ def trace_path(i: int, j: int, trace_matrix: dict) -> list:
         return output
 
 
-def create_distance_classes(dist_matrix: numpy.ndarray, class_mode: str, mode_value: Number) -> list:
+def create_distance_classes(dist_matrix: numpy.ndarray, class_mode: str, mode_value: Number) -> numpy.ndarray:
     maxadj = 1.0000001
     valid_modes = ("set class width", "set pair count", "determine class width", "determine pair count")
     if class_mode not in valid_modes:
@@ -816,9 +817,8 @@ def create_distance_classes(dist_matrix: numpy.ndarray, class_mode: str, mode_va
 
     limits = []
     nclasses = 0
-    # lower = 0
     if "width" in class_mode:
-        maxdist = max(dist_matrix)
+        maxdist = numpy.max(dist_matrix)
         class_width = 0
         if class_mode == "set class width":
             class_width = mode_value
@@ -827,13 +827,11 @@ def create_distance_classes(dist_matrix: numpy.ndarray, class_mode: str, mode_va
             nclasses = mode_value
             class_width = maxdist * maxadj / nclasses
         for c in range(nclasses):
-            # upper = lower + class_width
-            # limits.append([lower, upper])
-            # lower = upper
             limits.append([c*class_width, (c+1)*class_width])
 
     elif "pair" in class_mode:
-        distances = dist_matrix.flatten().sort()  # we only need to do this for these modes
+        distances = pyssage.utils.flatten_half(dist_matrix)  # only need to flatten half the matrix
+        distances.sort()  # we only need to do this for these modes
         total = len(distances)
         pairs_per_class = 0
         if class_mode == "set pair count":
@@ -844,9 +842,10 @@ def create_distance_classes(dist_matrix: numpy.ndarray, class_mode: str, mode_va
         elif class_mode == "determine pair count":
             nclasses = mode_value
             pairs_per_class = total / nclasses
+
         lower = 0
         for c in range(nclasses):
-            i = round(c * pairs_per_class)
+            i = round((c+1) * pairs_per_class)
             if i >= total:
                 upper = distances[total - 1] * maxadj
             else:
@@ -854,7 +853,7 @@ def create_distance_classes(dist_matrix: numpy.ndarray, class_mode: str, mode_va
             limits.append([lower, upper])
             lower = upper
 
-    return limits
+    return numpy.array(limits)
 
 
 """

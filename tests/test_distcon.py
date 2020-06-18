@@ -234,3 +234,16 @@ def test_shortest_path_distances():
     # print()
     # for i in range(20):
     #     print(0, i, pyssage.distcon.trace_path(0, i, trace), geodists[0, i])
+
+
+def test_create_distance_classes():
+    coords = test_coords()
+    distances = pyssage.distcon.sph_dist_matrix(coords[:, 0], coords[:, 1])
+    dc = pyssage.distcon.create_distance_classes(distances, "determine class width", 10)
+    pyssage.graph.draw_distance_class_distribution(distances, dc, title="Ten Equal Width Distance Classes")
+    dc = pyssage.distcon.create_distance_classes(distances, "determine pair count", 10)
+    pyssage.graph.draw_distance_class_distribution(distances, dc, title="Ten Equal Count Distance Classes")
+    dc = pyssage.distcon.create_distance_classes(distances, "set class width", 200)
+    pyssage.graph.draw_distance_class_distribution(distances, dc, title="Distance Class Width Set to 200")
+    dc = pyssage.distcon.create_distance_classes(distances, "set pair count", 5000)
+    pyssage.graph.draw_distance_class_distribution(distances, dc, title="Distance Class Pair Count Set to 5000")
