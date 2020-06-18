@@ -135,25 +135,32 @@ def test_minimum_spanning_tree():
 
 
 def test_connect_distance_range():
-    # # answer2 calculated from PASSaGE 2 and exported as a binary connection matrix
-    # answer = load_answer("distance_based_connect_25-100_answer.txt")
+    # answers calculated from PASSaGE 2 and exported as a binary connection matrix
+    """
+    PASSaGE answers had empty diagonals for some odd reason; needed to fix prior to import
+
+    One small change between this implementation and that of PASSaGE (does not affect test):
+    PASSaGE had the upper value as non-inclusive (dist < maxdist); currently this code is inclusive of the
+    upper value (dist <= maxdist). Should think about whether to keep this way or not
+    """
+    answer = load_answer("distance_based_connect_25-100_answer.txt")
 
     coords = test_coords()
     distances = pyssage.distcon.sph_dist_matrix(coords[:, 0], coords[:, 1])
     connections = pyssage.distcon.connect_distance_range(distances, mindist=25, maxdist=100, output_frmt="binmatrix")
     pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1], connection_frmt="binmatrix",
                                    title="Distance-based Connections (25-100) Test")
-    # for i in range(len(answer)):
-    #     for j in range(len(answer)):
-    #         assert answer[i, j] == connections[i, j]
-    #
-    # answer = load_answer("distance_based_connect_50-150_answer.txt")
-    # connections = pyssage.distcon.connect_distance_range(distances, mindist=50, maxdist=150, output_frmt="binmatrix")
-    # pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1], connection_frmt="binmatrix",
-    #                                title="Distance-based Connections (50-150) Test")
-    # for i in range(len(answer)):
-    #     for j in range(len(answer)):
-    #         assert answer[i, j] == connections[i, j]
+    for i in range(len(answer)):
+        for j in range(len(answer)):
+            assert answer[i, j] == connections[i, j]
+
+    answer = load_answer("distance_based_connect_50-150_answer.txt")
+    connections = pyssage.distcon.connect_distance_range(distances, mindist=50, maxdist=150, output_frmt="binmatrix")
+    pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1], connection_frmt="binmatrix",
+                                   title="Distance-based Connections (50-150) Test")
+    for i in range(len(answer)):
+        for j in range(len(answer)):
+            assert answer[i, j] == connections[i, j]
 
 
 def test_least_diagonal_network():
@@ -187,6 +194,10 @@ def test_nearest_neighbor_connections():
     """
     The answer to this did not match that in PASSaGE 2. I have found an error in the old PASSaGE 2 code leading
     to the discrepancy. At this point I believe this code is correct, but do not have a formal test yet.
+
+    For reference, the error in the PASSaGE code was inadvertently resetting of positive connections to
+    negative when looking at nearest neighbors for later points in the list, thus eliminating some of the potential
+    asymmetric connections
     """
     coords = test_coords()
     distances = pyssage.distcon.sph_dist_matrix(coords[:, 0], coords[:, 1])
