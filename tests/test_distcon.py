@@ -8,16 +8,17 @@ from tests.test_common import test_coords, load_answer
 def test_delaunay_tessellation():
     coords = test_coords()
     tessellation, connections = pyssage.distcon.delaunay_tessellation(coords[:, 0], coords[:, 1])
-    pyssage.graph.draw_tessellation(tessellation, coords, "tessellation")
-    pyssage.graph.draw_connections(connections, coords, "connections as boolean matrix")
+    pyssage.graph.draw_tessellation(tessellation, coords[:, 0], coords[:, 1], "tessellation")
+    pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1], title="connections as pair list")
     # _, connections = pyssage.distcon.delaunay_tessellation(coords[:, 0], coords[:, 1], output_frmt="binmatrix")
     # pyssage.graph.draw_connections(connections, coords, connection_frmt="binmatrix",
     #                                title="connections as binary matrix")
     # _, connections = pyssage.distcon.delaunay_tessellation(coords[:, 0], coords[:, 1], output_frmt="revbinmatrix")
     # pyssage.graph.draw_connections(connections, coords, connection_frmt="revbinmatrix",
     #                                title="connections as reverse binary matrix")
-    # _, connections = pyssage.distcon.delaunay_tessellation(coords[:, 0], coords[:, 1], output_frmt="pairlist")
-    # pyssage.graph.draw_connections(connections, coords, connection_frmt="pairlist", title="connections as pair list")
+    # _, connections = pyssage.distcon.delaunay_tessellation(coords[:, 0], coords[:, 1], output_frmt="boolmatrix")
+    # pyssage.graph.draw_connections(connections, coords, connection_frmt="pairlist",
+    #                                title="connections as boolean matrix")
 
 
 def test_euc_dist_matrix():
@@ -94,7 +95,7 @@ def test_relative_neighborhood_network():
     coords = test_coords()
     distances = pyssage.distcon.sph_dist_matrix(coords[:, 0], coords[:, 1])
     connections = pyssage.distcon.relative_neighborhood_network(distances)
-    pyssage.graph.draw_connections(connections, coords)
+    pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1])
     # assert False
 
 
@@ -102,7 +103,7 @@ def test_gabriel_network():
     coords = test_coords()
     distances = pyssage.distcon.sph_dist_matrix(coords[:, 0], coords[:, 1])
     connections = pyssage.distcon.gabriel_network(distances)
-    pyssage.graph.draw_connections(connections, coords)
+    pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1])
     # assert False
 
 
@@ -110,7 +111,7 @@ def test_minimum_spanning_tree():
     coords = test_coords()
     distances = pyssage.distcon.sph_dist_matrix(coords[:, 0], coords[:, 1])
     connections = pyssage.distcon.minimum_spanning_tree(distances)
-    pyssage.graph.draw_connections(connections, coords)
+    pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1])
     # assert False
 
 
@@ -118,7 +119,7 @@ def test_connect_distance_range():
     coords = test_coords()
     distances = pyssage.distcon.sph_dist_matrix(coords[:, 0], coords[:, 1])
     connections = pyssage.distcon.connect_distance_range(distances, mindist=10, maxdist=50)
-    pyssage.graph.draw_connections(connections, coords)
+    pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1])
     # assert False
 
 
@@ -126,7 +127,7 @@ def test_least_diagonal_network():
     coords = test_coords()
     distances = pyssage.distcon.sph_dist_matrix(coords[:, 0], coords[:, 1])
     connections = pyssage.distcon.least_diagonal_network(coords[:, 0], coords[:, 1], distances)
-    pyssage.graph.draw_connections(connections, coords)
+    pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1])
     # assert False
 
 
@@ -134,9 +135,9 @@ def test_nearest_neighbor_connections():
     coords = test_coords()
     distances = pyssage.distcon.sph_dist_matrix(coords[:, 0], coords[:, 1])
     connections = pyssage.distcon.nearest_neighbor_connections(distances, 1)
-    pyssage.graph.draw_connections(connections, coords)
+    pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1])
     connections = pyssage.distcon.nearest_neighbor_connections(distances, 2)
-    pyssage.graph.draw_connections(connections, coords)
+    pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1])
 
 
 def test_geodesic_distances():
@@ -145,13 +146,15 @@ def test_geodesic_distances():
     # test a fully connected network
     connections = pyssage.distcon.minimum_spanning_tree(distances, output_frmt="boolmatrix")
     geodists, trace = pyssage.distcon.shortest_path_distances(distances, connections)
-    print()
-    for i in range(20):
-        print(0, i, pyssage.distcon.trace_path(0, i, trace), geodists[0, i])
+    # print()
+    # for i in range(20):
+    #     print(0, i, pyssage.distcon.trace_path(0, i, trace), geodists[0, i])
+    pyssage.graph.draw_shortest_path(connections, coords[:, 0], coords[:, 1], trace, 0, 300,
+                                     connection_frmt="boolmatrix")
 
     # test a partially connected network
     connections = pyssage.distcon.nearest_neighbor_connections(distances, 1, output_frmt="boolmatrix")
     geodists, trace = pyssage.distcon.shortest_path_distances(distances, connections)
-    print()
-    for i in range(20):
-        print(0, i, pyssage.distcon.trace_path(0, i, trace), geodists[0, i])
+    # print()
+    # for i in range(20):
+    #     print(0, i, pyssage.distcon.trace_path(0, i, trace), geodists[0, i])

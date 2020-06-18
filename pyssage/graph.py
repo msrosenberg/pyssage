@@ -1,4 +1,5 @@
 from pyssage.classes import Number, _DEF_CONNECTION
+import pyssage.distcon
 import matplotlib.pyplot as pyplot
 from matplotlib.lines import Line2D
 # import matplotlib.patches as mpatches
@@ -50,18 +51,18 @@ def draw_quadvar_result(quadvar: numpy.array, title: str = "") -> None:
 #     pyplot.show()
 
 
-def draw_tessellation(tessellation, coords, title: str = "") -> None:
+def draw_tessellation(tessellation, xcoords: numpy.ndarray, ycoords: numpy.ndarray, title: str = "") -> None:
     fig, axs = pyplot.subplots()
-    minx = min(coords[:, 0])
-    maxx = max(coords[:, 0])
-    miny = min(coords[:, 1])
-    maxy = max(coords[:, 1])
+    minx = min(xcoords)
+    maxx = max(xcoords)
+    miny = min(ycoords)
+    maxy = max(ycoords)
     for e in tessellation.edges:
         x = [e.start_vertex.x, e.end_vertex.x]
         y = [e.start_vertex.y, e.end_vertex.y]
         line = Line2D(x, y)
         axs.add_line(line)
-    pyplot.scatter(coords[:, 0], coords[:, 1], color="black")
+    pyplot.scatter(xcoords, ycoords, color="black")
     axs.set_xlim(minx-1, maxx+1)
     axs.set_ylim(miny-1, maxy+1)
     if title != "":
@@ -75,23 +76,24 @@ def check_connection_format(con_frmt: str) -> None:
         raise ValueError("{} is not a valid connection format".format(con_frmt))
 
 
-def draw_connections(connections, coords, connection_frmt: str = _DEF_CONNECTION, title: str = ""):
+def draw_connections(connections, xcoords: numpy.ndarray, ycoords: numpy.ndarray,
+                     connection_frmt: str = _DEF_CONNECTION, title: str = ""):
     check_connection_format(connection_frmt)
     fig, axs = pyplot.subplots()
-    minx = min(coords[:, 0])
-    maxx = max(coords[:, 0])
-    miny = min(coords[:, 1])
-    maxy = max(coords[:, 1])
+    minx = min(xcoords)
+    maxx = max(xcoords)
+    miny = min(ycoords)
+    maxy = max(ycoords)
     if connection_frmt == "pairlist":
         for c in connections:
-            p1 = coords[c[0]]
-            p2 = coords[c[1]]
-            x = [p1[0], p2[0]]
-            y = [p1[1], p2[1]]
-            line = Line2D(x, y)
+            p1 = c[0]
+            p2 = c[1]
+            x = [xcoords[p1], xcoords[p2]]
+            y = [ycoords[p1], ycoords[p2]]
+            line = Line2D(x, y, zorder=1)
             axs.add_line(line)
     else:
-        n = len(coords)
+        n = len(xcoords)
         for i in range(n):
             for j in range(i):
                 if (connection_frmt == "boolmatrix") and connections[i, j]:
@@ -103,11 +105,62 @@ def draw_connections(connections, coords, connection_frmt: str = _DEF_CONNECTION
                 else:
                     connect = False
                 if connect:
-                    x = [coords[i, 0], coords[j, 0]]
-                    y = [coords[i, 1], coords[j, 1]]
-                    line = Line2D(x, y)
+                    x = [xcoords[i], xcoords[j]]
+                    y = [ycoords[i], ycoords[j]]
+                    line = Line2D(x, y, zorder=1)
                     axs.add_line(line)
-    pyplot.scatter(coords[:, 0], coords[:, 1], color="black")
+    pyplot.scatter(xcoords, ycoords, color="black", zorder=2)
+    axs.set_xlim(minx-1, maxx+1)
+    axs.set_ylim(miny-1, maxy+1)
+    if title != "":
+        axs.set_title(title)
+    pyplot.show()
+
+
+def draw_shortest_path(connections, xcoords: numpy.ndarray, ycoords: numpy.ndarray, trace_dict: dict,
+                       startp: int, endp: int, connection_frmt: str = _DEF_CONNECTION, title: str = ""):
+    check_connection_format(connection_frmt)
+    fig, axs = pyplot.subplots()
+    minx = min(xcoords)
+    maxx = max(xcoords)
+    miny = min(ycoords)
+    maxy = max(ycoords)
+    if connection_frmt == "pairlist":
+        for c in connections:
+            p1 = c[0]
+            p2 = c[1]
+            x = [xcoords[p1], xcoords[p2]]
+            y = [ycoords[p1], ycoords[p2]]
+            line = Line2D(x, y, zorder=1)
+            axs.add_line(line)
+    else:
+        n = len(xcoords)
+        for i in range(n):
+            for j in range(i):
+                if (connection_frmt == "boolmatrix") and connections[i, j]:
+                    connect = True
+                elif (connection_frmt == "binmatrix") and (connections[i, j] == 1):
+                    connect = True
+                elif (connection_frmt == "revbinmatrix") and (connections[i, j] == 0):
+                    connect = True
+                else:
+                    connect = False
+                if connect:
+                    x = [xcoords[i], xcoords[j]]
+                    y = [ycoords[i], ycoords[j]]
+                    line = Line2D(x, y, zorder=1)
+                    axs.add_line(line)
+
+    trace_path = pyssage.distcon.trace_path(startp, endp, trace_dict)
+    for i in range(len(trace_path)-1):
+        p1 = trace_path[i]
+        p2 = trace_path[i+1]
+        x = [xcoords[p1], xcoords[p2]]
+        y = [ycoords[p1], ycoords[p2]]
+        line = Line2D(x, y, color="red", zorder=3, lw=2)
+        axs.add_line(line)
+
+    pyplot.scatter(xcoords, ycoords, color="black", zorder=2)
     axs.set_xlim(minx-1, maxx+1)
     axs.set_ylim(miny-1, maxy+1)
     if title != "":
