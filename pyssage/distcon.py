@@ -1,7 +1,7 @@
 from typing import Optional, Tuple
 from math import sqrt, sin, cos, acos, pi, atan
 import numpy
-from pyssage.classes import Point, Triangle, VoronoiEdge, VoronoiTessellation, VoronoiPolygon, _DEF_CONNECTION
+from pyssage.classes import Point, Triangle, VoronoiEdge, VoronoiTessellation, VoronoiPolygon, _DEF_CONNECTION, Number
 
 # __all__ = ["euc_dist_matrix"]
 
@@ -808,89 +808,53 @@ def trace_path(i: int, j: int, trace_matrix: dict) -> list:
         return output
 
 
-def distance_classes(nclasses: int, dist_matrix: numpy.ndarray):
-    distances = dist_matrix.flatten().sort()
-    total = len(distances)
+def create_distance_classes(dist_matrix: numpy.ndarray, class_mode: str, mode_value: Number) -> list:
+    maxadj = 1.0000001
+    valid_modes = ("set class width", "set pair count", "determine class width", "determine pair count")
+    if class_mode not in valid_modes:
+        raise ValueError("Invalid class_mode")
 
+    limits = []
+    nclasses = 0
+    # lower = 0
+    if "width" in class_mode:
+        maxdist = max(dist_matrix)
+        class_width = 0
+        if class_mode == "set class width":
+            class_width = mode_value
+            nclasses = int(maxdist // class_width) + 1
+        elif class_mode == "determine class width":
+            nclasses = mode_value
+            class_width = maxdist * maxadj / nclasses
+        for c in range(nclasses):
+            # upper = lower + class_width
+            # limits.append([lower, upper])
+            # lower = upper
+            limits.append([c*class_width, (c+1)*class_width])
 
-"""
+    elif "pair" in class_mode:
+        distances = dist_matrix.flatten().sort()  # we only need to do this for these modes
+        total = len(distances)
+        pairs_per_class = 0
+        if class_mode == "set pair count":
+            pairs_per_class = mode_value
+            nclasses = total // pairs_per_class
+            if total % pairs_per_class != 0:
+                nclasses += 1
+        elif class_mode == "determine pair count":
+            nclasses = mode_value
+            pairs_per_class = total / nclasses
+        lower = 0
+        for c in range(nclasses):
+            i = round(c * pairs_per_class)
+            if i >= total:
+                upper = distances[total - 1] * maxadj
+            else:
+                upper = distances[i - 1]
+            limits.append([lower, upper])
+            lower = upper
 
-procedure CreateDistClasses(DistMat : TpasSymmetricMatrix; DCName : string;
-            DoManual,DoWidth,DoClass : boolean; nc,np : integer; w : double;
-            UpList,LowList : TStringList);
-// Note: this routine is only used in batch mode
-var
-   Distances : TpasDoubleArray;
-   total,cnt,r,c : integer;
-   NewDC : TpasDistClass;
-   DoLow : boolean;
-   fstr : string;
-begin
-     fstr := FormatFloatStr(OutputDecs);
-     SetLength(Distances,DistMat.ValidN + 1);
-     cnt := 0;
-     for r := 1 to DistMat.N do
-         for c := 1 to r - 1 do
-             if not DistMat.IsEmpty[r,c] then begin
-                inc(cnt);
-                Distances[cnt] := DistMat[r,c];
-             end;
-     sort(cnt,Distances);
-
-     total := length(Distances) - 1;
-     DoLow := false;
-     // find # of classes
-     if DoManual then begin
-        nc := UpList.Count;
-        if (LowList.Count > 0) then DoLow := true;
-     end else if not DoClass then begin
-          if DoWidth then nc := 1
-          else begin
-               nc := total div np;
-               if (total mod np <> 0) then inc(nc);
-          end;
-     end;
-     // create new dc
-     if DoManual and (LowList.Count > 0) then NewDC := TpasDistClass.Create(nc,false)
-     else NewDC := TpasDistClass.Create(nc,true);
-     NewDC.MatrixName := DCName;
-     // set boundaries
-     if DoManual then begin
-        for c := 1 to nc do begin
-            NewDC.UpperBound[c] := StrToFloat(UpList[c-1]);
-            if DoLow then NewDC.LowerBound[c] := StrToFloat(LowList[c-1]);
-        end;
-     end else if DoWidth then begin
-         for c := 1 to nc - 1 do
-             if DoClass then
-                NewDC.UpperBound[c] := c * Distances[total] / nc
-             else NewDC.UpperBound[c] := w * c;
-         NewDC.UpperBound[nc] := Distances[total] + 1.0;
-     end else begin
-         for c := 1 to nc - 1 do
-             if DoClass then
-                NewDC.UpperBound[c] := Distances[Round(total * c / nc)]
-             else NewDC.UpperBound[c] := Distances[c * np];
-         NewDC.UpperBound[nc] := Distances[total] + 1.0;
-     end;
-     Data_AddData(NewDC);
-     OutputAddLine('Distance classes "' + NewDC.MatrixName +
-               '" constructed for distance matrix "' + DistMat.MatrixName+ '".');
-     if DoManual then OutputAddLine('  Manual bounds')
-     else if DoWidth then begin
-          if DoClass then
-             OutputAddLine('  Equal width classes; # of classes = ' + IntToStr(nc))
-          else OutputAddLine('  Equal width classes; width = ' + format(fstr,[w]));
-     end else begin
-         if DoClass then
-            OutputAddLine('  Equal count per class; # of classes = ' + IntToStr(nc))
-         else OutputAddLine('  Equal count per class; # of pairs = ' + IntToStr(np));
-     end;
-     OutputAddBlankLine;
-end;
-
-"""
-
+    return limits
 
 
 """
@@ -945,81 +909,5 @@ begin
      end else ConMat.Free;
      if DoTimeStamp then EndTimeStamp;
 end;
-
-
-
-procedure CreateDistClasses(DistMat : TpasSymmetricMatrix; DCName : string;
-            DoManual,DoWidth,DoClass : boolean; nc,np : integer; w : double;
-            UpList,LowList : TStringList);
-// Note: this routine is only used in batch mode
-var
-   Distances : TpasDoubleArray;
-   total,cnt,r,c : integer;
-   NewDC : TpasDistClass;
-   DoLow : boolean;
-   fstr : string;
-begin
-     fstr := FormatFloatStr(OutputDecs);
-     SetLength(Distances,DistMat.ValidN + 1);
-     cnt := 0;
-     for r := 1 to DistMat.N do
-         for c := 1 to r - 1 do
-             if not DistMat.IsEmpty[r,c] then begin
-                inc(cnt);
-                Distances[cnt] := DistMat[r,c];
-             end;
-     sort(cnt,Distances);
-     total := length(Distances) - 1;
-     DoLow := false;
-     // find # of classes
-     if DoManual then begin
-        nc := UpList.Count;
-        if (LowList.Count > 0) then DoLow := true;
-     end else if not DoClass then begin
-          if DoWidth then nc := 1
-          else begin
-               nc := total div np;
-               if (total mod np <> 0) then inc(nc);
-          end;
-     end;
-     // create new dc
-     if DoManual and (LowList.Count > 0) then NewDC := TpasDistClass.Create(nc,false)
-     else NewDC := TpasDistClass.Create(nc,true);
-     NewDC.MatrixName := DCName;
-     // set boundaries
-     if DoManual then begin
-        for c := 1 to nc do begin
-            NewDC.UpperBound[c] := StrToFloat(UpList[c-1]);
-            if DoLow then NewDC.LowerBound[c] := StrToFloat(LowList[c-1]);
-        end;
-     end else if DoWidth then begin
-         for c := 1 to nc - 1 do
-             if DoClass then
-                NewDC.UpperBound[c] := c * Distances[total] / nc
-             else NewDC.UpperBound[c] := w * c;
-         NewDC.UpperBound[nc] := Distances[total] + 1.0;
-     end else begin
-         for c := 1 to nc - 1 do
-             if DoClass then
-                NewDC.UpperBound[c] := Distances[Round(total * c / nc)]
-             else NewDC.UpperBound[c] := Distances[c * np];
-         NewDC.UpperBound[nc] := Distances[total] + 1.0;
-     end;
-     Data_AddData(NewDC);
-     OutputAddLine('Distance classes "' + NewDC.MatrixName +
-               '" constructed for distance matrix "' + DistMat.MatrixName+ '".');
-     if DoManual then OutputAddLine('  Manual bounds')
-     else if DoWidth then begin
-          if DoClass then
-             OutputAddLine('  Equal width classes; # of classes = ' + IntToStr(nc))
-          else OutputAddLine('  Equal width classes; width = ' + format(fstr,[w]));
-     end else begin
-         if DoClass then
-            OutputAddLine('  Equal count per class; # of classes = ' + IntToStr(nc))
-         else OutputAddLine('  Equal count per class; # of pairs = ' + IntToStr(np));
-     end;
-     OutputAddBlankLine;
-end;
-
 
 """
