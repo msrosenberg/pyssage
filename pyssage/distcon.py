@@ -810,6 +810,22 @@ def trace_path(i: int, j: int, trace_matrix: dict) -> list:
 
 
 def create_distance_classes(dist_matrix: numpy.ndarray, class_mode: str, mode_value: Number) -> numpy.ndarray:
+    """
+    automatically create distance classes for a distance matrix based on one of four criteria:
+
+    1. set class width: user sets a fixed width they desire for each class; the function determines how many classes
+       are necessary
+    2. set pair count: user sets a fixed count they desire for each class; the function determines how many classes
+       are necessary. actual distance counts can vary from desired due to ties
+    3. determine class width: the user sets the number of classes they desire; the function determines a width such
+       that each class will have the same width
+    4. determine pair count: the user sets the number of classes they desire; the function determines class boundaries
+       so each class has the same number of distances. actual distance counts may vary due to ties
+
+    the output is a two column ndarray matrix, representing lower and upper bounds of each class
+    the lower bound is inclusive, the upper bound is exclusive. the algorithm will automatically increase the limit
+    of the largest class by a tiny fraction, if necessary, to guarantee all distances are included in a class
+    """
     maxadj = 1.0000001
     valid_modes = ("set class width", "set pair count", "determine class width", "determine pair count")
     if class_mode not in valid_modes:
