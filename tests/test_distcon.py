@@ -59,34 +59,35 @@ def test_sph_dist_matrix():
     
     this change might cascade to other tests that relied upon these distances
     """
+    # lat1 = 50.1234
+    # lat2 = 58.3456
+    # lon1 = -5.423
+    # lon2 = -3.789
+    # x = [50.1234, 58.3456]
+    # y = [-5.423, -3.789]
+    # print(pyssage.distcon.sph_dist(lat1, lat2, lon1, lon2))
+    # print(pyssage.distcon.sph_angle(lat1, lat2, lon1, lon2) * 180 / math.pi)
+    # print(pyssage.distcon.sph_angle2(lat1, lat2, lon1, lon2)*180/math.pi)
+
+    # x = [0, 0, 0, 45, 45, 45, -45, -45, -45]
+    # y = [0, 45, -45, 0, 45, -45, 0, 45, -45]
+    # output = pyssage.distcon.euc_angle_matrix(numpy.array(x), numpy.array(y), do360=True)
+    # for i in range(len(output)):
+    #     for j in range(len(output)):
+    #         print(x[i], y[i], x[j], y[j], output[i, j], output[i, j] * 180 / math.pi)
 
 
 def test_sph_angle_matrix():
-    # answer calculated from PASSaGE 2 and exported to 5 decimals
-    # answer matrix is in degrees, so need to convert output to degrees to match
-    # answer = load_answer("answers/sph_anglemat_answer.txt")
-    #
-    # coords = test_coords()
-    # output = pyssage.distcon.sph_angle_matrix(coords[:, 0], coords[:, 1])
-    # for i in range(len(answer)):
-    #     for j in range(len(answer)):
-    #         assert round(output[i, j]*180/math.pi, 5) == answer[i, j]
+    coords = test_coords()
+    output = pyssage.distcon.sph_angle_matrix(coords[:, 0], coords[:, 1])
 
     # lons = [0, 0, 0, 45, 45, 45, -45, -45, -45]
     # lats = [0, 45, -45, 0, 45, -45, 0, 45, -45]
-    # output = pyssage.distcon.euc_angle_matrix(numpy.array(lons), numpy.array(lats))
+    # output = pyssage.distcon.sph_angle_matrix(numpy.array(lons), numpy.array(lats))
     # for i in range(len(output)):
     #     for j in range(len(output)):
     #         if i != j:
-    #             print(lons[i], lats[i], lons[j], lats[j], output[i, j], output[i, j]*180/math.pi)
-
-    lons = [0, 0, 0, 45, 45, 45, -45, -45, -45]
-    lats = [0, 45, -45, 0, 45, -45, 0, 45, -45]
-    output = pyssage.distcon.sph_angle_matrix(numpy.array(lons), numpy.array(lats))
-    for i in range(len(output)):
-        for j in range(len(output)):
-            if i != j:
-                print(lons[i], lats[i], lons[j], lats[j], output[i, j], output[i, j] * 180 / math.pi)
+    #             print(lons[i], lats[i], lons[j], lats[j], output[i, j] * 180 / math.pi)
 
 
 def test_check_input_distance_matrix():

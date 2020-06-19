@@ -6,10 +6,6 @@ from pyssage.utils import flatten_half, euclidean_angle
 
 # __all__ = ["euc_dist_matrix"]
 
-CON1 = 24902.1483 * 1.60935
-CON2 = 57.29577951
-CONV = CON2 / 360
-
 
 def euc_dist_matrix(x: numpy.ndarray, y: Optional[numpy.ndarray] = None,
                     z: Optional[numpy.ndarray] = None) -> numpy.ndarray:
@@ -100,152 +96,65 @@ def sph_dist_matrix(lon: numpy.ndarray, lat: numpy.ndarray, earth_radius: float 
     return output
 
 
-def sph_angle2(y1: float, y2: float, x1: float, x2: float) -> float:
-    def fix(theta: float, fx: bool) -> float:
-        f = theta*pi/180
-        if f > pi:
-            f = f - 2*pi
-        if fx:
-            f = -f
-        return f
+def sph_angle(lat1: float, lat2: float, lon1: float, lon2: float, mode: str = "midpoint") -> float:
+    valid_modes = ("midpoint", "initial")
+    if mode not in valid_modes:
+        raise ValueError("invalid mode for spherical angle calculation")
 
-    def adjst(x: float) -> float:
-        if x > pi:
-            return x - 2*pi
-        else:
-            return x
-
-    def midpoint(lat1, lon1, lat2, lon2):
-        za = sin(lat1)
-        coslat1 = cos(lat1)
-        xa = sin(lon1)
-        ya = cos(lon2)
-        xa = xa*coslat1
-        ya = ya*coslat1
-        zb = sin(lat2)
-        coslat2 = cos(lat2)
-        xb = sin(lon2)
-        yb = cos(lon2)
-        xb = xb * coslat2
-        yb = yb * coslat2
-        x = xa + xb
-        y = ya + yb
-        z = za + zb
-        r = sqrt(x**2 + y**2 + z**2)
-        return asin(z/r), atan2(x, y)
-
-    # main loop
-    lat1 = fix(y1, False)
-    lon1 = fix(x1, True)
-    lat2 = fix(y2, False)
-    lon2 = fix(x2, True)
-    xxla = adjst(lat1)
-    yla = adjst(lat2)
-    xxlo = adjst(lon1)
-    ylo = adjst(lon2)
-    xla, xlo = midpoint(xxla, xxlo, yla, ylo)
-
-    sxla = sin(xla)
-    cxla = cos(xla)
-    syla = sin(yla)
-    cyla = cos(yla)
-    sdlo = sin(ylo-xlo)
-    cdlo = cos(ylo-xlo)
-
-    cosine = sxla*syla + cxla*cyla*cdlo
-    angle = acos(cosine)
-
-    result = 0
-    if (abs(xla) != pi/2) and (abs(yla) != pi/2) and (angle != pi):
-        if xla == yla:
-            if xlo != ylo:
-                result = 3*pi/2
-                if ylo < xlo:
-                    result = pi/2
-        else:
-            top = syla - sxla*cosine
-            bot = cxla*sin(angle)
-            if bot != 0:
-                topbot = top/bot
-                if topbot > 1:
-                    topbot = 1
-                if topbot < -1:
-                    topbot = -1
-                head = acos(topbot)
-                if sdlo > 0:
-                    result = 2*pi - head
-                else:
-                    result = head
-    # adjust angle
-    result = pi/2 - result
-    if result < 0:
-        result = result + 2*pi
-    return result
+    # convert to radians
+    lon1 *= pi/180
+    lon2 *= pi/180
+    lat1 *= pi/180
+    lat2 *= pi/180
+    dlon = lon2 - lon1
+    if mode == "initial":  # initial bearing
+        y = sin(dlon)*cos(lat2)
+        x = cos(lat1)*sin(lat2) - sin(lat1)*cos(lat2)*cos(dlon)
+    else:  # midpoint bearing
+        # find midpoint
+        bx = cos(lat2) * cos(dlon)
+        by = cos(lat2) * sin(dlon)
+        latmid = atan2(sin(lat1) + sin(lat2), sqrt((cos(lat1) + bx) ** 2 + by ** 2))
+        lonmid = lon1 + atan2(by, cos(lat1) + bx)
+        # shift longitude back into -pi to pi range (-180 to 180)
+        while lonmid >= pi:
+            lonmid -= 2 * pi
+        while lonmid < -pi:
+            lonmid += 2 * pi
+        dlonmid = lonmid - lon1
+        y = sin(dlonmid)*cos(latmid)
+        x = cos(lat1)*sin(latmid) - sin(lat1)*cos(latmid)*cos(dlonmid)
+    bearing = pi/2 - atan2(y, x)
+    while bearing < 0:
+        bearing += 2*pi
+    while bearing >= 2*pi:
+        bearing -= 2*pi
+    return bearing
 
 
-def sph_angle(lat1: float, lat2: float, lon1: float, lon2: float) -> float:
+def sph_angle_matrix(lon: numpy.ndarray, lat: numpy.ndarray, mode: str = "midpoint") -> numpy.ndarray:
     """
-    Returns the geodesic distance along the globe in km, for two points represented by longitudes and latitudes
+    construct an n by n matrix containing the angles (in radians) describing the spherical bearing between pairs of
+    latitudes and longitudes
 
-    new version, reliant on fewer predetermined constants
+    this output is not symmetric as the bearing from point 1 to point 2 on the surface of a sphere is not simply
+    the opposite of point 2 to point 1
+
+    :param lon: a single column containing the longitudes
+    :param lat: a single column containing the latitudes
+    :param mode: a string stating whether the output should be "initial" bearing or "midpoint" bearing
+                 (default = "midpoint")
+    :return: a square matrix containing the bearings
     """
-    def convert(coord: float) -> float:
-        """
-        converts the latitidue or longitude from degrees to radians, but also forces it to be between pi and -pi
-        """
-        new = coord*pi/180
-        while new > pi:
-            new -= 2*pi
-        return new
-
-    # clear out some simple cases
-    if lat1 == lat2:  # if they are at the same latitude
-        return 0
-    elif (abs(lat1) == 90) or (abs(lat2) == 90) or (lon1 == lon2):  # one of the points at a pole or same longitudes
-        return pi/2
-    else:
-        # convert to radians
-        lon1 = convert(lon1)
-        lon2 = convert(lon2)
-        lat1 = convert(lat1)
-        lat2 = convert(lat2)
-        dlon = abs(lon1 - lon2)  # difference in longitudes
-        cosine_a = sin(lat1)*sin(lat2) + cos(lat1)*cos(lat2)*cos(dlon)
-        if cosine_a >= 1:
-            a = 0
-        else:
-            a = acos(cosine_a)
-        c = pi/2 - lat2
-        angle = sin(dlon)*sin(c)/sin(a)
-        return pi/2 - asin(angle)
-
-        # if sin(a) == 0:
-        #     return 10
-        # else:
-        #     product = sin(dlon)*sin(c)/sin(a)
-        #     if product > 1:
-        #         product = 1
-        #     elif product < -1:
-        #         product = -1
-        #     angle = pi/2 - asin(product)
-        #     if angle < 0:
-        #         angle += 2*pi
-        #     return angle
-
-
-def sph_angle_matrix(lon: numpy.ndarray, lat: numpy.ndarray) -> numpy.ndarray:
     n = len(lon)
     if n != len(lat):
         raise ValueError("Coordinate vectors must be same length")
     output = numpy.zeros((n, n))
     for i in range(n):
-        for j in range(i):
-            if i == j:
-                angle = 0
-            else:
+        for j in range(n):
+            if i != j:
                 angle = sph_angle(lat[i], lat[j], lon[i], lon[j])
-            output[i, j] = angle
-            output[j, i] = angle
+                output[i, j] = angle
     return output
 
 
@@ -381,91 +290,6 @@ def delaunay_tessellation(x: numpy.ndarray, y: numpy.ndarray, output_frmt: str =
     return tessellation, connections
 
 
-# def euclidean_angle360(x1: float, y1: float, x2: float, y2: float) -> float:
-#     """
-#     This will calculate the angle between the two points, reporting a value between 0 and 2 pi
-#
-#     :param x1: x-coordinate of first point
-#     :param y1: y-coordinate of first point
-#     :param x2: x-coordinate of second point
-#     :param y2: y-coordinate of second point
-#     :return: angle as a value between 0 and 2 pi
-#     """
-#     # dy = y2 - y1
-#     # dx = x2 - x1
-#     # if dy == 0:
-#     #     if dx < 0:
-#     #         return pi
-#     #     else:
-#     #         return 0
-#     # elif dx == 0:
-#     #     if dy < 0:
-#     #         return 3*pi/2
-#     #     else:
-#     #         return pi / 2
-#     # else:
-#     #     angle = atan(abs(dy)/abs(dx))
-#     #     if (dy > 0) and (dx > 0):
-#     #         return angle
-#     #     elif (dy > 0) and (dx < 0):
-#     #         return pi - angle
-#     #     elif (dy < 0) and (dx > 0):
-#     #         return 2*pi - angle
-#     #     elif (dy < 0) and (dx < 0):
-#     #         return pi + angle
-#     #     else:
-#     #         return 0
-#     angle = atan2(y2-y1, x2-x1)
-#     while angle >= 2*pi:
-#         angle -= 2*pi
-#     while angle < 0:
-#         angle += 2*pi
-#     return angle
-
-
-# # def calculate_tessellation(x: numpy.ndarray, y: numpy.ndarray, triangle_list: list):
-# def calculate_tessellation(triangle_list: list):
-#     # vertices and edges
-#     vertex_list = []
-#     edge_list = []
-#     for i, triangle1 in enumerate(triangle_list):
-#         vertex_list.append(triangle1.center())
-#         for j in range(i + 1, len(triangle_list)):
-#             triangle2 = triangle_list[j]
-#             cnt = 0
-#             # check to see if triangles have common edge
-#             for k in range(3):
-#                 for kk in range(3):
-#                     if triangle1.points[kk] == triangle2.points[k]:
-#                         cnt += 1
-#             if cnt > 1:
-#                 new_edge = VoronoiEdge()
-#                 edge_list.append(new_edge)
-#
-#                 # find right and left polygons
-#                 if triangle2.yc == triangle1.yc:
-#                     if triangle2.xc > triangle2.xc:
-#                         new_edge.start_vertex = triangle1.center()
-#                         new_edge.end_vertex = triangle2.center()
-#                     else:
-#                         new_edge.start_vertex = triangle2.center()
-#                         new_edge.end_vertex = triangle1.center()
-#                 else:
-#                     if triangle2.yc > triangle2.yc:
-#                         new_edge.start_vertex = triangle1.center()
-#                         new_edge.end_vertex = triangle2.center()
-#                     else:
-#                         new_edge.start_vertex = triangle2.center()
-#                         new_edge.end_vertex = triangle1.center()
-#     tessellation = VoronoiTessellation()
-#     for v in vertex_list:
-#         tessellation.vertices.append(v)
-#     for e in edge_list:
-#         tessellation.edges.append(e)
-#     return tessellation
-
-
-# def calculate_tessellation_full(x: numpy.ndarray, y: numpy.ndarray, triangle_list: list):
 def calculate_tessellation(triangle_list: list, point_list: list) -> VoronoiTessellation:
     """
     calculate Delaunay tessellation from previous calculated triangles and store in a modified
@@ -579,28 +403,18 @@ def calculate_tessellation(triangle_list: list, point_list: list) -> VoronoiTess
         if len(other_edges) == 2:
             edge1 = other_edges[0]
             edge2 = other_edges[1]
-            # edge_angle = euclidean_angle360(edge.start_vertex.x, edge.start_vertex.y,
-            #                                 edge.end_vertex.x, edge.end_vertex.y)
             edge_angle = euclidean_angle(edge.start_vertex.x, edge.start_vertex.y,
                                          edge.end_vertex.x, edge.end_vertex.y, do360=True)
             if edge1.start_vertex == edge.start_vertex:
-                # edge_angle1 = euclidean_angle360(edge.start_vertex.x, edge.start_vertex.y, edge.end_vertex.x,
-                #                                  edge.end_vertex.y)
                 edge_angle1 = euclidean_angle(edge.start_vertex.x, edge.start_vertex.y, edge.end_vertex.x,
                                               edge.end_vertex.y, do360=True)
             else:
-                # edge_angle1 = euclidean_angle360(edge.end_vertex.x, edge.end_vertex.y, edge.start_vertex.x,
-                #                                  edge.start_vertex.y)
                 edge_angle1 = euclidean_angle(edge.end_vertex.x, edge.end_vertex.y, edge.start_vertex.x,
                                               edge.start_vertex.y, do360=True)
             if edge2.start_vertex == edge.start_vertex:
-                # edge_angle2 = euclidean_angle360(edge.start_vertex.x, edge.start_vertex.y, edge.end_vertex.x,
-                #                                  edge.end_vertex.y)
                 edge_angle2 = euclidean_angle(edge.start_vertex.x, edge.start_vertex.y, edge.end_vertex.x,
                                               edge.end_vertex.y, do360=True)
             else:
-                # edge_angle2 = euclidean_angle360(edge.end_vertex.x, edge.end_vertex.y, edge.start_vertex.x,
-                #                                  edge.start_vertex.y)
                 edge_angle2 = euclidean_angle(edge.end_vertex.x, edge.end_vertex.y, edge.start_vertex.x,
                                               edge.start_vertex.y, do360=True)
             if edge_angle < edge_angle1:
@@ -625,28 +439,18 @@ def calculate_tessellation(triangle_list: list, point_list: list) -> VoronoiTess
         if len(other_edges) == 2:
             edge1 = other_edges[0]
             edge2 = other_edges[1]
-            # edge_angle = euclidean_angle360(edge.start_vertex.x, edge.start_vertex.y,
-            #                                 edge.end_vertex.x, edge.end_vertex.y)
             edge_angle = euclidean_angle(edge.start_vertex.x, edge.start_vertex.y,
                                          edge.end_vertex.x, edge.end_vertex.y, do360=True)
             if edge1.start_vertex == edge.end_vertex:
-                # edge_angle1 = euclidean_angle360(edge.start_vertex.x, edge.start_vertex.y, edge.end_vertex.x,
-                #                                  edge.end_vertex.y)
                 edge_angle1 = euclidean_angle(edge.start_vertex.x, edge.start_vertex.y, edge.end_vertex.x,
                                               edge.end_vertex.y, do360=True)
             else:
-                # edge_angle1 = euclidean_angle360(edge.end_vertex.x, edge.end_vertex.y, edge.start_vertex.x,
-                #                                  edge.start_vertex.y)
                 edge_angle1 = euclidean_angle(edge.end_vertex.x, edge.end_vertex.y, edge.start_vertex.x,
                                               edge.start_vertex.y, do360=True)
             if edge2.start_vertex == edge.end_vertex:
-                # edge_angle2 = euclidean_angle360(edge.start_vertex.x, edge.start_vertex.y, edge.end_vertex.x,
-                #                                  edge.end_vertex.y)
                 edge_angle2 = euclidean_angle(edge.start_vertex.x, edge.start_vertex.y, edge.end_vertex.x,
                                               edge.end_vertex.y, do360=True)
             else:
-                # edge_angle2 = euclidean_angle360(edge.start_vertex.x, edge.start_vertex.y, edge.end_vertex.x,
-                #                                  edge.end_vertex.y)
                 edge_angle2 = euclidean_angle(edge.start_vertex.x, edge.start_vertex.y, edge.end_vertex.x,
                                               edge.end_vertex.y, do360=True)
             if edge_angle < edge_angle1:
