@@ -15,7 +15,7 @@ def test_wrap_transect():
     answer = [4, 3, 2, 1, 0, 99, 98, 97, 96, 95]
     start = 4
     for i in range(steps):
-        assert answer[i] == pyssage.quadvar.wrap_transect(start - i, n)
+        assert pyssage.quadvar.wrap_transect(start - i, n) == answer[i]
 
 
 def test_ttlqv():
@@ -524,7 +524,7 @@ def test_ttlqv():
     result = pyssage.quadvar.ttlqv(test_transect())
     pyssage.graph.draw_quadvar_result(result, "TTLQV Test")
     for i in range(500):
-        assert answer[i] == round(result[i, 1], 5)
+        assert round(result[i, 1], 5) == answer[i]
 
 
 def test_ttlqv_wrap():
@@ -1033,7 +1033,7 @@ def test_ttlqv_wrap():
     result = pyssage.quadvar.ttlqv(test_transect(), wrap=True)
     pyssage.graph.draw_quadvar_result(result, "TTLQV Wrap Test")
     for i in range(500):
-        assert answer[i] == round(result[i, 1], 5)
+        assert round(result[i, 1], 5) == answer[i]
 
 
 def test_3tlqv():
@@ -1375,7 +1375,7 @@ def test_3tlqv():
     result = pyssage.quadvar.three_tlqv(test_transect())
     pyssage.graph.draw_quadvar_result(result, "3TLQV Test")
     for i in range(333):
-        assert answer[i] == round(result[i, 1], 5)
+        assert round(result[i, 1], 5) == answer[i]
 
 
 def test_pqv():
@@ -1884,7 +1884,7 @@ def test_pqv():
     result = pyssage.quadvar.pqv(test_transect())
     pyssage.graph.draw_quadvar_result(result, "PQV Test")
     for i in range(500):
-        assert answer[i] == round(result[i, 1], 5)
+        assert round(result[i, 1], 5) == answer[i]
 
 
 def test_tqv():
@@ -2226,7 +2226,7 @@ def test_tqv():
     result = pyssage.quadvar.tqv(test_transect())
     pyssage.graph.draw_quadvar_result(result, "tQV Test")
     for i in range(333):
-        assert answer[i] == round(result[i, 1], 5)
+        assert round(result[i, 1], 5) == answer[i]
 
 
 def test_2nlv():
@@ -2734,7 +2734,7 @@ def test_2nlv():
     result = pyssage.quadvar.two_nlv(test_transect())
     pyssage.graph.draw_quadvar_result(result, "2NLV Test")
     for i in range(499):
-        assert answer[i] == round(result[i, 1], 5)
+        assert round(result[i, 1], 5) == answer[i]
 
 
 def test_3nlv():
@@ -3076,7 +3076,7 @@ def test_3nlv():
     result = pyssage.quadvar.three_nlv(test_transect())
     pyssage.graph.draw_quadvar_result(result, "3NLV Test")
     for i in range(333):
-        assert answer[i] == round(result[i, 1], 5)
+        assert round(result[i, 1], 5) == answer[i]
 
 
 """
