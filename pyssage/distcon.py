@@ -1,8 +1,8 @@
 from typing import Optional, Tuple
-from math import sqrt, sin, cos, acos, pi, atan
+from math import sqrt, sin, cos, acos, pi, asin, atan2
 import numpy
 from pyssage.classes import Point, Triangle, VoronoiEdge, VoronoiTessellation, VoronoiPolygon, _DEF_CONNECTION, Number
-import pyssage.utils
+from pyssage.utils import flatten_half, euclidean_angle
 
 # __all__ = ["euc_dist_matrix"]
 
@@ -11,12 +11,16 @@ CON2 = 57.29577951
 CONV = CON2 / 360
 
 
-# def euc_dist(x1: float, x2: float, y1: float = 0, y2: float = 0, z1: float = 0, z2: float = 0) -> float:
-#     return sqrt((x1 - x2)**2 + (y1 - y2)**2 + (z1 - z2)**2)
-
-
 def euc_dist_matrix(x: numpy.ndarray, y: Optional[numpy.ndarray] = None,
                     z: Optional[numpy.ndarray] = None) -> numpy.ndarray:
+    """
+    Calculate a Euclidean distance matrix from coordinates in one, two, or three dimensions
+
+    :param x: the coordinates along the x-axis
+    :param y: the coordinates along the y-axis, if two or three dimensions (default = None)
+    :param z: the coordinates along the z-axis, if three dimensions (default = None)
+    :return: a square, symmetric matrix containing the calculated distances
+    """
     n = len(x)
     if (y is not None) and (z is not None):
         nd = 3
@@ -45,38 +49,247 @@ def euc_dist_matrix(x: numpy.ndarray, y: Optional[numpy.ndarray] = None,
     return output
 
 
-def sph_dist(lat1: float, lat2: float, lon1: float, lon2: float) -> float:
+# def sph_dist(lat1: float, lat2: float, lon1: float, lon2: float) -> float:
+#     """
+#     Returns the geodesic distance along the globe in km, for two points represented by longitudes and latitudes
+#
+#     original formula, replicated from PASSaGE 2
+#     """
+#     lon1 /= CON2
+#     lon2 /= CON2
+#     lat1 /= CON2
+#     lat2 /= CON2
+#     p = abs(lon1 - lon2)  # difference in longitudes
+#     angle = sin(lat1)*sin(lat2) + cos(lat1)*cos(lat2)*cos(p)
+#     if angle >= 1:
+#         return 0
+#     else:
+#         return acos(angle)*CON1*CONV
+
+
+def sph_dist(lat1: float, lat2: float, lon1: float, lon2: float, earth_radius: float = 6371.0087714) -> float:
     """
     Returns the geodesic distance along the globe in km, for two points represented by longitudes and latitudes
+
+    new version, reliant on fewer predetermined constants
+    radius of earth is now an input parameter
     """
-    lon1 /= CON2
-    lon2 /= CON2
-    lat1 /= CON2
-    lat2 /= CON2
-    p = abs(lon1 - lon2)  # difference in longitudes
-    angle = sin(lat1)*sin(lat2) + cos(lat1)*cos(lat2)*cos(p)
+    # convert to radians
+    lon1 *= pi/180
+    lon2 *= pi/180
+    lat1 *= pi/180
+    lat2 *= pi/180
+    dlon = abs(lon1 - lon2)  # difference in longitudes
+    angle = sin(lat1)*sin(lat2) + cos(lat1)*cos(lat2)*cos(dlon)
     if angle >= 1:
         return 0
     else:
-        return acos(angle)*CON1*CONV
+        return acos(angle)*earth_radius
 
 
-def sph_dist_matrix(lon: numpy.ndarray, lat: numpy.ndarray) -> numpy.ndarray:
+def sph_dist_matrix(lon: numpy.ndarray, lat: numpy.ndarray, earth_radius: float = 6371.0087714) -> numpy.ndarray:
     n = len(lon)
     if n != len(lat):
         raise ValueError("Coordinate vectors must be same length")
     output = numpy.zeros((n, n))
     for i in range(n):
         for j in range(i):
-            dist = sph_dist(lat[i], lat[j], lon[i], lon[j])
+            dist = sph_dist(lat[i], lat[j], lon[i], lon[j], earth_radius)
             output[i, j] = dist
             output[j, i] = dist
+    return output
+
+
+def sph_angle2(y1: float, y2: float, x1: float, x2: float) -> float:
+    def fix(theta: float, fx: bool) -> float:
+        f = theta*pi/180
+        if f > pi:
+            f = f - 2*pi
+        if fx:
+            f = -f
+        return f
+
+    def adjst(x: float) -> float:
+        if x > pi:
+            return x - 2*pi
+        else:
+            return x
+
+    def midpoint(lat1, lon1, lat2, lon2):
+        za = sin(lat1)
+        coslat1 = cos(lat1)
+        xa = sin(lon1)
+        ya = cos(lon2)
+        xa = xa*coslat1
+        ya = ya*coslat1
+        zb = sin(lat2)
+        coslat2 = cos(lat2)
+        xb = sin(lon2)
+        yb = cos(lon2)
+        xb = xb * coslat2
+        yb = yb * coslat2
+        x = xa + xb
+        y = ya + yb
+        z = za + zb
+        r = sqrt(x**2 + y**2 + z**2)
+        return asin(z/r), atan2(x, y)
+
+    # main loop
+    lat1 = fix(y1, False)
+    lon1 = fix(x1, True)
+    lat2 = fix(y2, False)
+    lon2 = fix(x2, True)
+    xxla = adjst(lat1)
+    yla = adjst(lat2)
+    xxlo = adjst(lon1)
+    ylo = adjst(lon2)
+    xla, xlo = midpoint(xxla, xxlo, yla, ylo)
+
+    sxla = sin(xla)
+    cxla = cos(xla)
+    syla = sin(yla)
+    cyla = cos(yla)
+    sdlo = sin(ylo-xlo)
+    cdlo = cos(ylo-xlo)
+
+    cosine = sxla*syla + cxla*cyla*cdlo
+    angle = acos(cosine)
+
+    result = 0
+    if (abs(xla) != pi/2) and (abs(yla) != pi/2) and (angle != pi):
+        if xla == yla:
+            if xlo != ylo:
+                result = 3*pi/2
+                if ylo < xlo:
+                    result = pi/2
+        else:
+            top = syla - sxla*cosine
+            bot = cxla*sin(angle)
+            if bot != 0:
+                topbot = top/bot
+                if topbot > 1:
+                    topbot = 1
+                if topbot < -1:
+                    topbot = -1
+                head = acos(topbot)
+                if sdlo > 0:
+                    result = 2*pi - head
+                else:
+                    result = head
+    # adjust angle
+    result = pi/2 - result
+    if result < 0:
+        result = result + 2*pi
+    return result
+
+
+def sph_angle(lat1: float, lat2: float, lon1: float, lon2: float) -> float:
+    """
+    Returns the geodesic distance along the globe in km, for two points represented by longitudes and latitudes
+
+    new version, reliant on fewer predetermined constants
+    """
+    def convert(coord: float) -> float:
+        """
+        converts the latitidue or longitude from degrees to radians, but also forces it to be between pi and -pi
+        """
+        new = coord*pi/180
+        while new > pi:
+            new -= 2*pi
+        return new
+
+    # clear out some simple cases
+    if lat1 == lat2:  # if they are at the same latitude
+        return 0
+    elif (abs(lat1) == 90) or (abs(lat2) == 90) or (lon1 == lon2):  # one of the points at a pole or same longitudes
+        return pi/2
+    else:
+        # convert to radians
+        lon1 = convert(lon1)
+        lon2 = convert(lon2)
+        lat1 = convert(lat1)
+        lat2 = convert(lat2)
+        dlon = abs(lon1 - lon2)  # difference in longitudes
+        cosine_a = sin(lat1)*sin(lat2) + cos(lat1)*cos(lat2)*cos(dlon)
+        if cosine_a >= 1:
+            a = 0
+        else:
+            a = acos(cosine_a)
+        c = pi/2 - lat2
+        angle = sin(dlon)*sin(c)/sin(a)
+        return pi/2 - asin(angle)
+
+        # if sin(a) == 0:
+        #     return 10
+        # else:
+        #     product = sin(dlon)*sin(c)/sin(a)
+        #     if product > 1:
+        #         product = 1
+        #     elif product < -1:
+        #         product = -1
+        #     angle = pi/2 - asin(product)
+        #     if angle < 0:
+        #         angle += 2*pi
+        #     return angle
+
+
+def sph_angle_matrix(lon: numpy.ndarray, lat: numpy.ndarray) -> numpy.ndarray:
+    n = len(lon)
+    if n != len(lat):
+        raise ValueError("Coordinate vectors must be same length")
+    output = numpy.zeros((n, n))
+    for i in range(n):
+        for j in range(i):
+            if i == j:
+                angle = 0
+            else:
+                angle = sph_angle(lat[i], lat[j], lon[i], lon[j])
+            output[i, j] = angle
+            output[j, i] = angle
+    return output
+
+
+def euc_angle_matrix(x: numpy.ndarray, y: numpy.ndarray, do360: bool = False) -> numpy.ndarray:
+    """
+    construct an n by n matrix containing the angles (in radians) describing the bearing between pairs of points
+
+    by default these are stored in symmetric form with the angle between 0 and pi
+
+    if the 360 degree option is chosen, the output matrix is no longer symmetric as the angle from i to j
+    will be the opposite of the angle from j to i (e.g., 90 vs 270 or 0 vs 180)
+
+    :param x: a single column containing the x-coordinates
+    :param y: a single column containing the y-coordinates
+    :param do360: a flag that controls whether the output should be over 180 degrees (default = False) or 360 degrees
+    :return: a square matrix containing the angles. this matrix will be symmetric if do360 is False and asymmetric
+             if true
+    """
+    n = len(x)
+    if n != len(y):
+        raise ValueError("Coordinate vectors must be same length")
+    output = numpy.zeros((n, n))
+    for i in range(n):
+        for j in range(i):
+            if i != j:
+                if do360:
+                    angle = euclidean_angle(x[i], y[i], x[j], y[j], do360=True)
+                    output[i, j] = angle
+                    angle = euclidean_angle(x[j], y[j], x[i], y[i], do360=True)
+                    output[j, i] = angle
+                else:
+                    angle = euclidean_angle(x[i], y[i], x[j], y[j])
+                    output[i, j] = angle
+                    output[j, i] = angle
     return output
 
 
 def create_point_list(x: numpy.ndarray, y: numpy.ndarray) -> list:
     """
     create a list of Points from a pair of vectors containing x and y coordinates
+
+    :param x: a single column containing the x-coordinates
+    :param y: a single column containing the y-coordinates
+    :return: a list containing Point objects represent each point
     """
     point_list = []
     for i in range(len(x)):
@@ -168,73 +381,46 @@ def delaunay_tessellation(x: numpy.ndarray, y: numpy.ndarray, output_frmt: str =
     return tessellation, connections
 
 
-def euclidean_angle(x1: float, y1: float, x2: float, y2: float) -> float:
-    """
-    This will calculate the angle between the two points, reporting a value between 0 and pi
-
-    :param x1: x-coordinate of first point
-    :param y1: y-coordinate of first point
-    :param x2: x-coordinate of second point
-    :param y2: y-coordinate of second point
-    :return: angle as a value between 0 and pi
-    """
-    dy = abs(y1 - y2)
-    dx = abs(x1 - x2)
-    if dy == 0:
-        return 0
-    elif dx == 0:
-        return pi / 2
-    else:
-        angle = atan(dy/dx)
-        if (y2 > y1) and (x2 > x1):
-            result = angle
-        elif (y2 > y1) and (x1 < x1):
-            result = pi - angle
-        elif (y2 < y1) and (x2 > x1):
-            result = pi - angle
-        elif (y2 < y1) and (x1 < x1):
-            result = angle
-        else:
-            return 0
-        while result > pi:
-            result -= pi
-        return result
-
-
-def euclidean_angle360(x1: float, y1: float, x2: float, y2: float) -> float:
-    """
-    This will calculate the angle between the two points, reporting a value between 0 and 2 pi
-
-    :param x1: x-coordinate of first point
-    :param y1: y-coordinate of first point
-    :param x2: x-coordinate of second point
-    :param y2: y-coordinate of second point
-    :return: angle as a value between 0 and 2 pi
-    """
-    dy = y2 - y1
-    dx = x2 - x1
-    if dy == 0:
-        if dx < 0:
-            return pi
-        else:
-            return 0
-    elif dx == 0:
-        if dy < 0:
-            return 3*pi/2
-        else:
-            return pi / 2
-    else:
-        angle = atan(abs(dy)/abs(dx))
-        if (dy > 0) and (dx > 0):
-            return angle
-        elif (dy > 0) and (dx < 0):
-            return pi - angle
-        elif (dy < 0) and (dx > 0):
-            return 2*pi - angle
-        elif (dy < 0) and (dx < 0):
-            return pi + angle
-        else:
-            return 0
+# def euclidean_angle360(x1: float, y1: float, x2: float, y2: float) -> float:
+#     """
+#     This will calculate the angle between the two points, reporting a value between 0 and 2 pi
+#
+#     :param x1: x-coordinate of first point
+#     :param y1: y-coordinate of first point
+#     :param x2: x-coordinate of second point
+#     :param y2: y-coordinate of second point
+#     :return: angle as a value between 0 and 2 pi
+#     """
+#     # dy = y2 - y1
+#     # dx = x2 - x1
+#     # if dy == 0:
+#     #     if dx < 0:
+#     #         return pi
+#     #     else:
+#     #         return 0
+#     # elif dx == 0:
+#     #     if dy < 0:
+#     #         return 3*pi/2
+#     #     else:
+#     #         return pi / 2
+#     # else:
+#     #     angle = atan(abs(dy)/abs(dx))
+#     #     if (dy > 0) and (dx > 0):
+#     #         return angle
+#     #     elif (dy > 0) and (dx < 0):
+#     #         return pi - angle
+#     #     elif (dy < 0) and (dx > 0):
+#     #         return 2*pi - angle
+#     #     elif (dy < 0) and (dx < 0):
+#     #         return pi + angle
+#     #     else:
+#     #         return 0
+#     angle = atan2(y2-y1, x2-x1)
+#     while angle >= 2*pi:
+#         angle -= 2*pi
+#     while angle < 0:
+#         angle += 2*pi
+#     return angle
 
 
 # # def calculate_tessellation(x: numpy.ndarray, y: numpy.ndarray, triangle_list: list):
@@ -393,20 +579,30 @@ def calculate_tessellation(triangle_list: list, point_list: list) -> VoronoiTess
         if len(other_edges) == 2:
             edge1 = other_edges[0]
             edge2 = other_edges[1]
-            edge_angle = euclidean_angle360(edge.start_vertex.x, edge.start_vertex.y,
-                                            edge.end_vertex.x, edge.end_vertex.y)
+            # edge_angle = euclidean_angle360(edge.start_vertex.x, edge.start_vertex.y,
+            #                                 edge.end_vertex.x, edge.end_vertex.y)
+            edge_angle = euclidean_angle(edge.start_vertex.x, edge.start_vertex.y,
+                                         edge.end_vertex.x, edge.end_vertex.y, do360=True)
             if edge1.start_vertex == edge.start_vertex:
-                edge_angle1 = euclidean_angle360(edge.start_vertex.x, edge.start_vertex.y, edge.end_vertex.x,
-                                                 edge.end_vertex.y)
+                # edge_angle1 = euclidean_angle360(edge.start_vertex.x, edge.start_vertex.y, edge.end_vertex.x,
+                #                                  edge.end_vertex.y)
+                edge_angle1 = euclidean_angle(edge.start_vertex.x, edge.start_vertex.y, edge.end_vertex.x,
+                                              edge.end_vertex.y, do360=True)
             else:
-                edge_angle1 = euclidean_angle360(edge.end_vertex.x, edge.end_vertex.y, edge.start_vertex.x,
-                                                 edge.start_vertex.y)
+                # edge_angle1 = euclidean_angle360(edge.end_vertex.x, edge.end_vertex.y, edge.start_vertex.x,
+                #                                  edge.start_vertex.y)
+                edge_angle1 = euclidean_angle(edge.end_vertex.x, edge.end_vertex.y, edge.start_vertex.x,
+                                              edge.start_vertex.y, do360=True)
             if edge2.start_vertex == edge.start_vertex:
-                edge_angle2 = euclidean_angle360(edge.start_vertex.x, edge.start_vertex.y, edge.end_vertex.x,
-                                                 edge.end_vertex.y)
+                # edge_angle2 = euclidean_angle360(edge.start_vertex.x, edge.start_vertex.y, edge.end_vertex.x,
+                #                                  edge.end_vertex.y)
+                edge_angle2 = euclidean_angle(edge.start_vertex.x, edge.start_vertex.y, edge.end_vertex.x,
+                                              edge.end_vertex.y, do360=True)
             else:
-                edge_angle2 = euclidean_angle360(edge.end_vertex.x, edge.end_vertex.y, edge.start_vertex.x,
-                                                 edge.start_vertex.y)
+                # edge_angle2 = euclidean_angle360(edge.end_vertex.x, edge.end_vertex.y, edge.start_vertex.x,
+                #                                  edge.start_vertex.y)
+                edge_angle2 = euclidean_angle(edge.end_vertex.x, edge.end_vertex.y, edge.start_vertex.x,
+                                              edge.start_vertex.y, do360=True)
             if edge_angle < edge_angle1:
                 if (edge_angle1 < edge_angle2) or (edge_angle > edge_angle2):
                     edge.ccw_predecessor = edge1
@@ -429,20 +625,30 @@ def calculate_tessellation(triangle_list: list, point_list: list) -> VoronoiTess
         if len(other_edges) == 2:
             edge1 = other_edges[0]
             edge2 = other_edges[1]
-            edge_angle = euclidean_angle360(edge.start_vertex.x, edge.start_vertex.y,
-                                            edge.end_vertex.x, edge.end_vertex.y)
+            # edge_angle = euclidean_angle360(edge.start_vertex.x, edge.start_vertex.y,
+            #                                 edge.end_vertex.x, edge.end_vertex.y)
+            edge_angle = euclidean_angle(edge.start_vertex.x, edge.start_vertex.y,
+                                         edge.end_vertex.x, edge.end_vertex.y, do360=True)
             if edge1.start_vertex == edge.end_vertex:
-                edge_angle1 = euclidean_angle360(edge.start_vertex.x, edge.start_vertex.y, edge.end_vertex.x,
-                                                 edge.end_vertex.y)
+                # edge_angle1 = euclidean_angle360(edge.start_vertex.x, edge.start_vertex.y, edge.end_vertex.x,
+                #                                  edge.end_vertex.y)
+                edge_angle1 = euclidean_angle(edge.start_vertex.x, edge.start_vertex.y, edge.end_vertex.x,
+                                              edge.end_vertex.y, do360=True)
             else:
-                edge_angle1 = euclidean_angle360(edge.end_vertex.x, edge.end_vertex.y, edge.start_vertex.x,
-                                                 edge.start_vertex.y)
+                # edge_angle1 = euclidean_angle360(edge.end_vertex.x, edge.end_vertex.y, edge.start_vertex.x,
+                #                                  edge.start_vertex.y)
+                edge_angle1 = euclidean_angle(edge.end_vertex.x, edge.end_vertex.y, edge.start_vertex.x,
+                                              edge.start_vertex.y, do360=True)
             if edge2.start_vertex == edge.end_vertex:
-                edge_angle2 = euclidean_angle360(edge.start_vertex.x, edge.start_vertex.y, edge.end_vertex.x,
-                                                 edge.end_vertex.y)
+                # edge_angle2 = euclidean_angle360(edge.start_vertex.x, edge.start_vertex.y, edge.end_vertex.x,
+                #                                  edge.end_vertex.y)
+                edge_angle2 = euclidean_angle(edge.start_vertex.x, edge.start_vertex.y, edge.end_vertex.x,
+                                              edge.end_vertex.y, do360=True)
             else:
-                edge_angle2 = euclidean_angle360(edge.end_vertex.x, edge.end_vertex.y, edge.start_vertex.x,
-                                                 edge.start_vertex.y)
+                # edge_angle2 = euclidean_angle360(edge.start_vertex.x, edge.start_vertex.y, edge.end_vertex.x,
+                #                                  edge.end_vertex.y)
+                edge_angle2 = euclidean_angle(edge.start_vertex.x, edge.start_vertex.y, edge.end_vertex.x,
+                                              edge.end_vertex.y, do360=True)
             if edge_angle < edge_angle1:
                 if (edge_angle1 < edge_angle2) or (edge_angle > edge_angle2):
                     edge.ccw_successor = edge1
@@ -671,7 +877,6 @@ def least_diagonal_network(x: numpy.ndarray, y: numpy.ndarray, distances: numpy.
         while k < len(good_pairs):
             pair = good_pairs[k]
             pair1, pair2 = pair[0], pair[1]
-            # if (pair[0] != i) and (pair[1] != i) and (pair[0] != j) and (pair[1] != j):
             if (i not in pair) and (j not in pair):
                 if x[pair1] != x[pair2]:
                     vertical2 = False
@@ -846,7 +1051,7 @@ def create_distance_classes(dist_matrix: numpy.ndarray, class_mode: str, mode_va
             limits.append([c*class_width, (c+1)*class_width])
 
     elif "pair" in class_mode:
-        distances = pyssage.utils.flatten_half(dist_matrix)  # only need to flatten half the matrix
+        distances = flatten_half(dist_matrix)  # only need to flatten half the matrix
         distances.sort()  # we only need to do this for these modes
         total = len(distances)
         pairs_per_class = 0
@@ -870,59 +1075,3 @@ def create_distance_classes(dist_matrix: numpy.ndarray, class_mode: str, mode_va
             lower = upper
 
     return numpy.array(limits)
-
-
-"""
-
-procedure DistanceClassBasedConnections(DistMat : TpasSymmetricMatrix;
-          DC : TpasDistClass; IncClass : TpasBooleanArray; NewName : string);
-var
-   i,j,c,cnt,n : integer;
-   ConMat : TpasBooleanMatrix;
-   outstr : string;
-begin
-     if DoTimeStamp then StartTimeStamp('Distance Class Connections');
-     n := DistMat.N;
-     ConMat := TpasBooleanMatrix.Create(n);
-     ConMat.MatrixName := NewName;
-     ProgressRefresh(n,'Calculating connections...');
-     for i := 1 to n do if ContinueProgress then begin
-         for j := 1 to i - 1 do
-             if not DistMat.IsEmpty[i,j] then begin
-                c := DC.FindClass(DistMat[i,j]);
-                if IncClass[c-1] then begin
-                   ConMat[i,j] := true;
-                   ConMat[j,i] := true;
-                end else begin
-                    ConMat[i,j] := false;
-                    ConMat[j,i] := false;
-                end;
-             end;
-         ProgressIncrement;
-     end;
-     ProgressClose;
-     if ContinueProgress then begin
-        Data_AddData(ConMat);
-        OutputAddLine('Connection matrix "' + NewName +
-           '" constructed from distance matrix "'+DistMat.MatrixName+
-           '" and distance classes "' +DC.MatrixName+'".');
-        //outstr := '  Included class';
-        cnt := 0;
-        for i := 0 to DC.N - 1 do
-            if IncClass[i] then inc(cnt);
-        if (cnt > 1) then outstr := '  Included class '
-        else outstr := '  Included classes ';
-        j := 0;
-        for i := 0 to DC.N - 1 do
-            if IncClass[i] then begin
-               inc(j);
-               outstr := outstr + DC.DClassName[i+1];
-               if (j < cnt) then outstr := outstr + ', ';
-            end;
-        OutputAddLine(outstr);
-        OutputAddBlankLine;
-     end else ConMat.Free;
-     if DoTimeStamp then EndTimeStamp;
-end;
-
-"""
