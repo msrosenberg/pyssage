@@ -522,7 +522,7 @@ def test_ttlqv():
               0)
 
     result = pyssage.quadvar.ttlqv(test_transect())
-    pyssage.graph.draw_quadvar_result(result, "TTLQV Test")
+    pyssage.graph.draw_quadvar_result(result, title="TTLQV Test")
     for i in range(500):
         assert round(result[i, 1], 5) == answer[i]
 
@@ -1031,7 +1031,7 @@ def test_ttlqv_wrap():
               0.4098)
 
     result = pyssage.quadvar.ttlqv(test_transect(), wrap=True)
-    pyssage.graph.draw_quadvar_result(result, "TTLQV Wrap Test")
+    pyssage.graph.draw_quadvar_result(result, title="TTLQV Wrap Test")
     for i in range(500):
         assert round(result[i, 1], 5) == answer[i]
 
@@ -1373,7 +1373,7 @@ def test_3tlqv():
               0)
 
     result = pyssage.quadvar.three_tlqv(test_transect())
-    pyssage.graph.draw_quadvar_result(result, "3TLQV Test")
+    pyssage.graph.draw_quadvar_result(result, title="3TLQV Test")
     for i in range(333):
         assert round(result[i, 1], 5) == answer[i]
 
@@ -1882,7 +1882,7 @@ def test_pqv():
               0.1536)
 
     result = pyssage.quadvar.pqv(test_transect())
-    pyssage.graph.draw_quadvar_result(result, "PQV Test")
+    pyssage.graph.draw_quadvar_result(result, title="PQV Test")
     for i in range(500):
         assert round(result[i, 1], 5) == answer[i]
 
@@ -2224,7 +2224,7 @@ def test_tqv():
               0.09964)
 
     result = pyssage.quadvar.tqv(test_transect())
-    pyssage.graph.draw_quadvar_result(result, "tQV Test")
+    pyssage.graph.draw_quadvar_result(result, title="tQV Test")
     for i in range(333):
         assert round(result[i, 1], 5) == answer[i]
 
@@ -2732,7 +2732,7 @@ def test_2nlv():
               0)
 
     result = pyssage.quadvar.two_nlv(test_transect())
-    pyssage.graph.draw_quadvar_result(result, "2NLV Test")
+    pyssage.graph.draw_quadvar_result(result, title="2NLV Test")
     for i in range(499):
         assert round(result[i, 1], 5) == answer[i]
 
@@ -3074,9 +3074,51 @@ def test_3nlv():
               0)
 
     result = pyssage.quadvar.three_nlv(test_transect())
-    pyssage.graph.draw_quadvar_result(result, "3NLV Test")
+    pyssage.graph.draw_quadvar_result(result, title="3NLV Test")
     for i in range(333):
         assert round(result[i, 1], 5) == answer[i]
+
+
+def test_ttlqv_random():
+    summary, _ = pyssage.quadvar.quadrat_variance_randomization(pyssage.quadvar.ttlqv, 100, test_transect(),
+                                                                max_block_size=100)
+    pyssage.graph.draw_quadvar_result(summary[:, 0:2], summary[:, 2], title="TTLQV Test with Randomization",
+                                      varlabel="Observed", randlabel="{:0.2%} confidence limit".format(0.95))
+
+
+def test_threetlqv_random():
+    summary, _ = pyssage.quadvar.quadrat_variance_randomization(pyssage.quadvar.three_tlqv, 100, test_transect(),
+                                                                max_block_size=100)
+    pyssage.graph.draw_quadvar_result(summary[:, 0:2], summary[:, 2], title="3TLQV Test with Randomization",
+                                      varlabel="Observed", randlabel="{:0.2%} confidence limit".format(0.95))
+
+
+def test_pqv_random():
+    summary, _ = pyssage.quadvar.quadrat_variance_randomization(pyssage.quadvar.pqv, 100, test_transect(),
+                                                                max_block_size=100)
+    pyssage.graph.draw_quadvar_result(summary[:, 0:2], summary[:, 2], title="PQV Test with Randomization",
+                                      varlabel="Observed", randlabel="{:0.2%} confidence limit".format(0.95))
+
+
+def test_tqv_random():
+    summary, _ = pyssage.quadvar.quadrat_variance_randomization(pyssage.quadvar.tqv, 100, test_transect(),
+                                                                max_block_size=100)
+    pyssage.graph.draw_quadvar_result(summary[:, 0:2], summary[:, 2], title="TQV Test with Randomization",
+                                      varlabel="Observed", randlabel="{:0.2%} confidence limit".format(0.95))
+
+
+def test_2nlv_random():
+    summary, _ = pyssage.quadvar.quadrat_variance_randomization(pyssage.quadvar.two_nlv, 100, test_transect(),
+                                                                max_block_size=100)
+    pyssage.graph.draw_quadvar_result(summary[:, 0:2], summary[:, 2], title="2NLV Test with Randomization",
+                                      varlabel="Observed", randlabel="{:0.2%} confidence limit".format(0.95))
+
+
+def test_threet_nlv_random():
+    summary, _ = pyssage.quadvar.quadrat_variance_randomization(pyssage.quadvar.three_nlv, 100, test_transect(),
+                                                                max_block_size=100)
+    pyssage.graph.draw_quadvar_result(summary[:, 0:2], summary[:, 2], title="3NLV Test with Randomization",
+                                      varlabel="Observed", randlabel="{:0.2%} confidence limit".format(0.95))
 
 
 """

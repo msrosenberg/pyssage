@@ -1,3 +1,4 @@
+from typing import Tuple
 import numpy
 from pyssage.classes import Number
 # from datetime import datetime
@@ -302,6 +303,33 @@ def three_nlv(transect: numpy.ndarray, min_block_size: int = 1, max_block_size: 
             qv /= 8*b*cnt
             output.append([b*unit_scale, qv])
     return numpy.array(output)
+
+
+def quadrat_variance_randomization(qv_function, nreps: int, transect: numpy.ndarray, min_block_size: int = 1,
+                                   max_block_size: int = 0, block_step: int = 1, wrap: bool = False,
+                                   unit_scale: Number = 1, alpha: float = 0.05) -> Tuple[numpy.ndarray, numpy.ndarray]:
+    base_output = qv_function(transect, min_block_size, max_block_size, block_step, wrap, unit_scale)
+    all_output = numpy.empty((len(base_output), nreps+1))
+    summary_output = numpy.empty((len(base_output), 3))
+    all_output[:, 0:2] = base_output[:, 0:2]
+    summary_output[:, 0:2] = base_output[:, 0:2]
+    # for r in range(len(base_output)):
+    #     for c in range(2):
+    #         all_output[r, c] = base_output[r, c]
+    #         summary_output[r, c] = base_output[r, c]
+    rand_transect = numpy.copy(transect)
+    for rep in range(nreps-1):
+        numpy.random.shuffle(rand_transect)
+        rand_output = qv_function(rand_transect, min_block_size, max_block_size, block_step, wrap, unit_scale)
+        all_output[:, rep+2] = rand_output[:, 1]
+        # for r in range(len(rand_output)):
+        #     all_output[r, rep+2] = rand_output[r, 1]
+    alpha_index = round(nreps * (1-alpha)) - 1
+    for r in range(len(all_output)):
+        tmp = all_output[r, 1:]  # pull out row, excluding first column
+        tmp = numpy.sort(tmp)
+        summary_output[r, 2] = tmp[alpha_index]
+    return summary_output, all_output
 
 
 """

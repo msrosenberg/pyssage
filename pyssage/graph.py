@@ -1,3 +1,4 @@
+from typing import Optional
 from pyssage.classes import Number, _DEF_CONNECTION
 import pyssage.distcon
 import pyssage.utils
@@ -18,9 +19,13 @@ def draw_transect(transect: numpy.array, unit_scale: Number = 1, title: str = ""
     pyplot.show()
 
 
-def draw_quadvar_result(quadvar: numpy.array, title: str = "") -> None:
+def draw_quadvar_result(quadvar: numpy.ndarray, rand_ci: Optional[numpy.ndarray] = None, title: str = "",
+                        varlabel: str = "", randlabel: str = "") -> None:
     fig, axs = pyplot.subplots()
-    axs.plot(quadvar[:, 0], quadvar[:, 1])
+    axs.plot(quadvar[:, 0], quadvar[:, 1], label=varlabel)
+    if rand_ci is not None:
+        axs.plot(quadvar[:, 0], rand_ci, label=randlabel)
+        pyplot.legend(loc="upper right")
     axs.set_xlabel("Scale")
     axs.set_ylabel("Variance")
     if title != "":
