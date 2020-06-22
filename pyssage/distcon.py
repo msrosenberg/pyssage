@@ -1,5 +1,5 @@
 from typing import Optional, Tuple
-from math import sqrt, sin, cos, acos, pi, asin, atan2
+from math import sqrt, sin, cos, acos, pi, atan2
 import numpy
 from pyssage.classes import Point, Triangle, VoronoiEdge, VoronoiTessellation, VoronoiPolygon, _DEF_CONNECTION, Number
 from pyssage.utils import flatten_half, euclidean_angle
@@ -153,7 +153,7 @@ def sph_angle_matrix(lon: numpy.ndarray, lat: numpy.ndarray, mode: str = "midpoi
     for i in range(n):
         for j in range(n):
             if i != j:
-                angle = sph_angle(lat[i], lat[j], lon[i], lon[j])
+                angle = sph_angle(lat[i], lat[j], lon[i], lon[j], mode)
                 output[i, j] = angle
     return output
 
