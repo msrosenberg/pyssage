@@ -3094,15 +3094,15 @@ def test_threetlqv_random():
 
 
 def test_pqv_random():
-    summary, _ = pyssage.quadvar.quadrat_variance_randomization(pyssage.quadvar.pqv, 100, test_transect(),
-                                                                max_block_size=100)
+    summary, _ = pyssage.quadvar.quadrat_variance_randomization(pyssage.quadvar.pqv, 50, test_transect(),
+                                                                max_block_size=50)
     pyssage.graph.draw_quadvar_result(summary[:, 0:2], summary[:, 2], title="PQV Test with Randomization",
                                       varlabel="Observed", randlabel="{:0.2%} confidence limit".format(0.95))
 
 
 def test_tqv_random():
-    summary, _ = pyssage.quadvar.quadrat_variance_randomization(pyssage.quadvar.tqv, 100, test_transect(),
-                                                                max_block_size=100)
+    summary, _ = pyssage.quadvar.quadrat_variance_randomization(pyssage.quadvar.tqv, 50, test_transect(),
+                                                                max_block_size=50)
     pyssage.graph.draw_quadvar_result(summary[:, 0:2], summary[:, 2], title="TQV Test with Randomization",
                                       varlabel="Observed", randlabel="{:0.2%} confidence limit".format(0.95))
 
