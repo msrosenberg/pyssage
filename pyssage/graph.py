@@ -82,14 +82,9 @@ def check_connection_format(con_frmt: str) -> None:
         raise ValueError("{} is not a valid connection format".format(con_frmt))
 
 
-def draw_connections(connections, xcoords: numpy.ndarray, ycoords: numpy.ndarray,
-                     connection_frmt: str = _DEF_CONNECTION, title: str = ""):
+def add_connections_to_plot(axs, connections, xcoords: numpy.ndarray, ycoords: numpy.ndarray,
+                            connection_frmt: str = _DEF_CONNECTION):
     check_connection_format(connection_frmt)
-    fig, axs = pyplot.subplots()
-    minx = min(xcoords)
-    maxx = max(xcoords)
-    miny = min(ycoords)
-    maxy = max(ycoords)
     if connection_frmt == "pairlist":
         for c in connections:
             p1 = c[0]
@@ -98,6 +93,16 @@ def draw_connections(connections, xcoords: numpy.ndarray, ycoords: numpy.ndarray
             y = [ycoords[p1], ycoords[p2]]
             line = Line2D(x, y, zorder=1)
             axs.add_line(line)
+    elif connection_frmt == "pntdict":
+        done = []
+        for i in connections:
+            for j in i:
+                if [i, j] not in done:  # trying to avoid duplicating the reverse line
+                    x = [xcoords[i], xcoords[j]]
+                    y = [ycoords[i], ycoords[j]]
+                    line = Line2D(x, y, zorder=1)
+                    axs.add_line(line)
+                    done.append([j, i])
     else:
         n = len(xcoords)
         for i in range(n):
@@ -115,6 +120,16 @@ def draw_connections(connections, xcoords: numpy.ndarray, ycoords: numpy.ndarray
                     y = [ycoords[i], ycoords[j]]
                     line = Line2D(x, y, zorder=1)
                     axs.add_line(line)
+
+
+def draw_connections(connections, xcoords: numpy.ndarray, ycoords: numpy.ndarray,
+                     connection_frmt: str = _DEF_CONNECTION, title: str = ""):
+    minx = min(xcoords)
+    maxx = max(xcoords)
+    miny = min(ycoords)
+    maxy = max(ycoords)
+    fig, axs = pyplot.subplots()
+    add_connections_to_plot(axs, connections, xcoords, ycoords, connection_frmt)
     pyplot.scatter(xcoords, ycoords, color="black", zorder=2)
     axs.set_xlim(minx-1, maxx+1)
     axs.set_ylim(miny-1, maxy+1)
@@ -125,37 +140,12 @@ def draw_connections(connections, xcoords: numpy.ndarray, ycoords: numpy.ndarray
 
 def draw_shortest_path(connections, xcoords: numpy.ndarray, ycoords: numpy.ndarray, trace_dict: dict,
                        startp: int, endp: int, connection_frmt: str = _DEF_CONNECTION, title: str = ""):
-    check_connection_format(connection_frmt)
-    fig, axs = pyplot.subplots()
     minx = min(xcoords)
     maxx = max(xcoords)
     miny = min(ycoords)
     maxy = max(ycoords)
-    if connection_frmt == "pairlist":
-        for c in connections:
-            p1 = c[0]
-            p2 = c[1]
-            x = [xcoords[p1], xcoords[p2]]
-            y = [ycoords[p1], ycoords[p2]]
-            line = Line2D(x, y, zorder=1)
-            axs.add_line(line)
-    else:
-        n = len(xcoords)
-        for i in range(n):
-            for j in range(i):
-                if (connection_frmt == "boolmatrix") and connections[i, j]:
-                    connect = True
-                elif (connection_frmt == "binmatrix") and (connections[i, j] == 1):
-                    connect = True
-                elif (connection_frmt == "revbinmatrix") and (connections[i, j] == 0):
-                    connect = True
-                else:
-                    connect = False
-                if connect:
-                    x = [xcoords[i], xcoords[j]]
-                    y = [ycoords[i], ycoords[j]]
-                    line = Line2D(x, y, zorder=1)
-                    axs.add_line(line)
+    fig, axs = pyplot.subplots()
+    add_connections_to_plot(axs, connections, xcoords, ycoords, connection_frmt)
 
     trace_path = pyssage.distcon.trace_path(startp, endp, trace_dict)
     for i in range(len(trace_path)-1):
