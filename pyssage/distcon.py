@@ -502,12 +502,18 @@ def convert_connection_format(input_data, input_frmt: str, output_frmt: str):
     """
     if input_frmt == "pairlist":
         n = max(numpy.ndarray(input_data))
+    elif input_frmt == "pntdict":
+        n = max(input_data)
     else:
         n = len(input_data)
     output = setup_connection_output(output_frmt, n)
     if input_frmt == "pairlist":
         for i in input_data:
             store_connection(output, i[0], i[1], output_frmt)
+    elif input_frmt == "pntdict":
+        for i in input_data:
+            for j in input_data[i]:
+                store_connection(output, i, j, output_frmt)
     elif input_frmt == "boolmatrix":
         for i in range(n):
             for j in range(i):
@@ -538,6 +544,8 @@ def setup_connection_output(output_frmt: str, n: int):
         return numpy.ones((n, n), dtype=int)
     elif output_frmt == "pairlist":
         return []
+    elif output_frmt == "pntdict":
+        return {}
     else:
         raise ValueError("{} is not a valid output format for connections".format(output_frmt))
 
@@ -558,6 +566,9 @@ def store_connection(output, i: int, j: int, output_frmt: str):
         output[j, i] = 0
     elif output_frmt == "pairlist":
         output.append([i, j])
+    elif output_frmt == "pntdict":
+        output.setdefault(i, set()).add(j)
+        output.setdefault(j, set()).add(i)
 
 
 def check_input_distance_matrix(distances: numpy.ndarray) -> int:
