@@ -11,11 +11,9 @@ def test_delaunay_tessellation():
     answer = load_answer("answers/delaunay_answer.txt")
 
     coords = test_coords()
-    tessellation, connections = pyssage.distcon.delaunay_tessellation(coords[:, 0], coords[:, 1],
-                                                                      output_frmt="binmatrix")
+    tessellation, connections = pyssage.distcon.delaunay_tessellation(coords[:, 0], coords[:, 1])
     pyssage.graph.draw_tessellation(tessellation, coords[:, 0], coords[:, 1], "Tessellation Test")
-    pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1], connection_frmt="binmatrix",
-                                   title="Delaunay Connections Test")
+    pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1], title="Delaunay Connections Test")
     for i in range(len(answer)):
         for j in range(len(answer)):
             assert connections[i, j] == answer[i, j]
@@ -96,40 +94,40 @@ def test_check_input_distance_matrix():
         pyssage.distcon.check_input_distance_matrix(matrix)
 
 
-def test_setup_connection_output():
-    n = 5
-    output = pyssage.distcon.setup_connection_output("boolmatrix", n)
-    assert isinstance(output, numpy.ndarray)
-    assert output.shape == (n, n)
-    for i in range(n):
-        for j in range(n):
-            assert not output[i, j]
-
-    output = pyssage.distcon.setup_connection_output("binmatrix", n)
-    assert isinstance(output, numpy.ndarray)
-    assert output.shape == (n, n)
-    for i in range(n):
-        for j in range(n):
-            assert output[i, j] == 0
-
-    output = pyssage.distcon.setup_connection_output("revbinmatrix", n)
-    assert isinstance(output, numpy.ndarray)
-    assert output.shape == (n, n)
-    for i in range(n):
-        for j in range(n):
-            assert output[i, j] == 1
-
-    output = pyssage.distcon.setup_connection_output("pairlist", n)
-    assert isinstance(output, list)
-    assert len(output) == 0
-
-    output = pyssage.distcon.setup_connection_output("pntdict", n)
-    assert isinstance(output, dict)
-    assert len(output) == 0
-
-    with pytest.raises(ValueError, match="typo is not a valid output format for connections"):
-        # broken test --> should raise error
-        pyssage.distcon.setup_connection_output("typo", n)
+# def test_setup_connection_output():
+#     n = 5
+#     output = pyssage.distcon.setup_connection_output("boolmatrix", n)
+#     assert isinstance(output, numpy.ndarray)
+#     assert output.shape == (n, n)
+#     for i in range(n):
+#         for j in range(n):
+#             assert not output[i, j]
+#
+#     output = pyssage.distcon.setup_connection_output("binmatrix", n)
+#     assert isinstance(output, numpy.ndarray)
+#     assert output.shape == (n, n)
+#     for i in range(n):
+#         for j in range(n):
+#             assert output[i, j] == 0
+#
+#     output = pyssage.distcon.setup_connection_output("revbinmatrix", n)
+#     assert isinstance(output, numpy.ndarray)
+#     assert output.shape == (n, n)
+#     for i in range(n):
+#         for j in range(n):
+#             assert output[i, j] == 1
+#
+#     output = pyssage.distcon.setup_connection_output("pairlist", n)
+#     assert isinstance(output, list)
+#     assert len(output) == 0
+#
+#     output = pyssage.distcon.setup_connection_output("pntdict", n)
+#     assert isinstance(output, dict)
+#     assert len(output) == 0
+#
+#     with pytest.raises(ValueError, match="typo is not a valid output format for connections"):
+#         # broken test --> should raise error
+#         pyssage.distcon.setup_connection_output("typo", n)
 
 
 def test_relative_neighborhood_network():
@@ -138,9 +136,8 @@ def test_relative_neighborhood_network():
 
     coords = test_coords()
     distances = pyssage.distcon.sph_dist_matrix(coords[:, 0], coords[:, 1])
-    connections = pyssage.distcon.relative_neighborhood_network(distances, output_frmt="binmatrix")
-    pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1], connection_frmt="binmatrix",
-                                   title="Relative Neighborhood Network Test")
+    connections = pyssage.distcon.relative_neighborhood_network(distances)
+    pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1], title="Relative Neighborhood Network Test")
     for i in range(len(answer)):
         for j in range(len(answer)):
             assert connections[i, j] == answer[i, j]
@@ -152,9 +149,8 @@ def test_gabriel_network():
 
     coords = test_coords()
     distances = pyssage.distcon.sph_dist_matrix(coords[:, 0], coords[:, 1])
-    connections = pyssage.distcon.gabriel_network(distances, output_frmt="binmatrix")
-    pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1], connection_frmt="binmatrix",
-                                   title="Gabriel Graph/Network Test")
+    connections = pyssage.distcon.gabriel_network(distances)
+    pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1], title="Gabriel Graph/Network Test")
     for i in range(len(answer)):
         for j in range(len(answer)):
             assert connections[i, j] == answer[i, j]
@@ -166,49 +162,33 @@ def test_minimum_spanning_tree():
 
     coords = test_coords()
     distances = pyssage.distcon.sph_dist_matrix(coords[:, 0], coords[:, 1])
-    connections = pyssage.distcon.minimum_spanning_tree(distances, output_frmt="binmatrix")
-    pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1], connection_frmt="binmatrix",
-                                   title="Minimum-Spanning Tree Test")
+    connections = pyssage.distcon.minimum_spanning_tree(distances)
+    pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1], title="Minimum-Spanning Tree Test")
     for i in range(len(answer)):
         for j in range(len(answer)):
             assert connections[i, j] == answer[i, j]
 
 
 def test_connect_distance_range():
-    # answers calculated from PASSaGE 2 and exported as a binary connection matrix
     """
-    PASSaGE answers had empty diagonals for some odd reason; needed to fix prior to import
-
-    One small change between this implementation and that of PASSaGE (does not affect test):
-    PASSaGE had the upper value as non-inclusive (dist < maxdist); currently this code is inclusive of the
-    upper value (dist <= maxdist). Should think about whether to keep this way or not
+    different data set required to compare to passage
     """
-    answer = load_answer("distance_based_connect_25-100_answer.txt")
-
     coords = test_coords()
     distances = pyssage.distcon.sph_dist_matrix(coords[:, 0], coords[:, 1])
-    connections = pyssage.distcon.connect_distance_range(distances, mindist=25, maxdist=100, output_frmt="binmatrix")
-    pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1], connection_frmt="binmatrix",
+    connections = pyssage.distcon.connect_distance_range(distances, mindist=25, maxdist=100)
+    pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1],
                                    title="Distance-based Connections (25-100) Test")
-    for i in range(len(answer)):
-        for j in range(len(answer)):
-            assert connections[i, j] == answer[i, j]
 
-    answer = load_answer("distance_based_connect_50-150_answer.txt")
-    connections = pyssage.distcon.connect_distance_range(distances, mindist=50, maxdist=150, output_frmt="binmatrix")
-    pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1], connection_frmt="binmatrix",
+    connections = pyssage.distcon.connect_distance_range(distances, mindist=50, maxdist=150)
+    pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1],
                                    title="Distance-based Connections (50-150) Test")
-    for i in range(len(answer)):
-        for j in range(len(answer)):
-            assert connections[i, j] == answer[i, j]
 
 
 def test_least_diagonal_network():
     coords = test_coords()
     distances = pyssage.distcon.sph_dist_matrix(coords[:, 0], coords[:, 1])
-    connections = pyssage.distcon.least_diagonal_network(coords[:, 0], coords[:, 1], distances, output_frmt="binmatrix")
-    pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1], connection_frmt="binmatrix",
-                                   title="Least Diagonal Network Test")
+    connections = pyssage.distcon.least_diagonal_network(coords[:, 0], coords[:, 1], distances)
+    pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1], title="Least Diagonal Network Test")
 
     """
     if tested versus PASSaGE the test fails. I believe the PASSaGE code for this algorithm might have been 
@@ -241,13 +221,11 @@ def test_nearest_neighbor_connections():
     """
     coords = test_coords()
     distances = pyssage.distcon.sph_dist_matrix(coords[:, 0], coords[:, 1])
-    connections = pyssage.distcon.nearest_neighbor_connections(distances, 1, output_frmt="binmatrix")
-    pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1], connection_frmt="binmatrix",
-                                   title="Nearest Neighbor (k=1) Test")
+    connections = pyssage.distcon.nearest_neighbor_connections(distances, 1)
+    pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1], title="Nearest Neighbor (k=1) Test")
 
-    connections = pyssage.distcon.nearest_neighbor_connections(distances, 2, output_frmt="binmatrix")
-    pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1], connection_frmt="binmatrix",
-                                   title="Nearest Neighbor (k=1) Test")
+    connections = pyssage.distcon.nearest_neighbor_connections(distances, 2)
+    pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1], title="Nearest Neighbor (k=1) Test")
 
 
 def test_shortest_path_distances():
@@ -260,14 +238,13 @@ def test_shortest_path_distances():
     distances = pyssage.distcon.sph_dist_matrix(coords[:, 0], coords[:, 1])
 
     # test a fully connected network
-    connections = pyssage.distcon.minimum_spanning_tree(distances, output_frmt="boolmatrix")
+    connections = pyssage.distcon.minimum_spanning_tree(distances)
     geodists, trace = pyssage.distcon.shortest_path_distances(distances, connections)
-    pyssage.graph.draw_shortest_path(connections, coords[:, 0], coords[:, 1], trace, 0, 300,
-                                     connection_frmt="boolmatrix")
+    pyssage.graph.draw_shortest_path(connections, coords[:, 0], coords[:, 1], trace, 0, 300)
 
     # test a partially connected network
-    connections = pyssage.distcon.nearest_neighbor_connections(distances, 1, output_frmt="boolmatrix")
-    _, _ = pyssage.distcon.shortest_path_distances(distances, connections)
+    connections = pyssage.distcon.nearest_neighbor_connections(distances, 1)
+    pyssage.distcon.shortest_path_distances(distances, connections)
 
 
 def test_create_distance_classes():

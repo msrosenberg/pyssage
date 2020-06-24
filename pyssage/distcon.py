@@ -1,7 +1,7 @@
 from typing import Optional, Tuple
 from math import sqrt, sin, cos, acos, pi, atan2
 import numpy
-from pyssage.classes import Point, Triangle, VoronoiEdge, VoronoiTessellation, VoronoiPolygon, _DEF_CONNECTION, Number
+from pyssage.classes import Point, Triangle, VoronoiEdge, VoronoiTessellation, VoronoiPolygon, Number, Connections
 from pyssage.utils import flatten_half, euclidean_angle
 
 # __all__ = ["euc_dist_matrix"]
@@ -278,13 +278,13 @@ def calculate_delaunay_triangles(x: numpy.ndarray, y: numpy.ndarray) -> Tuple[li
     return triangle_list, point_list
 
 
-def delaunay_tessellation(x: numpy.ndarray, y: numpy.ndarray, output_frmt: str = _DEF_CONNECTION):
+def delaunay_tessellation(x: numpy.ndarray, y: numpy.ndarray) -> Tuple[VoronoiTessellation, Connections]:
     n = len(x)
     if n != len(y):
         raise ValueError("Coordinate vectors must be same length")
 
     triangles, points = calculate_delaunay_triangles(x, y)
-    connections = delaunay_connections(triangles, points, output_frmt)
+    connections = delaunay_connections(triangles, points)
     tessellation = calculate_tessellation(triangles, points)
 
     return tessellation, connections
@@ -297,10 +297,8 @@ def calculate_tessellation(triangle_list: list, point_list: list) -> VoronoiTess
     """
     # vertices and edges
     triangle_edges = {t.center: [] for t in triangle_list}
-    # triangle_dict = {t.center: t for t in triangle_list}
     vertex_list = []
     edge_list = []
-    # point_list = create_point_list(x, y)
     polygon_list = []
     point_to_polygon = {}
     for i, p in enumerate(point_list):
@@ -480,95 +478,95 @@ def calculate_tessellation(triangle_list: list, point_list: list) -> VoronoiTess
     return tessellation
 
 
-def delaunay_connections(triangle_list: list, point_list: list, output_frmt: str = _DEF_CONNECTION):
+def delaunay_connections(triangle_list: list, point_list: list):
     n = len(point_list)
-    output = setup_connection_output(output_frmt, n)
+    output = Connections(n)
     for triangle in triangle_list:
         for i in range(3):
             p1 = triangle.points[i]
             for j in range(i):
                 p2 = triangle.points[j]
                 if (p1 in point_list) and (p2 in point_list):
-                    store_connection(output, point_list.index(p1), point_list.index(p2), output_frmt)
+                    output.store(point_list.index(p1), point_list.index(p2))
     return output
 
 
-def convert_connection_format(input_data, input_frmt: str, output_frmt: str):
-    """
-    convert from one connection format to another
-
-    if input format is a pair list, we assume that the largest indexed point is the number of points
-    (or put another way, we assume the last point is not unconnected from all of the others)
-    """
-    if input_frmt == "pairlist":
-        n = max(numpy.ndarray(input_data))
-    elif input_frmt == "pntdict":
-        n = max(input_data)
-    else:
-        n = len(input_data)
-    output = setup_connection_output(output_frmt, n)
-    if input_frmt == "pairlist":
-        for i in input_data:
-            store_connection(output, i[0], i[1], output_frmt)
-    elif input_frmt == "pntdict":
-        for i in input_data:
-            for j in input_data[i]:
-                store_connection(output, i, j, output_frmt)
-    elif input_frmt == "boolmatrix":
-        for i in range(n):
-            for j in range(i):
-                if input_data[i, j]:
-                    store_connection(output, i, j, output_frmt)
-    elif input_frmt == "binmatrix":
-        for i in range(n):
-            for j in range(i):
-                if input_data[i, j] == 1:
-                    store_connection(output, i, j, output_frmt)
-    elif input_frmt == "revbinmatrix":
-        for i in range(n):
-            for j in range(i):
-                if input_data[i, j] == 0:
-                    store_connection(output, i, j, output_frmt)
-    return output
-
-
-def setup_connection_output(output_frmt: str, n: int):
-    """
-    checks that the output format for a connection function is valid and returns the correct type of data storage
-    """
-    if output_frmt == "boolmatrix":
-        return numpy.zeros((n, n), dtype=bool)
-    elif output_frmt == "binmatrix":
-        return numpy.zeros((n, n), dtype=int)
-    elif output_frmt == "revbinmatrix":
-        return numpy.ones((n, n), dtype=int)
-    elif output_frmt == "pairlist":
-        return []
-    elif output_frmt == "pntdict":
-        return {}
-    else:
-        raise ValueError("{} is not a valid output format for connections".format(output_frmt))
+# def convert_connection_format(input_data, input_frmt: str, output_frmt: str):
+#     """
+#     convert from one connection format to another
+#
+#     if input format is a pair list, we assume that the largest indexed point is the number of points
+#     (or put another way, we assume the last point is not unconnected from all of the others)
+#     """
+#     if input_frmt == "pairlist":
+#         n = max(numpy.ndarray(input_data))
+#     elif input_frmt == "pntdict":
+#         n = max(input_data)
+#     else:
+#         n = len(input_data)
+#     output = setup_connection_output(output_frmt, n)
+#     if input_frmt == "pairlist":
+#         for i in input_data:
+#             store_connection(output, i[0], i[1], output_frmt)
+#     elif input_frmt == "pntdict":
+#         for i in input_data:
+#             for j in input_data[i]:
+#                 store_connection(output, i, j, output_frmt)
+#     elif input_frmt == "boolmatrix":
+#         for i in range(n):
+#             for j in range(i):
+#                 if input_data[i, j]:
+#                     store_connection(output, i, j, output_frmt)
+#     elif input_frmt == "binmatrix":
+#         for i in range(n):
+#             for j in range(i):
+#                 if input_data[i, j] == 1:
+#                     store_connection(output, i, j, output_frmt)
+#     elif input_frmt == "revbinmatrix":
+#         for i in range(n):
+#             for j in range(i):
+#                 if input_data[i, j] == 0:
+#                     store_connection(output, i, j, output_frmt)
+#     return output
 
 
-def store_connection(output, i: int, j: int, output_frmt: str):
-    """
-    stores a connection into the data storage, based on the specific format
-    automatically symmetrizes matrix storage
-    """
-    if output_frmt == "boolmatrix":
-        output[i, j] = True
-        output[j, i] = True
-    elif output_frmt == "binmatrix":
-        output[i, j] = 1
-        output[j, i] = 1
-    elif output_frmt == "revbinmatrix":
-        output[i, j] = 0
-        output[j, i] = 0
-    elif output_frmt == "pairlist":
-        output.append([i, j])
-    elif output_frmt == "pntdict":
-        output.setdefault(i, set()).add(j)
-        output.setdefault(j, set()).add(i)
+# def setup_connection_output(output_frmt: str, n: int):
+#     """
+#     checks that the output format for a connection function is valid and returns the correct type of data storage
+#     """
+#     if output_frmt == "boolmatrix":
+#         return numpy.zeros((n, n), dtype=bool)
+#     elif output_frmt == "binmatrix":
+#         return numpy.zeros((n, n), dtype=int)
+#     elif output_frmt == "revbinmatrix":
+#         return numpy.ones((n, n), dtype=int)
+#     elif output_frmt == "pairlist":
+#         return []
+#     elif output_frmt == "pntdict":
+#         return {}
+#     else:
+#         raise ValueError("{} is not a valid output format for connections".format(output_frmt))
+
+
+# def store_connection(output, i: int, j: int, output_frmt: str):
+#     """
+#     stores a connection into the data storage, based on the specific format
+#     automatically symmetrizes matrix storage
+#     """
+#     if output_frmt == "boolmatrix":
+#         output[i, j] = True
+#         output[j, i] = True
+#     elif output_frmt == "binmatrix":
+#         output[i, j] = 1
+#         output[j, i] = 1
+#     elif output_frmt == "revbinmatrix":
+#         output[i, j] = 0
+#         output[j, i] = 0
+#     elif output_frmt == "pairlist":
+#         output.append([i, j])
+#     elif output_frmt == "pntdict":
+#         output.setdefault(i, set()).add(j)
+#         output.setdefault(j, set()).add(i)
 
 
 def check_input_distance_matrix(distances: numpy.ndarray) -> int:
@@ -580,12 +578,12 @@ def check_input_distance_matrix(distances: numpy.ndarray) -> int:
         return len(distances)
 
 
-def relative_neighborhood_network(distances: numpy.ndarray, output_frmt: str = _DEF_CONNECTION):
+def relative_neighborhood_network(distances: numpy.ndarray):
     """
     calculate connections among points based on a relative neighborhood network
     """
     n = check_input_distance_matrix(distances)
-    output = setup_connection_output(output_frmt, n)
+    output = Connections(n)
     for i in range(n):
         for j in range(i):
             good = True
@@ -594,16 +592,16 @@ def relative_neighborhood_network(distances: numpy.ndarray, output_frmt: str = _
                     if (distances[k, j] < distances[i, j]) and (distances[k, i] < distances[i, j]):
                         good = False
             if good:
-                store_connection(output, i, j, output_frmt)
+                output.store(i, j)
     return output
 
 
-def gabriel_network(distances: numpy.ndarray, output_frmt: str = _DEF_CONNECTION):
+def gabriel_network(distances: numpy.ndarray):
     """
     calculate connections among points based on a Gabriel network
     """
     n = check_input_distance_matrix(distances)
-    output = setup_connection_output(output_frmt, n)
+    output = Connections(n)
     sq_distances = numpy.square(distances)
     for i in range(n):
         for j in range(i):
@@ -613,11 +611,11 @@ def gabriel_network(distances: numpy.ndarray, output_frmt: str = _DEF_CONNECTION
                     if sq_distances[i, j] > sq_distances[k, j] + sq_distances[k, i]:
                         good = False
             if good:
-                store_connection(output, i, j, output_frmt)
+                output.store(i, j)
     return output
 
 
-def minimum_spanning_tree(distances: numpy.ndarray, output_frmt: str = _DEF_CONNECTION):
+def minimum_spanning_tree(distances: numpy.ndarray):
     """
     calculate connections among points based on a minimum spanning tree
 
@@ -626,7 +624,7 @@ def minimum_spanning_tree(distances: numpy.ndarray, output_frmt: str = _DEF_CONN
     American Mathematical Society 7(1):48-50.
     """
     n = check_input_distance_matrix(distances)
-    output = setup_connection_output(output_frmt, n)
+    output = Connections(n)
     used = [i for i in range(n)]
     cnt = 1
     while cnt < n:
@@ -637,37 +635,35 @@ def minimum_spanning_tree(distances: numpy.ndarray, output_frmt: str = _DEF_CONN
                 if distances[used[i], used[j]] < distances[used[old_point], used[new_point]]:
                     old_point, new_point = i, j
         # make connection
-        store_connection(output, used[old_point], used[new_point], output_frmt)
+        output.store(used[old_point], used[new_point])
         used[cnt], used[new_point] = used[new_point], used[cnt]  # swap out a used point with an unused point
         cnt += 1
     return output
 
 
-def connect_distance_range(distances: numpy.ndarray, maxdist: float, mindist: float = 0,
-                           output_frmt: str = _DEF_CONNECTION):
+def connect_distance_range(distances: numpy.ndarray, maxdist: float, mindist: float = 0):
     """
     calculate connections based on a distance range, defined by maxdist and mindist
 
     points are not connected to themselves, even with a distance of zero
     """
     n = check_input_distance_matrix(distances)
-    output = setup_connection_output(output_frmt, n)
+    output = Connections(n)
     for i in range(n):
         for j in range(i):
             if mindist <= distances[i, j] <= maxdist:
-                store_connection(output, i, j, output_frmt)
+                output.store(i, j)
     return output
 
 
-def least_diagonal_network(x: numpy.ndarray, y: numpy.ndarray, distances: numpy.ndarray,
-                           output_frmt: str = _DEF_CONNECTION):
+def least_diagonal_network(x: numpy.ndarray, y: numpy.ndarray, distances: numpy.ndarray):
     """
     calculate connections among points based on a least diagonal network
     """
     n = check_input_distance_matrix(distances)
     if (n != len(x)) or (n != len(y)):
         raise ValueError("The coordinate arrays and the distance matrix must have the same length")
-    output = setup_connection_output(output_frmt, n)
+    output = Connections(n)
     # flatten distances into one dimension (half matrix only), but also track position in matrix
     dists = []
     for i in range(n):
@@ -744,11 +740,11 @@ def least_diagonal_network(x: numpy.ndarray, y: numpy.ndarray, distances: numpy.
         if good:
             good_pairs.append([i, j])
     for pair in good_pairs:
-        store_connection(output, pair[0], pair[1], output_frmt)
+        output.store(pair[0], pair[1])
     return output
 
 
-def nearest_neighbor_connections(distances: numpy.ndarray, k: int = 1, output_frmt: str = _DEF_CONNECTION):
+def nearest_neighbor_connections(distances: numpy.ndarray, k: int = 1, symmetric: bool = True):
     """
     connect each point to it's k nearest neighbors
 
@@ -756,7 +752,7 @@ def nearest_neighbor_connections(distances: numpy.ndarray, k: int = 1, output_fr
     each other's nearest neighbors
     """
     n = check_input_distance_matrix(distances)
-    output = setup_connection_output(output_frmt, n)
+    output = Connections(n, symmetric)
     for i in range(n):
         dists = []
         for j in range(n):
@@ -767,11 +763,11 @@ def nearest_neighbor_connections(distances: numpy.ndarray, k: int = 1, output_fr
         while dists[c][0] == dists[c+1][0]:  # this accounts for ties
             c += 1
         for p in range(c):  # connect the c closest points to the ith point
-            store_connection(output, i, dists[p][1], output_frmt)
+            output.store(i, dists[p][1])
     return output
 
 
-def shortest_path_distances(distances: numpy.ndarray, connections: numpy.ndarray) -> Tuple[numpy.ndarray, dict]:
+def shortest_path_distances(distances: numpy.ndarray, connections: Connections) -> Tuple[numpy.ndarray, dict]:
     """
     create a shortest-path/geodesic distance matrix from a set of inter-point distances and a connection/network
     scheme
@@ -788,7 +784,7 @@ def shortest_path_distances(distances: numpy.ndarray, connections: numpy.ndarray
     """
     n = len(distances)
     output = numpy.copy(distances)
-    empty = numpy.invert(connections)
+    empty = numpy.invert(connections.as_boolean())
     # for the purposes of this algorithm, points must be connected to themselves
     for i in range(n):
         empty[i, i] = False
