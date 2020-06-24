@@ -33,8 +33,18 @@ def test_euc_dist_matrix():
 
 
 def test_euc_angle_matrix():
+    #    0  1  2   3   4   5   6    7    8
     x = [0, 0, 0, 45, 45, 45, -45, -45, -45]
     y = [0, 45, -45, 0, 45, -45, 0, 45, -45]
+    # answer = {(0, 1): 90, (0, 2): 90, (0, 3): 0, (0, 4): 45, (0, 5): 135, (0, 6): 0, (0, 7): 45, (0, 8): 45,
+    #           (1, 2): 0, (1, 3): 135, (1, 4): 0, (1, 5): "a", (1, 6): "a", (1, 7): "a", (1, 8): "a",
+    #           (2, 3): "A", (2, 4): "A", (2, 5): "a", (2, 6): "a", (2, 7): "a", (2, 8): "a",
+    #           (3, 4): "A", (3, 5): "a", (3, 6): "a", (3, 7): "a", (3, 8): "a",
+    #           (4, 5): "a", (4, 6): "a", (4, 7): "a", (4, 8): "a",
+    #           (5, 6): "a", (5, 7): "a", (5, 8): "a",
+    #           (6, 7): "a", (6, 8): "a",
+    #           (7, 8): "a"}
+
     output = pyssage.distcon.euc_angle_matrix(numpy.array(x), numpy.array(y))
     for i in range(len(output)):
         for j in range(i):
@@ -50,44 +60,22 @@ def test_euc_angle_matrix():
 
 
 def test_sph_dist_matrix():
-    coords = test_coords()
-    pyssage.distcon.sph_dist_matrix(coords[:, 0], coords[:, 1])
     """
     The original code matched the PASSaGE output, but I decided to go away from predetermined constants for
     conversion of angels to radians, meaning the numbers shift a bit due to greater floating-point accuracy. I am
     also be using a better estimate of the radius of the Earth in the calculations
-    
+
+    I have cross-checked the output in a small way using online calculators
+
     this change might cascade to other tests that relied upon these distances
     """
-    # lat1 = 50.1234
-    # lat2 = 58.3456
-    # lon1 = -5.423
-    # lon2 = -3.789
-    # x = [50.1234, 58.3456]
-    # y = [-5.423, -3.789]
-    # print(pyssage.distcon.sph_dist(lat1, lat2, lon1, lon2))
-    # print(pyssage.distcon.sph_angle(lat1, lat2, lon1, lon2) * 180 / math.pi)
-    # print(pyssage.distcon.sph_angle2(lat1, lat2, lon1, lon2)*180/math.pi)
-
-    # x = [0, 0, 0, 45, 45, 45, -45, -45, -45]
-    # y = [0, 45, -45, 0, 45, -45, 0, 45, -45]
-    # output = pyssage.distcon.euc_angle_matrix(numpy.array(x), numpy.array(y), do360=True)
-    # for i in range(len(output)):
-    #     for j in range(len(output)):
-    #         print(x[i], y[i], x[j], y[j], output[i, j], output[i, j] * 180 / math.pi)
+    coords = test_coords()
+    pyssage.distcon.sph_dist_matrix(coords[:, 0], coords[:, 1])
 
 
 def test_sph_angle_matrix():
     coords = test_coords()
-    output = pyssage.distcon.sph_angle_matrix(coords[:, 0], coords[:, 1])
-
-    # lons = [0, 0, 0, 45, 45, 45, -45, -45, -45]
-    # lats = [0, 45, -45, 0, 45, -45, 0, 45, -45]
-    # output = pyssage.distcon.sph_angle_matrix(numpy.array(lons), numpy.array(lats))
-    # for i in range(len(output)):
-    #     for j in range(len(output)):
-    #         if i != j:
-    #             print(lons[i], lats[i], lons[j], lats[j], output[i, j] * 180 / math.pi)
+    pyssage.distcon.sph_angle_matrix(coords[:, 0], coords[:, 1])
 
 
 def test_check_input_distance_matrix():
@@ -133,6 +121,10 @@ def test_setup_connection_output():
 
     output = pyssage.distcon.setup_connection_output("pairlist", n)
     assert isinstance(output, list)
+    assert len(output) == 0
+
+    output = pyssage.distcon.setup_connection_output("pntdict", n)
+    assert isinstance(output, dict)
     assert len(output) == 0
 
     with pytest.raises(ValueError, match="typo is not a valid output format for connections"):
@@ -259,9 +251,11 @@ def test_nearest_neighbor_connections():
 
 
 def test_shortest_path_distances():
-    # answer calculated from PASSaGE 2 and exported to 5 decimals
-    answer = load_answer("answers/shortest_path_minspan_answer.txt")
-
+    """
+    answer provided by PASSaGE 2 did match answer here, although only to nearest integer (rather than 5 decimals)
+    due to rounding errors that add up, prior to my change of the spherical distance calculation formula and
+    radius of earth used for those calculations
+    """
     coords = test_coords()
     distances = pyssage.distcon.sph_dist_matrix(coords[:, 0], coords[:, 1])
 
@@ -270,18 +264,10 @@ def test_shortest_path_distances():
     geodists, trace = pyssage.distcon.shortest_path_distances(distances, connections)
     pyssage.graph.draw_shortest_path(connections, coords[:, 0], coords[:, 1], trace, 0, 300,
                                      connection_frmt="boolmatrix")
-    # for i in range(len(answer)):
-    #     for j in range(len(answer)):
-    #         assert round(geodists[i, j], 0) == round(answer[i, j], 0)
-    #         # rounding differences are adding up; at least one of the estimated distances is marginally different at
-    #         # even 1 decimal place (just a single digit) (others are different by one digit at 2, 3, 4, or 5 decimals)
 
     # test a partially connected network
     connections = pyssage.distcon.nearest_neighbor_connections(distances, 1, output_frmt="boolmatrix")
     _, _ = pyssage.distcon.shortest_path_distances(distances, connections)
-    # print()
-    # for i in range(20):
-    #     print(0, i, pyssage.distcon.trace_path(0, i, trace), geodists[0, i])
 
 
 def test_create_distance_classes():

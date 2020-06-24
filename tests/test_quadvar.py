@@ -3080,6 +3080,8 @@ def test_3nlv():
 
 
 def test_ttlqv_random():
+    # fixed answer not possible due to stochastic nature of test. instead tests algorithm does not crash and
+    # produces a visual result for general insepction
     summary, _ = pyssage.quadvar.quadrat_variance_randomization(pyssage.quadvar.ttlqv, 100, test_transect(),
                                                                 max_block_size=100)
     pyssage.graph.draw_quadvar_result(summary[:, 0:2], summary[:, 2], title="TTLQV Test with Randomization",
@@ -3087,6 +3089,8 @@ def test_ttlqv_random():
 
 
 def test_threetlqv_random():
+    # fixed answer not possible due to stochastic nature of test. instead tests algorithm does not crash and
+    # produces a visual result for general insepction
     summary, _ = pyssage.quadvar.quadrat_variance_randomization(pyssage.quadvar.three_tlqv, 100, test_transect(),
                                                                 max_block_size=100)
     pyssage.graph.draw_quadvar_result(summary[:, 0:2], summary[:, 2], title="3TLQV Test with Randomization",
@@ -3094,6 +3098,8 @@ def test_threetlqv_random():
 
 
 def test_pqv_random():
+    # fixed answer not possible due to stochastic nature of test. instead tests algorithm does not crash and
+    # produces a visual result for general insepction
     summary, _ = pyssage.quadvar.quadrat_variance_randomization(pyssage.quadvar.pqv, 50, test_transect(),
                                                                 max_block_size=50)
     pyssage.graph.draw_quadvar_result(summary[:, 0:2], summary[:, 2], title="PQV Test with Randomization",
@@ -3101,6 +3107,8 @@ def test_pqv_random():
 
 
 def test_tqv_random():
+    # fixed answer not possible due to stochastic nature of test. instead tests algorithm does not crash and
+    # produces a visual result for general insepction
     summary, _ = pyssage.quadvar.quadrat_variance_randomization(pyssage.quadvar.tqv, 50, test_transect(),
                                                                 max_block_size=50)
     pyssage.graph.draw_quadvar_result(summary[:, 0:2], summary[:, 2], title="TQV Test with Randomization",
@@ -3108,6 +3116,8 @@ def test_tqv_random():
 
 
 def test_2nlv_random():
+    # fixed answer not possible due to stochastic nature of test. instead tests algorithm does not crash and
+    # produces a visual result for general insepction
     summary, _ = pyssage.quadvar.quadrat_variance_randomization(pyssage.quadvar.two_nlv, 100, test_transect(),
                                                                 max_block_size=100)
     pyssage.graph.draw_quadvar_result(summary[:, 0:2], summary[:, 2], title="2NLV Test with Randomization",
@@ -3115,6 +3125,8 @@ def test_2nlv_random():
 
 
 def test_threet_nlv_random():
+    # fixed answer not possible due to stochastic nature of test. instead tests algorithm does not crash and
+    # produces a visual result for general insepction
     summary, _ = pyssage.quadvar.quadrat_variance_randomization(pyssage.quadvar.three_nlv, 100, test_transect(),
                                                                 max_block_size=100)
     pyssage.graph.draw_quadvar_result(summary[:, 0:2], summary[:, 2], title="3NLV Test with Randomization",
