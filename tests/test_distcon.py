@@ -222,10 +222,16 @@ def test_nearest_neighbor_connections():
     coords = test_coords()
     distances = pyssage.distcon.sph_dist_matrix(coords[:, 0], coords[:, 1])
     connections = pyssage.distcon.nearest_neighbor_connections(distances, 1)
-    pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1], title="Nearest Neighbor (k=1) Test")
+    pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1],
+                                   title="Nearest Neighbor (k=1) Symmetric Test")
 
     connections = pyssage.distcon.nearest_neighbor_connections(distances, 2)
-    pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1], title="Nearest Neighbor (k=1) Test")
+    pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1],
+                                   title="Nearest Neighbor (k=2) Symmetric Test")
+
+    connections = pyssage.distcon.nearest_neighbor_connections(distances, 2, symmetric=False)
+    pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1],
+                                   title="Nearest Neighbor (k=2) Asymmetric Test")
 
 
 def test_shortest_path_distances():

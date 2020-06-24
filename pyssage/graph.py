@@ -83,15 +83,29 @@ def check_connection_format(con_frmt: str) -> None:
 
 
 def add_connections_to_plot(axs, connections, xcoords: numpy.ndarray, ycoords: numpy.ndarray):
-    done = []
-    for i in range(len(connections)):
-        for j in connections.connected_from(i):
-            if [i, j] not in done:  # trying to avoid duplicating the reverse line
-                x = [xcoords[i], xcoords[j]]
-                y = [ycoords[i], ycoords[j]]
-                line = Line2D(x, y, zorder=1)
-                axs.add_line(line)
-                done.append([j, i])
+    if connections.is_symmetric():
+        done = []
+        for i in range(len(connections)):
+            for j in connections.connected_from(i):
+                if [i, j] not in done:  # trying to avoid duplicating the reverse line
+                    x = [xcoords[i], xcoords[j]]
+                    y = [ycoords[i], ycoords[j]]
+                    line = Line2D(x, y, zorder=1)
+                    axs.add_line(line)
+                    done.append([j, i])
+    else:
+        for i in range(len(connections)):
+            for j in connections.connected_from(i):
+                if connections[j, i]:
+                    if i < j:
+                        arrow = "<|-|>"
+                    else:
+                        arrow = None
+                else:
+                    arrow = "-|>"
+                if arrow is not None:
+                    axs.annotate(s="", xytext=(xcoords[i], ycoords[i]), xy=(xcoords[j], ycoords[j]),
+                                 arrowprops=dict(arrowstyle=arrow, edgecolor="C0"), zorder=1)
 
 
 def draw_connections(connections, xcoords: numpy.ndarray, ycoords: numpy.ndarray, title: str = ""):
