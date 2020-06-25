@@ -1,6 +1,6 @@
 from typing import Optional
-from pyssage.classes import Number, _DEF_CONNECTION
-import pyssage.distcon
+from pyssage.classes import Number
+import pyssage.connections
 import pyssage.utils
 import matplotlib.pyplot as pyplot
 from matplotlib.lines import Line2D
@@ -132,7 +132,7 @@ def draw_shortest_path(connections, xcoords: numpy.ndarray, ycoords: numpy.ndarr
     fig, axs = pyplot.subplots()
     add_connections_to_plot(axs, connections, xcoords, ycoords)
 
-    trace_path = pyssage.distcon.trace_path(startp, endp, trace_dict)
+    trace_path = pyssage.connections.trace_path(startp, endp, trace_dict)
     for i in range(len(trace_path)-1):
         p1 = trace_path[i]
         p2 = trace_path[i+1]

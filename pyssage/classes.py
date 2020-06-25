@@ -1,11 +1,7 @@
 from typing import Union, Optional
 from math import sqrt
-import numpy
 
 Number = Union[int, float]
-
-
-_DEF_CONNECTION = "pairlist"
 
 
 class Point:
@@ -212,76 +208,3 @@ class VoronoiTessellation:
         return len(self.polygons)
 
 
-class Connections:
-    def __init__(self, n: int, symmetric: bool = True):
-        self._symmetric = symmetric
-        self._n = n
-        self._connections = {i: set() for i in range(n)}
-
-    def __len__(self):
-        return self._n
-
-    def __getitem__(self, item):
-        i, j = item[0], item[1]
-        if j in self._connections[i]:
-            return True
-        else:
-            return False
-
-    def is_symmetric(self) -> bool:
-        return self._symmetric
-
-    def connected_from(self, i) -> set:
-        return self._connections[i]
-
-    def connected_to(self, j) -> set:
-        if self.is_symmetric():
-            return self._connections[j]
-        else:
-            result = set()
-            for i in range(self._n):
-                if j in self._connections[i]:
-                    result.add(i)
-            return result
-
-    def store(self, i: int, j: int) -> None:
-        self._connections[i].add(j)
-        if self._symmetric:
-            self._connections[j].add(i)
-
-    def as_boolean(self) -> numpy.ndarray:
-        output = numpy.zeros((self._n, self._n), dtype=bool)
-        for i in range(self._n):
-            for j in self._connections[i]:
-                output[i, j] = True
-        return output
-
-    def as_binary(self) -> numpy.ndarray:
-        output = numpy.zeros((self._n, self._n), dtype=int)
-        for i in range(self._n):
-            for j in self._connections[i]:
-                output[i, j] = 1
-        return output
-
-    def as_reverse_binary(self) -> numpy.ndarray:
-        output = numpy.ones((self._n, self._n), dtype=int)
-        for i in range(self._n):
-            for j in self._connections[i]:
-                output[i, j] = 0
-        return output
-
-    def as_pair_list(self) -> list:
-        output = []
-        for i in range(self._n):
-            for j in self._connections[i]:
-                if self.is_symmetric() and (i < j):  # if symmetric, do not output reverses
-                    output.append([i, j])
-                else:
-                    output.append([i, j])
-        return output
-
-    def as_point_dict(self) -> dict:
-        output = {}
-        for i in range(self._n):
-            output[i] = self._connections[i].copy()
-        return output

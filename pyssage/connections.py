@@ -1,195 +1,83 @@
-from typing import Optional, Tuple
-from math import sqrt, sin, cos, acos, pi, atan2
+from typing import Tuple
+from math import sqrt
 import numpy
-from pyssage.classes import Point, Triangle, VoronoiEdge, VoronoiTessellation, VoronoiPolygon, Number, Connections
-from pyssage.utils import flatten_half, euclidean_angle
-
-# __all__ = ["euc_dist_matrix"]
+from pyssage.classes import Point, Triangle, VoronoiEdge, VoronoiTessellation, VoronoiPolygon
+from pyssage.utils import euclidean_angle
 
 
-def euc_dist_matrix(x: numpy.ndarray, y: Optional[numpy.ndarray] = None,
-                    z: Optional[numpy.ndarray] = None) -> numpy.ndarray:
-    """
-    Calculate a Euclidean distance matrix from coordinates in one, two, or three dimensions
+class Connections:
+    def __init__(self, n: int, symmetric: bool = True):
+        self._symmetric = symmetric
+        self._n = n
+        self._connections = {i: set() for i in range(n)}
 
-    :param x: the coordinates along the x-axis
-    :param y: the coordinates along the y-axis, if two or three dimensions (default = None)
-    :param z: the coordinates along the z-axis, if three dimensions (default = None)
-    :return: a square, symmetric matrix containing the calculated distances
-    """
-    n = len(x)
-    if (y is not None) and (z is not None):
-        nd = 3
-        if (n != len(y)) or (n != len(z)):
-            raise ValueError("Coordinate vectors must be same length")
-    elif y is not None:
-        nd = 2
-        if n != len(y):
-            raise ValueError("Coordinate vectors must be same length")
-    elif z is not None:
-        raise ValueError("Cannot process z-coordinates without y-coordinates")
-    else:
-        nd = 1
-    output = numpy.zeros((n, n))
-    for i in range(n):
-        for j in range(i):
-            dist = 0
-            if nd == 1:
-                dist = abs(x[i] - x[j])
-            elif nd == 2:
-                dist = sqrt((x[i] - x[j])**2 + (y[i] - y[j])**2)
-            elif nd == 3:
-                dist = sqrt((x[i] - x[j])**2 + (y[i] - y[j])**2 + (z[i] - z[j])**2)
-            output[i, j] = dist
-            output[j, i] = dist
-    return output
+    def __len__(self):
+        return self._n
 
+    def __getitem__(self, item):
+        i, j = item[0], item[1]
+        if j in self._connections[i]:
+            return True
+        else:
+            return False
 
-# def sph_dist(lat1: float, lat2: float, lon1: float, lon2: float) -> float:
-#     """
-#     Returns the geodesic distance along the globe in km, for two points represented by longitudes and latitudes
-#
-#     original formula, replicated from PASSaGE 2
-#     """
-#     lon1 /= CON2
-#     lon2 /= CON2
-#     lat1 /= CON2
-#     lat2 /= CON2
-#     p = abs(lon1 - lon2)  # difference in longitudes
-#     angle = sin(lat1)*sin(lat2) + cos(lat1)*cos(lat2)*cos(p)
-#     if angle >= 1:
-#         return 0
-#     else:
-#         return acos(angle)*CON1*CONV
+    def is_symmetric(self) -> bool:
+        return self._symmetric
 
+    def connected_from(self, i) -> set:
+        return self._connections[i]
 
-def sph_dist(lat1: float, lat2: float, lon1: float, lon2: float, earth_radius: float = 6371.0087714) -> float:
-    """
-    Returns the geodesic distance along the globe in km, for two points represented by longitudes and latitudes
+    def connected_to(self, j) -> set:
+        if self.is_symmetric():
+            return self._connections[j]
+        else:
+            result = set()
+            for i in range(self._n):
+                if j in self._connections[i]:
+                    result.add(i)
+            return result
 
-    new version, reliant on fewer predetermined constants
-    radius of earth is now an input parameter
-    """
-    # convert to radians
-    lon1 *= pi/180
-    lon2 *= pi/180
-    lat1 *= pi/180
-    lat2 *= pi/180
-    dlon = abs(lon1 - lon2)  # difference in longitudes
-    angle = sin(lat1)*sin(lat2) + cos(lat1)*cos(lat2)*cos(dlon)
-    if angle >= 1:
-        return 0
-    else:
-        return acos(angle)*earth_radius
+    def store(self, i: int, j: int) -> None:
+        self._connections[i].add(j)
+        if self._symmetric:
+            self._connections[j].add(i)
 
+    def as_boolean(self) -> numpy.ndarray:
+        output = numpy.zeros((self._n, self._n), dtype=bool)
+        for i in range(self._n):
+            for j in self._connections[i]:
+                output[i, j] = True
+        return output
 
-def sph_dist_matrix(lon: numpy.ndarray, lat: numpy.ndarray, earth_radius: float = 6371.0087714) -> numpy.ndarray:
-    n = len(lon)
-    if n != len(lat):
-        raise ValueError("Coordinate vectors must be same length")
-    output = numpy.zeros((n, n))
-    for i in range(n):
-        for j in range(i):
-            dist = sph_dist(lat[i], lat[j], lon[i], lon[j], earth_radius)
-            output[i, j] = dist
-            output[j, i] = dist
-    return output
+    def as_binary(self) -> numpy.ndarray:
+        output = numpy.zeros((self._n, self._n), dtype=int)
+        for i in range(self._n):
+            for j in self._connections[i]:
+                output[i, j] = 1
+        return output
 
+    def as_reverse_binary(self) -> numpy.ndarray:
+        output = numpy.ones((self._n, self._n), dtype=int)
+        for i in range(self._n):
+            for j in self._connections[i]:
+                output[i, j] = 0
+        return output
 
-def sph_angle(lat1: float, lat2: float, lon1: float, lon2: float, mode: str = "midpoint") -> float:
-    valid_modes = ("midpoint", "initial")
-    if mode not in valid_modes:
-        raise ValueError("invalid mode for spherical angle calculation")
-
-    # convert to radians
-    lon1 *= pi/180
-    lon2 *= pi/180
-    lat1 *= pi/180
-    lat2 *= pi/180
-    dlon = lon2 - lon1
-    if mode == "initial":  # initial bearing
-        y = sin(dlon)*cos(lat2)
-        x = cos(lat1)*sin(lat2) - sin(lat1)*cos(lat2)*cos(dlon)
-    else:  # midpoint bearing
-        # find midpoint
-        bx = cos(lat2) * cos(dlon)
-        by = cos(lat2) * sin(dlon)
-        latmid = atan2(sin(lat1) + sin(lat2), sqrt((cos(lat1) + bx) ** 2 + by ** 2))
-        lonmid = lon1 + atan2(by, cos(lat1) + bx)
-        # shift longitude back into -pi to pi range (-180 to 180)
-        while lonmid >= pi:
-            lonmid -= 2 * pi
-        while lonmid < -pi:
-            lonmid += 2 * pi
-        dlonmid = lonmid - lon1
-        y = sin(dlonmid)*cos(latmid)
-        x = cos(lat1)*sin(latmid) - sin(lat1)*cos(latmid)*cos(dlonmid)
-    bearing = pi/2 - atan2(y, x)
-    while bearing < 0:
-        bearing += 2*pi
-    while bearing >= 2*pi:
-        bearing -= 2*pi
-    return bearing
-
-
-def sph_angle_matrix(lon: numpy.ndarray, lat: numpy.ndarray, mode: str = "midpoint") -> numpy.ndarray:
-    """
-    construct an n by n matrix containing the angles (in radians) describing the spherical bearing between pairs of
-    latitudes and longitudes
-
-    this output is not symmetric as the bearing from point 1 to point 2 on the surface of a sphere is not simply
-    the opposite of point 2 to point 1
-
-    :param lon: a single column containing the longitudes
-    :param lat: a single column containing the latitudes
-    :param mode: a string stating whether the output should be "initial" bearing or "midpoint" bearing
-                 (default = "midpoint")
-    :return: a square matrix containing the bearings
-    """
-    n = len(lon)
-    if n != len(lat):
-        raise ValueError("Coordinate vectors must be same length")
-    output = numpy.zeros((n, n))
-    for i in range(n):
-        for j in range(n):
-            if i != j:
-                angle = sph_angle(lat[i], lat[j], lon[i], lon[j], mode)
-                output[i, j] = angle
-    return output
-
-
-def euc_angle_matrix(x: numpy.ndarray, y: numpy.ndarray, do360: bool = False) -> numpy.ndarray:
-    """
-    construct an n by n matrix containing the angles (in radians) describing the bearing between pairs of points
-
-    by default these are stored in symmetric form with the angle between 0 and pi
-
-    if the 360 degree option is chosen, the output matrix is no longer symmetric as the angle from i to j
-    will be the opposite of the angle from j to i (e.g., 90 vs 270 or 0 vs 180)
-
-    :param x: a single column containing the x-coordinates
-    :param y: a single column containing the y-coordinates
-    :param do360: a flag that controls whether the output should be over 180 degrees (default = False) or 360 degrees
-    :return: a square matrix containing the angles. this matrix will be symmetric if do360 is False and asymmetric
-             if true
-    """
-    n = len(x)
-    if n != len(y):
-        raise ValueError("Coordinate vectors must be same length")
-    output = numpy.zeros((n, n))
-    for i in range(n):
-        for j in range(i):
-            if i != j:
-                if do360:
-                    angle = euclidean_angle(x[i], y[i], x[j], y[j], do360=True)
-                    output[i, j] = angle
-                    angle = euclidean_angle(x[j], y[j], x[i], y[i], do360=True)
-                    output[j, i] = angle
+    def as_pair_list(self) -> list:
+        output = []
+        for i in range(self._n):
+            for j in self._connections[i]:
+                if self.is_symmetric() and (i < j):  # if symmetric, do not output reverses
+                    output.append([i, j])
                 else:
-                    angle = euclidean_angle(x[i], y[i], x[j], y[j])
-                    output[i, j] = angle
-                    output[j, i] = angle
-    return output
+                    output.append([i, j])
+        return output
+
+    def as_point_dict(self) -> dict:
+        output = {}
+        for i in range(self._n):
+            output[i] = self._connections[i].copy()
+        return output
 
 
 def create_point_list(x: numpy.ndarray, y: numpy.ndarray) -> list:
@@ -765,124 +653,3 @@ def nearest_neighbor_connections(distances: numpy.ndarray, k: int = 1, symmetric
         for p in range(c):  # connect the c closest points to the ith point
             output.store(i, dists[p][1])
     return output
-
-
-def shortest_path_distances(distances: numpy.ndarray, connections: Connections) -> Tuple[numpy.ndarray, dict]:
-    """
-    create a shortest-path/geodesic distance matrix from a set of inter-point distances and a connection/network
-    scheme
-
-    the connections must be given in the boolean matrix format
-
-    This uses the Floyd-Warshall algorithm
-    See Corman, T.H., Leiserson, C.E., and Rivest, R.L., 'Introduction to Algorithms', section 26.2, p. 558-562.
-
-    trace_mat is a dictionary tracing the shortest path
-
-    the algorithm will work on connection networks which are not fully spanning (i.e., there are no paths between
-    some pairs of points), reporting infinity for the distance between such pairs
-    """
-    n = len(distances)
-    output = numpy.copy(distances)
-    empty = numpy.invert(connections.as_boolean())
-    # for the purposes of this algorithm, points must be connected to themselves
-    for i in range(n):
-        empty[i, i] = False
-    trace_mat = {(i, j): j for i in range(n) for j in range(n)}
-    for k in range(n):
-        for i in range(n):
-            for j in range(n):
-                if (not empty[i, k]) and (not empty[j, k]):
-                    if empty[i, j]:
-                        output[i, j] = output[i, k] + output[k, j]
-                        empty[i, j] = False
-                        trace_mat[i, j] = trace_mat[i, k]
-                    else:
-                        if output[i, j] > output[i, k] + output[k, j]:
-                            output[i, j] = output[i, k] + output[k, j]
-                            trace_mat[i, j] = trace_mat[i, k]
-    # the following removes "connections" among point pairs with no connected path
-    for i in range(n):
-        for j in range(n):
-            if i != j:  # points cannot be unconnected from themselves
-                if (trace_mat[i, j] == j) and not connections[i, j]:
-                    trace_mat.pop((i, j))  # remove path from trace matrix
-                    output[i, j] = float("inf")  # change distance to infinity
-    return output, trace_mat
-
-
-def trace_path(i: int, j: int, trace_matrix: dict) -> list:
-    """
-    given the trace matrix from the geodesic distance/shortest path function, report the path between points i and j
-    """
-    if (i, j) not in trace_matrix:  # no path between i and j
-        return []
-    else:
-        output = [i]
-        while i != j:
-            i = trace_matrix[i, j]
-            output.append(i)
-        return output
-
-
-def create_distance_classes(dist_matrix: numpy.ndarray, class_mode: str, mode_value: Number) -> numpy.ndarray:
-    """
-    automatically create distance classes for a distance matrix based on one of four criteria:
-
-    1. set class width: user sets a fixed width they desire for each class; the function determines how many classes
-       are necessary
-    2. set pair count: user sets a fixed count they desire for each class; the function determines how many classes
-       are necessary. actual distance counts can vary from desired due to ties
-    3. determine class width: the user sets the number of classes they desire; the function determines a width such
-       that each class will have the same width
-    4. determine pair count: the user sets the number of classes they desire; the function determines class boundaries
-       so each class has the same number of distances. actual distance counts may vary due to ties
-
-    the output is a two column ndarray matrix, representing lower and upper bounds of each class
-    the lower bound is inclusive, the upper bound is exclusive. the algorithm will automatically increase the limit
-    of the largest class by a tiny fraction, if necessary, to guarantee all distances are included in a class
-    """
-    maxadj = 1.0000001
-    valid_modes = ("set class width", "set pair count", "determine class width", "determine pair count")
-    if class_mode not in valid_modes:
-        raise ValueError("Invalid class_mode")
-
-    limits = []
-    nclasses = 0
-    if "width" in class_mode:
-        maxdist = numpy.max(dist_matrix)
-        class_width = 0
-        if class_mode == "set class width":
-            class_width = mode_value
-            nclasses = int(maxdist // class_width) + 1
-        elif class_mode == "determine class width":
-            nclasses = mode_value
-            class_width = maxdist * maxadj / nclasses
-        for c in range(nclasses):
-            limits.append([c*class_width, (c+1)*class_width])
-
-    elif "pair" in class_mode:
-        distances = flatten_half(dist_matrix)  # only need to flatten half the matrix
-        distances.sort()  # we only need to do this for these modes
-        total = len(distances)
-        pairs_per_class = 0
-        if class_mode == "set pair count":
-            pairs_per_class = mode_value
-            nclasses = total // pairs_per_class
-            if total % pairs_per_class != 0:
-                nclasses += 1
-        elif class_mode == "determine pair count":
-            nclasses = mode_value
-            pairs_per_class = total / nclasses
-
-        lower = 0
-        for c in range(nclasses):
-            i = round((c+1) * pairs_per_class)
-            if i >= total:
-                upper = distances[total - 1] * maxadj
-            else:
-                upper = distances[i - 1]
-            limits.append([lower, upper])
-            lower = upper
-
-    return numpy.array(limits)
