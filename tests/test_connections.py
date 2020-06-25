@@ -78,17 +78,22 @@ def test_minimum_spanning_tree():
 
 def test_connect_distance_range():
     """
-    different data set required to compare to passage
+    Note: there is a logic change between PASSaGE 2 and pyssage that could cause this test to fail with
+    the right data set. PASSaGE 2 treated the maximum distance as exclusive of the class; pyssage currently
+    treats it as inclusive of the class. If a pair of points is exactly the maximum specified distance, the
+    two algorithms will come to a different conclusion as to their connection status
     """
-    coords = test_coords()
-    distances = pyssage.distances.sph_dist_matrix(coords[:, 0], coords[:, 1])
-    connections = pyssage.connections.connect_distance_range(distances, mindist=25, maxdist=100)
-    pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1],
-                                   title="Distance-based Connections (25-100) Test")
+    # answer calculated from PASSaGE 2 and exported as a binary connection matrix
+    answer = load_answer("answers/distance_based_connect_7-12_answer.txt")
 
-    connections = pyssage.connections.connect_distance_range(distances, mindist=50, maxdist=150)
+    coords = test_coords()
+    distances = pyssage.distances.euc_dist_matrix(coords[:, 0], coords[:, 1])
+    connections = pyssage.connections.connect_distance_range(distances, mindist=7, maxdist=12)
     pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1],
-                                   title="Distance-based Connections (50-150) Test")
+                                   title="Distance-based Connections (7-12) Test")
+    for i in range(len(answer)):
+        for j in range(len(answer)):
+            assert connections[i, j] == answer[i, j]
 
 
 def test_least_diagonal_network():
