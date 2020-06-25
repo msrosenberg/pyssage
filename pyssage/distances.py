@@ -7,6 +7,8 @@ from pyssage.utils import flatten_half, euclidean_angle
 
 # __all__ = ["euc_dist_matrix"]
 
+_EARTH_RADIUS = 6371.0087714  # default radius of the Earth for spherical calculations
+
 
 def euc_dist_matrix(x: numpy.ndarray, y: Optional[numpy.ndarray] = None,
                     z: Optional[numpy.ndarray] = None) -> numpy.ndarray:
@@ -46,7 +48,7 @@ def euc_dist_matrix(x: numpy.ndarray, y: Optional[numpy.ndarray] = None,
     return output
 
 
-def sph_dist(lat1: float, lat2: float, lon1: float, lon2: float, earth_radius: float = 6371.0087714) -> float:
+def sph_dist(lat1: float, lat2: float, lon1: float, lon2: float, earth_radius: float = _EARTH_RADIUS) -> float:
     """
     Returns the geodesic distance along the globe in km, for two points represented by longitudes and latitudes
 
@@ -66,7 +68,7 @@ def sph_dist(lat1: float, lat2: float, lon1: float, lon2: float, earth_radius: f
         return acos(angle)*earth_radius
 
 
-def sph_dist_matrix(lon: numpy.ndarray, lat: numpy.ndarray, earth_radius: float = 6371.0087714) -> numpy.ndarray:
+def sph_dist_matrix(lon: numpy.ndarray, lat: numpy.ndarray, earth_radius: float = _EARTH_RADIUS) -> numpy.ndarray:
     n = len(lon)
     if n != len(lat):
         raise ValueError("Coordinate vectors must be same length")
