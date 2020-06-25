@@ -31,30 +31,14 @@ def test_euc_dist_matrix():
 
 
 def test_euc_angle_matrix():
-    #    0  1  2   3   4   5   6    7    8
-    x = [0, 0, 0, 45, 45, 45, -45, -45, -45]
-    y = [0, 45, -45, 0, 45, -45, 0, 45, -45]
-    # answer = {(0, 1): 90, (0, 2): 90, (0, 3): 0, (0, 4): 45, (0, 5): 135, (0, 6): 0, (0, 7): 45, (0, 8): 45,
-    #           (1, 2): 0, (1, 3): 135, (1, 4): 0, (1, 5): "a", (1, 6): "a", (1, 7): "a", (1, 8): "a",
-    #           (2, 3): "A", (2, 4): "A", (2, 5): "a", (2, 6): "a", (2, 7): "a", (2, 8): "a",
-    #           (3, 4): "A", (3, 5): "a", (3, 6): "a", (3, 7): "a", (3, 8): "a",
-    #           (4, 5): "a", (4, 6): "a", (4, 7): "a", (4, 8): "a",
-    #           (5, 6): "a", (5, 7): "a", (5, 8): "a",
-    #           (6, 7): "a", (6, 8): "a",
-    #           (7, 8): "a"}
+    # answer calculated from PASSaGE 2 and exported to 5 decimals
+    answer = load_answer("answers/euc_anglemat_answer.txt")
 
-    output = pyssage.distcon.euc_angle_matrix(numpy.array(x), numpy.array(y))
-    for i in range(len(output)):
-        for j in range(i):
-            if i != j:
-                print(x[i], y[i], x[j], y[j], output[i, j], output[i, j] * 180 / math.pi)
-    print()
-    x = [0, 0, 0, 45, 45, 45, -45, -45, -45]
-    y = [0, 45, -45, 0, 45, -45, 0, 45, -45]
-    output = pyssage.distcon.euc_angle_matrix(numpy.array(x), numpy.array(y), do360=True)
-    for i in range(len(output)):
-        for j in range(len(output)):
-            print(x[i], y[i], x[j], y[j], output[i, j], output[i, j] * 180 / math.pi)
+    coords = test_coords()
+    output = pyssage.distcon.euc_angle_matrix(coords[:, 0], coords[:, 1])
+    for i in range(len(answer)):
+        for j in range(len(answer)):
+            assert round(output[i, j]*180/math.pi, 5) == answer[i, j]
 
 
 def test_sph_dist_matrix():
