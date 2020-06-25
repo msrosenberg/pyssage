@@ -1,5 +1,5 @@
-import numpy
-import pytest
+# import numpy
+# import pytest
 import math
 import pyssage.connections
 import pyssage.distances
@@ -44,40 +44,29 @@ def test_sph_dist_matrix():
 
 
 def test_sph_angle_matrix():
+    """
+    completely rewritten the way this is done, for a variety of reasons it is difficult to impossible to match
+    against PASSaGE 2 output
+    """
     coords = test_coords()
     pyssage.distances.sph_angle_matrix(coords[:, 0], coords[:, 1])
 
 
-def test_check_input_distance_matrix():
-    # valid test
-    test_size = 5
-    matrix = numpy.zeros((test_size, test_size))
-    n = pyssage.connections.check_input_distance_matrix(matrix)
-    assert n == test_size
-
-    with pytest.raises(ValueError, match="distance matrix must be two-dimensional"):
-        # broken test --> should raise error
-        matrix = numpy.zeros((1, 2, 3))
-        pyssage.connections.check_input_distance_matrix(matrix)
-
-    with pytest.raises(ValueError, match="distance matrix must be square"):
-        # broken test --> should raise error
-        matrix = numpy.zeros((test_size, test_size * 2))
-        pyssage.connections.check_input_distance_matrix(matrix)
-
-
 def test_shortest_path_distances():
     """
-    answer provided by PASSaGE 2 did match answer here, although only to nearest integer (rather than 5 decimals)
-    due to rounding errors that add up, prior to my change of the spherical distance calculation formula and
-    radius of earth used for those calculations
+    testing with euclidean distances as the spherical estimation procedure is now a bit different
     """
-    coords = test_coords()
-    distances = pyssage.distances.sph_dist_matrix(coords[:, 0], coords[:, 1])
+    # answer calculated from PASSaGE 2 and exported to 5 decimals
+    answer = load_answer("answers/shortest_path_minspan_answer.txt")
 
     # test a fully connected network
+    coords = test_coords()
+    distances = pyssage.distances.euc_dist_matrix(coords[:, 0], coords[:, 1])
     connections = pyssage.connections.minimum_spanning_tree(distances)
     geodists, trace = pyssage.distances.shortest_path_distances(distances, connections)
+    for i in range(len(answer)):
+        for j in range(len(answer)):
+            assert round(geodists[i, j], 5) == answer[i, j]
     pyssage.graph.draw_shortest_path(connections, coords[:, 0], coords[:, 1], trace, 0, 300)
 
     # test a partially connected network
