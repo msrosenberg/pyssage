@@ -38,7 +38,7 @@ def check_block_size(max_block_size: int, n: int, x: int) -> int:
         max_block_size = 2
     elif max_block_size > n // x:
         max_block_size = n // x
-        print("Maximum block size cannot exceed {:0.0f}% of transect length. Reduced to {}.".format(100 / x,
+        print("Maximum block size cannot exceed {:0.1f}% of transect length. Reduced to {}.".format(100 / x,
                                                                                                     max_block_size))
     return max_block_size
 
