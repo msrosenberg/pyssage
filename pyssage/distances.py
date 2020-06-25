@@ -54,6 +54,13 @@ def sph_dist(lat1: float, lat2: float, lon1: float, lon2: float, earth_radius: f
 
     new version, reliant on fewer predetermined constants
     radius of earth is now an input parameter
+
+    :param lat1: latitude of the first point
+    :param lat2: latitude of the second point
+    :param lon1: longitude of the first point
+    :param lon2: longitude of the second point
+    :param earth_radius: the radius of the Earth, the default value is the WGS84 average
+    :return: the distance between the points, in units equivalent to those of earth_radius (default = kilometers)
     """
     # convert to radians
     lon1 *= pi/180
@@ -69,6 +76,15 @@ def sph_dist(lat1: float, lat2: float, lon1: float, lon2: float, earth_radius: f
 
 
 def sph_dist_matrix(lon: numpy.ndarray, lat: numpy.ndarray, earth_radius: float = _EARTH_RADIUS) -> numpy.ndarray:
+    """
+    construct an n x n matrix containing spherical distances from latitudes and longitudes
+
+    :param lon: a single column containing the longitudes
+    :param lat: a single column containing the latitudes
+    :param earth_radius: the radius of the Earth, the default value is the WGS84 average
+    :return: a square, symmetric matrix containing the calculated distances, in units equivalent to those of
+             earth_radius (default = kilometers)
+    """
     n = len(lon)
     if n != len(lat):
         raise ValueError("Coordinate vectors must be same length")
@@ -191,6 +207,12 @@ def shortest_path_distances(distances: numpy.ndarray, connections: Connections) 
 
     the algorithm will work on connection networks which are not fully spanning (i.e., there are no paths between
     some pairs of points), reporting infinity for the distance between such pairs
+
+    :param distances: an n x n matrix containing distances among the n points
+    :param connections: a Connections object containing connections or edges among the n points describing its
+                        network
+    :return: a tuple containing an n x n matrix with the shortest-path/geodesic distances and a dictionary
+             containing trace data among the network for use in path reconstruction
     """
     n = len(distances)
     output = numpy.copy(distances)
@@ -224,6 +246,12 @@ def shortest_path_distances(distances: numpy.ndarray, connections: Connections) 
 def trace_path(i: int, j: int, trace_matrix: dict) -> list:
     """
     given the trace matrix from the geodesic distance/shortest path function, report the path between points i and j
+
+    :param i: the index of the starting point
+    :param j: the index of the ending point
+    :param trace_matrix: a dictionary containing trace data output from shortest_path_distances()
+    :return: a list indicating the path traveled from point i to point j, inclusive. if there is no such path in the
+             network, the resultant list is empty
     """
     if (i, j) not in trace_matrix:  # no path between i and j
         return []
@@ -251,6 +279,13 @@ def create_distance_classes(dist_matrix: numpy.ndarray, class_mode: str, mode_va
     the output is a two column ndarray matrix, representing lower and upper bounds of each class
     the lower bound is inclusive, the upper bound is exclusive. the algorithm will automatically increase the limit
     of the largest class by a tiny fraction, if necessary, to guarantee all distances are included in a class
+
+    :param dist_matrix: an n x n matrix containing distances among the n points
+    :param class_mode: a string specifying the mode used to create the distance classes. Valid values are
+                       "set class width", "set pair count", "determine class width", "determine pair count"
+    :param mode_value: an additional value whose specific meaning changes depending on the class_mode
+    :return: a two-column matrix where each row containts the lower and upper bounds (first and second columns,
+             respectively) of each class. The lower bound is inclusive of the class, the upper bound is exclusive
     """
     maxadj = 1.0000001
     valid_modes = ("set class width", "set pair count", "determine class width", "determine pair count")
