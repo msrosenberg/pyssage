@@ -4,30 +4,69 @@ import numpy
 from pyssage.classes import Point, Triangle, VoronoiEdge, VoronoiTessellation, VoronoiPolygon
 from pyssage.utils import euclidean_angle
 
+__all__ = ["Connections", "delaunay_tessellation", "relative_neighborhood_network", "gabriel_network",
+           "minimum_spanning_tree", "connect_distance_range", "least_diagonal_network", "nearest_neighbor_connections"]
+
 
 class Connections:
+    """
+    A Connections object is a special container meant to keep track of connections or edges among pairs of points
+
+    Connnections objects can be either inherrently symmetric (default) or asymmetric. This needs to be set at the
+    time of construction, along with the number of points that are potentially connected to each other.
+
+    The default space is no points are connected. Connections can be added using the store() method. Once added, a
+    connection cannot be removed. You can check the status of a particular connection between points i and j by
+    using them as a tuple key, Connections[i, j] where the result is a boolean about their connection status.
+
+    The connections can be exported into a variety of formats using the as_xxxxx() methods, where xxxxx indicates
+    the desired form.
+    """
     def __init__(self, n: int, symmetric: bool = True):
         self._symmetric = symmetric
         self._n = n
         self._connections = {i: set() for i in range(n)}
 
     def __len__(self):
+        """
+        the size of a Connections object is the number of points, not the number of connected pairs
+        """
         return self._n
 
     def __getitem__(self, item):
+        """
+        given a tuple key (i, j), where i and j are both integers, returns a boolean indicating whether
+        point i is connected to point j
+        """
         i, j = item[0], item[1]
         if j in self._connections[i]:
             return True
         else:
             return False
 
+    def __repr__(self):
+        return str(self.as_point_dict())
+
     def is_symmetric(self) -> bool:
+        """
+        designates whether the connections have been created as inherently symmetric
+        """
         return self._symmetric
 
     def connected_from(self, i) -> set:
+        """
+        return the set of points that are connected from point i
+
+        connected_from() and connected_to() will be identical if the connections are inherently symmetric
+        """
         return self._connections[i]
 
     def connected_to(self, j) -> set:
+        """
+        return the set of points that are connected to point j
+
+        connected_from() and connected_to() will be identical if the connections are inherently symmetric
+        """
         if self.is_symmetric():
             return self._connections[j]
         else:
@@ -38,11 +77,19 @@ class Connections:
             return result
 
     def store(self, i: int, j: int) -> None:
+        """
+        store a connection from point i to point j. if the connections are inherently symmetric, also store j to i
+        """
         self._connections[i].add(j)
         if self._symmetric:
             self._connections[j].add(i)
 
     def as_boolean(self) -> numpy.ndarray:
+        """
+        return a expression of the connections as an n x n boolean matrix (numpy.ndarray)
+
+        in this form True = connected and False = not connected
+        """
         output = numpy.zeros((self._n, self._n), dtype=bool)
         for i in range(self._n):
             for j in self._connections[i]:
@@ -50,6 +97,11 @@ class Connections:
         return output
 
     def as_binary(self) -> numpy.ndarray:
+        """
+        return a expression of the connections as an n x n binary (0/1) matrix (numpy.ndarray)
+
+        in this form 0 = not connected and 1 = connected
+        """
         output = numpy.zeros((self._n, self._n), dtype=int)
         for i in range(self._n):
             for j in self._connections[i]:
@@ -57,6 +109,13 @@ class Connections:
         return output
 
     def as_reverse_binary(self) -> numpy.ndarray:
+        """
+        return a expression of the connections as an n x n reverse binary (1/0) matrix (numpy.ndarray)
+
+        in this form 1 = not connected and 0 = connected (this is useful when you need to use the connections as
+        a form of "distance" such that you want connected items to have the smaller "distance" than unconnected
+        items
+        """
         output = numpy.ones((self._n, self._n), dtype=int)
         for i in range(self._n):
             for j in self._connections[i]:
@@ -64,6 +123,18 @@ class Connections:
         return output
 
     def as_pair_list(self) -> list:
+        """
+        return a expression of the connections as a list of point pairs
+
+        The primary list contains a series of sublists where each sublist contains the indices of two points
+        that should be connected (e.g., [0, 2]).
+
+        If the connections are asymmetric, the logic is from the first point to the second point. If the connection
+        goes both ways, both [i, j] and [j, i] will be in the list.
+
+        If the connections are symmetric, only one instance of the pair will be included (i.e, you will not see
+        both [i, j] and [j ,i] in the list)
+        """
         output = []
         for i in range(self._n):
             for j in self._connections[i]:
@@ -74,6 +145,19 @@ class Connections:
         return output
 
     def as_point_dict(self) -> dict:
+        """
+        return a expression of the connections a dictionary
+
+        The dictionary will contain a key for every point, represented as the index of the point (0 to n-1)
+        The value associated with each key is a set containing the points that the key is connected to. For example
+        2: {0, 1, 3}
+
+        would indicate that point 2 is connected to points 0, 1, and 3
+
+        symmetry is not assumed, so the reverse connection would have to be found in the corresponding set, e.g.,
+        0: {2}
+        would show that point 0 is also connected to point 2
+        """
         output = {}
         for i in range(self._n):
             output[i] = self._connections[i].copy()
@@ -96,9 +180,16 @@ def create_point_list(x: numpy.ndarray, y: numpy.ndarray) -> list:
 
 def calculate_delaunay_triangles(x: numpy.ndarray, y: numpy.ndarray) -> Tuple[list, list]:
     """
-    Calculate the triangles that are used to form a delaunay tessellation or connection scheme
+    calculate the triangles that are used to form a delaunay tessellation or connection scheme
 
     Note: fails badly if multiple points are identical. need to trim duplicates in advance?
+
+    this is not meant to be used as an independent algorithm; it is a piece of delaunay_tessellation()
+
+    :param x: the x coordinates of n points
+    :param y: the y coordinates of n points
+    :return: returns a tuple containing two lists, one containing identified triangles and one containing the
+             coordinates as distinct Point objects (needed for an intermediate analysis)
     """
     triangle_list = []
     xmin, xmax = min(x), max(x)
@@ -167,6 +258,16 @@ def calculate_delaunay_triangles(x: numpy.ndarray, y: numpy.ndarray) -> Tuple[li
 
 
 def delaunay_tessellation(x: numpy.ndarray, y: numpy.ndarray) -> Tuple[VoronoiTessellation, Connections]:
+    """
+    perform a Delaunay/Voronoi tessellation and return both the tessellation object and a connections object
+    containing the corresponding triangles
+
+    the method will likely crash if there are multiple points with identical x,y coordinates
+
+    :param x: the x coordinates of n points
+    :param y: the y coordinates of n points
+    :return: returns a tuple containing a VoronoiTessellation object and a Connections object
+    """
     n = len(x)
     if n != len(y):
         raise ValueError("Coordinate vectors must be same length")
@@ -182,6 +283,12 @@ def calculate_tessellation(triangle_list: list, point_list: list) -> VoronoiTess
     """
     calculate Delaunay tessellation from previous calculated triangles and store in a modified
     Voronoi data store, including info on polygons, edges, and vertices of the tessellation
+
+    this is not meant to be used as an independent algorithm; it is a piece of delaunay_tessellation()
+
+    :param triangle_list: a list containing the trianngles identified by a previous function
+    :param point_list: a list containing points assembled by a previous function
+    :return: returns a VoronoiTessellation object
     """
     # vertices and edges
     triangle_edges = {t.center: [] for t in triangle_list}
@@ -366,7 +473,17 @@ def calculate_tessellation(triangle_list: list, point_list: list) -> VoronoiTess
     return tessellation
 
 
-def delaunay_connections(triangle_list: list, point_list: list):
+def delaunay_connections(triangle_list: list, point_list: list) -> Connections:
+    """
+    given a pre-determined list of triangles and points representing the triangle vertices, creates
+    connections for all triangles
+
+    this is not meant to be used as an independent algorithm; it is a piece of delaunay_tessellation()
+
+    :param triangle_list: a list containing the trianngles identified by a previous function
+    :param point_list: a list containing points assembled by a previous function
+    :return: returns a Connection object
+    """
     n = len(point_list)
     output = Connections(n)
     for triangle in triangle_list:
@@ -379,85 +496,13 @@ def delaunay_connections(triangle_list: list, point_list: list):
     return output
 
 
-# def convert_connection_format(input_data, input_frmt: str, output_frmt: str):
-#     """
-#     convert from one connection format to another
-#
-#     if input format is a pair list, we assume that the largest indexed point is the number of points
-#     (or put another way, we assume the last point is not unconnected from all of the others)
-#     """
-#     if input_frmt == "pairlist":
-#         n = max(numpy.ndarray(input_data))
-#     elif input_frmt == "pntdict":
-#         n = max(input_data)
-#     else:
-#         n = len(input_data)
-#     output = setup_connection_output(output_frmt, n)
-#     if input_frmt == "pairlist":
-#         for i in input_data:
-#             store_connection(output, i[0], i[1], output_frmt)
-#     elif input_frmt == "pntdict":
-#         for i in input_data:
-#             for j in input_data[i]:
-#                 store_connection(output, i, j, output_frmt)
-#     elif input_frmt == "boolmatrix":
-#         for i in range(n):
-#             for j in range(i):
-#                 if input_data[i, j]:
-#                     store_connection(output, i, j, output_frmt)
-#     elif input_frmt == "binmatrix":
-#         for i in range(n):
-#             for j in range(i):
-#                 if input_data[i, j] == 1:
-#                     store_connection(output, i, j, output_frmt)
-#     elif input_frmt == "revbinmatrix":
-#         for i in range(n):
-#             for j in range(i):
-#                 if input_data[i, j] == 0:
-#                     store_connection(output, i, j, output_frmt)
-#     return output
-
-
-# def setup_connection_output(output_frmt: str, n: int):
-#     """
-#     checks that the output format for a connection function is valid and returns the correct type of data storage
-#     """
-#     if output_frmt == "boolmatrix":
-#         return numpy.zeros((n, n), dtype=bool)
-#     elif output_frmt == "binmatrix":
-#         return numpy.zeros((n, n), dtype=int)
-#     elif output_frmt == "revbinmatrix":
-#         return numpy.ones((n, n), dtype=int)
-#     elif output_frmt == "pairlist":
-#         return []
-#     elif output_frmt == "pntdict":
-#         return {}
-#     else:
-#         raise ValueError("{} is not a valid output format for connections".format(output_frmt))
-
-
-# def store_connection(output, i: int, j: int, output_frmt: str):
-#     """
-#     stores a connection into the data storage, based on the specific format
-#     automatically symmetrizes matrix storage
-#     """
-#     if output_frmt == "boolmatrix":
-#         output[i, j] = True
-#         output[j, i] = True
-#     elif output_frmt == "binmatrix":
-#         output[i, j] = 1
-#         output[j, i] = 1
-#     elif output_frmt == "revbinmatrix":
-#         output[i, j] = 0
-#         output[j, i] = 0
-#     elif output_frmt == "pairlist":
-#         output.append([i, j])
-#     elif output_frmt == "pntdict":
-#         output.setdefault(i, set()).add(j)
-#         output.setdefault(j, set()).add(i)
-
-
 def check_input_distance_matrix(distances: numpy.ndarray) -> int:
+    """
+    checks to see that a provided distance matrix is  two-dimensional numpy.ndarray and square
+
+    :param distances: an n x n matrix
+    :return: returns the size (length of a size) of the matrix assuming it is two-dimensional and square
+    """
     if distances.ndim != 2:
         raise ValueError("distance matrix must be two-dimensional")
     elif distances.shape[0] != distances.shape[1]:
@@ -466,9 +511,12 @@ def check_input_distance_matrix(distances: numpy.ndarray) -> int:
         return len(distances)
 
 
-def relative_neighborhood_network(distances: numpy.ndarray):
+def relative_neighborhood_network(distances: numpy.ndarray) -> Connections:
     """
     calculate connections among points based on a relative neighborhood network
+
+    :param distances: an n x n matrix containing distances among points
+    :return: returns a Connections object
     """
     n = check_input_distance_matrix(distances)
     output = Connections(n)
@@ -484,9 +532,12 @@ def relative_neighborhood_network(distances: numpy.ndarray):
     return output
 
 
-def gabriel_network(distances: numpy.ndarray):
+def gabriel_network(distances: numpy.ndarray) -> Connections:
     """
     calculate connections among points based on a Gabriel network
+
+    :param distances: an n x n matrix containing distances among points
+    :return: returns a Connections object
     """
     n = check_input_distance_matrix(distances)
     output = Connections(n)
@@ -503,13 +554,16 @@ def gabriel_network(distances: numpy.ndarray):
     return output
 
 
-def minimum_spanning_tree(distances: numpy.ndarray):
+def minimum_spanning_tree(distances: numpy.ndarray) -> Connections:
     """
     calculate connections among points based on a minimum spanning tree
 
     Although I invented this algorithm myself, it sort of follows the suggestion made in Kruskal, Joseph B., Jr. 1956.
     On the shortest spanning subtree of a graph and the traveling salesman problem.  Proceedings of the
     American Mathematical Society 7(1):48-50.
+
+    :param distances: an n x n matrix containing distances among points
+    :return: returns a Connections object
     """
     n = check_input_distance_matrix(distances)
     output = Connections(n)
@@ -529,11 +583,16 @@ def minimum_spanning_tree(distances: numpy.ndarray):
     return output
 
 
-def connect_distance_range(distances: numpy.ndarray, maxdist: float, mindist: float = 0):
+def connect_distance_range(distances: numpy.ndarray, maxdist: float, mindist: float = 0) -> Connections:
     """
     calculate connections based on a distance range, defined by maxdist and mindist
 
     points are not connected to themselves, even with a distance of zero
+
+    :param distances: an n x n matrix containing distances among points
+    :param maxdist: the maximum distance between points to connect. this distance is inclusive
+    :param mindist: the minimum distance between points to connect (default = 0). this distance is inclusive
+    :return: returns a Connections object
     """
     n = check_input_distance_matrix(distances)
     output = Connections(n)
@@ -544,9 +603,14 @@ def connect_distance_range(distances: numpy.ndarray, maxdist: float, mindist: fl
     return output
 
 
-def least_diagonal_network(x: numpy.ndarray, y: numpy.ndarray, distances: numpy.ndarray):
+def least_diagonal_network(x: numpy.ndarray, y: numpy.ndarray, distances: numpy.ndarray) -> Connections:
     """
     calculate connections among points based on a least diagonal network
+
+    :param x: the x coordinates of n points
+    :param y: the y coordinates of n points
+    :param distances: an n x n matrix containing the distances among the points defined by x and y
+    :return: returns a Connections object
     """
     n = check_input_distance_matrix(distances)
     if (n != len(x)) or (n != len(y)):
@@ -632,12 +696,18 @@ def least_diagonal_network(x: numpy.ndarray, y: numpy.ndarray, distances: numpy.
     return output
 
 
-def nearest_neighbor_connections(distances: numpy.ndarray, k: int = 1, symmetric: bool = True):
+def nearest_neighbor_connections(distances: numpy.ndarray, k: int = 1, symmetric: bool = True) -> Connections:
     """
     connect each point to it's k nearest neighbors
 
     individual points can be connected to more than k points because of ties and because a pair are not necessarily
     each other's nearest neighbors
+
+    :param distances: an n x n matrix containing the distances among a set of points
+    :param k: the number of nearest neighbors to connect
+    :param symmetric: should connections always be symmetric (defualt = True) or allow asymmetric connections because
+                      the nearest neighbor of one point A does not necessarily have A as it's nearest neighbor
+    :return: returns a Connections object
     """
     n = check_input_distance_matrix(distances)
     output = Connections(n, symmetric)
