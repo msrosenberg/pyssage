@@ -42,3 +42,18 @@ def euclidean_angle(x1: float, y1: float, x2: float, y2: float, do360: bool = Fa
     while angle < 0:
         angle += f*pi
     return angle
+
+
+def check_for_square_matrix(distances: numpy.ndarray) -> int:
+    """
+    checks to see that a provided distance matrix is  two-dimensional numpy.ndarray and square
+
+    :param distances: an n x n matrix
+    :return: returns the size (length of a size) of the matrix assuming it is two-dimensional and square
+    """
+    if distances.ndim != 2:
+        raise ValueError("distance matrix must be two-dimensional")
+    elif distances.shape[0] != distances.shape[1]:
+        raise ValueError("distance matrix must be square")
+    else:
+        return len(distances)

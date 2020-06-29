@@ -2,7 +2,7 @@ from typing import Tuple
 from math import sqrt
 import numpy
 from pyssage.classes import Point, Triangle, VoronoiEdge, VoronoiTessellation, VoronoiPolygon
-from pyssage.utils import euclidean_angle
+from pyssage.utils import euclidean_angle, check_for_square_matrix
 
 __all__ = ["Connections", "delaunay_tessellation", "relative_neighborhood_network", "gabriel_network",
            "minimum_spanning_tree", "connect_distance_range", "least_diagonal_network", "nearest_neighbor_connections"]
@@ -496,21 +496,6 @@ def delaunay_connections(triangle_list: list, point_list: list) -> Connections:
     return output
 
 
-def check_input_distance_matrix(distances: numpy.ndarray) -> int:
-    """
-    checks to see that a provided distance matrix is  two-dimensional numpy.ndarray and square
-
-    :param distances: an n x n matrix
-    :return: returns the size (length of a size) of the matrix assuming it is two-dimensional and square
-    """
-    if distances.ndim != 2:
-        raise ValueError("distance matrix must be two-dimensional")
-    elif distances.shape[0] != distances.shape[1]:
-        raise ValueError("distance matrix must be square")
-    else:
-        return len(distances)
-
-
 def relative_neighborhood_network(distances: numpy.ndarray) -> Connections:
     """
     calculate connections among points based on a relative neighborhood network
@@ -518,7 +503,7 @@ def relative_neighborhood_network(distances: numpy.ndarray) -> Connections:
     :param distances: an n x n matrix containing distances among points
     :return: returns a Connections object
     """
-    n = check_input_distance_matrix(distances)
+    n = check_for_square_matrix(distances)
     output = Connections(n)
     for i in range(n):
         for j in range(i):
@@ -539,7 +524,7 @@ def gabriel_network(distances: numpy.ndarray) -> Connections:
     :param distances: an n x n matrix containing distances among points
     :return: returns a Connections object
     """
-    n = check_input_distance_matrix(distances)
+    n = check_for_square_matrix(distances)
     output = Connections(n)
     sq_distances = numpy.square(distances)
     for i in range(n):
@@ -565,7 +550,7 @@ def minimum_spanning_tree(distances: numpy.ndarray) -> Connections:
     :param distances: an n x n matrix containing distances among points
     :return: returns a Connections object
     """
-    n = check_input_distance_matrix(distances)
+    n = check_for_square_matrix(distances)
     output = Connections(n)
     used = [i for i in range(n)]
     cnt = 1
@@ -594,7 +579,7 @@ def connect_distance_range(distances: numpy.ndarray, maxdist: float, mindist: fl
     :param mindist: the minimum distance between points to connect (default = 0). this distance is inclusive
     :return: returns a Connections object
     """
-    n = check_input_distance_matrix(distances)
+    n = check_for_square_matrix(distances)
     output = Connections(n)
     for i in range(n):
         for j in range(i):
@@ -612,7 +597,7 @@ def least_diagonal_network(x: numpy.ndarray, y: numpy.ndarray, distances: numpy.
     :param distances: an n x n matrix containing the distances among the points defined by x and y
     :return: returns a Connections object
     """
-    n = check_input_distance_matrix(distances)
+    n = check_for_square_matrix(distances)
     if (n != len(x)) or (n != len(y)):
         raise ValueError("The coordinate arrays and the distance matrix must have the same length")
     output = Connections(n)
@@ -709,7 +694,7 @@ def nearest_neighbor_connections(distances: numpy.ndarray, k: int = 1, symmetric
                       the nearest neighbor of one point A does not necessarily have A as it's nearest neighbor
     :return: returns a Connections object
     """
-    n = check_input_distance_matrix(distances)
+    n = check_for_square_matrix(distances)
     output = Connections(n, symmetric)
     for i in range(n):
         dists = []
