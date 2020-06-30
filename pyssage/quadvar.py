@@ -6,23 +6,6 @@ from pyssage.classes import Number
 __all__ = ["ttlqv", "three_tlqv", "pqv", "tqv", "two_nlv", "three_nlv"]
 
 
-def wrap_transect(x: int, n: int) -> int:
-    """
-    Allows for wrapping an analysis across the ends of a linear transect as if it were a circle.
-    Assumes zero-delimited indexing (transect positions are counted from 0 to n-1)
-
-    :param x: the index of the requested position of the transect
-    :param n: the length of the transect
-    :return: returns the index of the correct position within the transect
-    """
-    if x >= n:
-        return x - n
-    elif x < 0:
-        return x + n
-    else:
-        return x
-
-
 def check_block_size(max_block_size: int, n: int, x: int) -> int:
     """
     Check the maximum block size to be sure it doesn't exceed limits for the particular analysis and input data
@@ -115,19 +98,6 @@ def three_tlqv(transect: numpy.ndarray, min_block_size: int = 1, max_block_size:
             sum1 = sum(_transect[start_pos:start_pos + b])
             sum2 = sum(_transect[start_pos + b:start_pos + 2*b])
             sum3 = sum(_transect[start_pos + 2*b:start_pos + 3*b])
-            # sum1 = 0
-            # sum2 = 0
-            # sum3 = 0
-            # for i in range(start_pos, start_pos + b):
-            #     j = wrap_transect(i, n)
-            #     sum1 += transect[j]
-            # for i in range(start_pos + b, start_pos + 2*b):
-            #     j = wrap_transect(i, n)
-            #     sum2 += transect[j]
-            # for i in range(start_pos + 2*b, start_pos + 3*b):
-            #     j = wrap_transect(i, n)
-            #     sum3 += transect[j]
-            # cnt += 1
             qv += (sum1 - 2*sum2 + sum3)**2
         # qv /= 8*b*cnt
         qv /= 8*b*end_start_pos
@@ -159,12 +129,13 @@ def pqv(transect: numpy.ndarray, min_block_size: int = 1, max_block_size: int = 
         qv = 0
         if wrap:
             end_start_pos = n
+            _transect = numpy.append(transect, transect)
         else:
+            _transect = transect
             end_start_pos = n - b
         for i in range(end_start_pos):
-            j = wrap_transect(i + b, n)
             cnt += 1
-            qv += (transect[i] - transect[j])**2
+            qv += (_transect[i] - _transect[i + b])**2
         qv /= 2*cnt
         output.append([b*unit_scale, qv])
     return numpy.array(output)
@@ -196,13 +167,13 @@ def tqv(transect: numpy.ndarray, min_block_size: int = 1, max_block_size: int = 
         qv = 0
         if wrap:
             end_start_pos = n
+            _transect = numpy.append(transect, transect)
         else:
+            _transect = transect
             end_start_pos = n - 2*b
         for i in range(end_start_pos):
-            j = wrap_transect(i + b, n)
-            k = wrap_transect(i + 2*b, n)
             cnt += 1
-            qv += (transect[i] - 2*transect[j] + transect[k])**2
+            qv += (transect[i] - 2*transect[i + b] + transect[i + 2*b])**2
         qv /= 4*cnt
         output.append([b*unit_scale, qv])
     return numpy.array(output)
