@@ -161,11 +161,10 @@ def pqv(transect: numpy.ndarray, min_block_size: int = 1, max_block_size: int = 
             end_start_pos = n
         else:
             end_start_pos = n - b
-        for start_pos in range(end_start_pos):
-            for i in range(end_start_pos):
-                j = wrap_transect(i + b, n)
-                cnt += 1
-                qv += (transect[i] - transect[j])**2
+        for i in range(end_start_pos):
+            j = wrap_transect(i + b, n)
+            cnt += 1
+            qv += (transect[i] - transect[j])**2
         qv /= 2*cnt
         output.append([b*unit_scale, qv])
     return numpy.array(output)
@@ -199,12 +198,11 @@ def tqv(transect: numpy.ndarray, min_block_size: int = 1, max_block_size: int = 
             end_start_pos = n
         else:
             end_start_pos = n - 2*b
-        for start_pos in range(end_start_pos):
-            for i in range(end_start_pos):
-                j = wrap_transect(i + b, n)
-                k = wrap_transect(i + 2*b, n)
-                cnt += 1
-                qv += (transect[i] - 2*transect[j] + transect[k])**2
+        for i in range(end_start_pos):
+            j = wrap_transect(i + b, n)
+            k = wrap_transect(i + 2*b, n)
+            cnt += 1
+            qv += (transect[i] - 2*transect[j] + transect[k])**2
         qv /= 4*cnt
         output.append([b*unit_scale, qv])
     return numpy.array(output)
