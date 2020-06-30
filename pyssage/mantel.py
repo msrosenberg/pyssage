@@ -1,18 +1,19 @@
 from pyssage.utils import check_for_square_matrix
+from pyssage.common import OUT_FRMT
 from math import sqrt
 from typing import Tuple
 import numpy
 import scipy.stats
 
-
-"""
-procedure Mantel(iMat1,iMat2 : TpasBasicMatrix; MList : TList; DoRand : boolean;
-             niter : integer; DoOutput, TwoTailed : boolean; var r : double;
-             var pvalue,Rranp,Lranp,Tranp : extended);
-"""
+__all__ = ["mantel"]
 
 
-def check_tail(tail: str):
+def check_tail(tail: str) -> None:
+    """
+    checks that the input tail is valid value
+
+    :param tail: the string indicating the desired tale; valid values are "left", "right", and "both"
+    """
     valid_tails = ("left", "right", "both")
     if tail not in valid_tails:
         raise ValueError("Requested probability tail is invalid. Options include \"left\", \"right\", or \"both\"")
@@ -32,7 +33,7 @@ def mantel(input_matrix1, input_matrix2, partial, permutations: int = 0,
         matrix1 = numpy.copy(input_matrix1)
         matrix2 = numpy.copy(input_matrix2)
 
-    observed_z = numpy.sum(numpy.product(matrix1, matrix2))  # assumes diagonals are all zeros
+    observed_z = numpy.sum(numpy.multiply(matrix1, matrix2))  # assumes diagonals are all zeros
 
     # for non-partial version the denominator of r is constant no matter the permutation, so only calculate once to
     # save time on two-tailed tests
@@ -46,8 +47,8 @@ def mantel(input_matrix1, input_matrix2, partial, permutations: int = 0,
 
     # create basic output text
     output_text = list()
-    output_text.append("Mantel Test\n")
-    output_text.append("\n")
+    output_text.append("Mantel Test")
+    output_text.append("")
     # matrix information here??
     # OutputAddLine('Matrix 1: ' + iMat1.MatrixName);
     # OutputAddLine('Matrix 2: ' + iMat2.MatrixName);
@@ -59,15 +60,15 @@ def mantel(input_matrix1, input_matrix2, partial, permutations: int = 0,
     #    end;
     #    OutputAddLine(outstr);
     # end;
-    output_text.append("Matrices are {0} x {0}\n".format(n))
+    output_text.append("Matrices are {0} x {0}".format(n))
     print()
-    output_text.append("Observed Z = {:0.4f}\n".format(observed_z))
-    output_text.append("Correlation = {:0.4f}\n".format(r))
-    output_text.append("t = {:0.4f}\n".format(z_score))
-    output_text.append("Left-tailed p = {:0.4f}\n".format(p_value))
-    output_text.append("Right-tailed p = {:0.4f}\n".format(1 - p_value))
-    output_text.append("Two-tailed p = {:0.4f}\n".format(2*min(p_value, 1 - p_value)))
-    output_text.append("\n")
+    output_text.append("Observed Z = " + format(observed_z, OUT_FRMT))
+    output_text.append("Correlation = " + format(r, OUT_FRMT))
+    output_text.append("t = " + format(z_score, OUT_FRMT))
+    output_text.append("Left-tailed p = " + format(p_value, OUT_FRMT))
+    output_text.append("Right-tailed p = " + format(1 - p_value, OUT_FRMT))
+    output_text.append("Two-tailed p = " + format(2*min(p_value, 1 - p_value), OUT_FRMT))
+    output_text.append("")
 
     # change p_value to requested tail
     if tail == "both":
@@ -104,7 +105,7 @@ def mantel(input_matrix1, input_matrix2, partial, permutations: int = 0,
                 if abs(permuted_r) >= abs(r):
                     cumulative_total += 1
             else:
-                permuted_z = numpy.sum(numpy.product(matrix1, matrix2))
+                permuted_z = numpy.sum(numpy.multiply(matrix1, matrix2))
                 if permuted_z < observed_z:
                     cumulative_left += 1
                 elif permuted_z > observed_z:
@@ -117,18 +118,18 @@ def mantel(input_matrix1, input_matrix2, partial, permutations: int = 0,
             permuted_two_p = cumulative_total / (permutations + 1)
         else:
             permuted_two_p = 1
-        output_text.append("Probability results from {} permutation\n".format(permutations))
-        output_text.append("# of permutations < observed = {}\n".format(cumulative_left))
-        output_text.append("# of permutations > observed = {}\n".format(cumulative_right))
+        output_text.append("Probability results from {} permutation".format(permutations))
+        output_text.append("# of permutations < observed = {}".format(cumulative_left))
+        output_text.append("# of permutations > observed = {}".format(cumulative_right))
         if tail == "both":
-            output_text.append("# of permutations >= |observed| = {}\n".format(cumulative_total))
-        output_text.append("# of permutations = observed = {}\n".format(cumulative_equal))
-        output_text.append("\n")
-        output_text.append("Left-tailed p = {:0.4f}\n".format(permuted_left_p))
-        output_text.append("Right-tailed p = observed = {:0.4f}\n".format(permuted_right_p))
+            output_text.append("# of permutations >= |observed| = {}".format(cumulative_total))
+        output_text.append("# of permutations = observed = {}".format(cumulative_equal))
+        output_text.append("")
+        output_text.append("Left-tailed p = " + format(permuted_left_p, OUT_FRMT))
+        output_text.append("Right-tailed p = observed = " + format(permuted_right_p, OUT_FRMT))
         if tail == "both":
-            output_text.append("Two-tailed p = observed = {:0.4f}\n".format(permuted_two_p))
-        output_text.append("\n")
+            output_text.append("Two-tailed p = observed = " + format(permuted_two_p, OUT_FRMT))
+        output_text.append("")
     else:
         permuted_left_p, permuted_right_p, permuted_two_p = 1, 1, 1
 
@@ -136,6 +137,15 @@ def mantel(input_matrix1, input_matrix2, partial, permutations: int = 0,
 
 
 def mantel_moments(x: numpy.ndarray, y: numpy.ndarray) -> Tuple[float, float]:
+    """
+    calculates the moments for a Mantel test
+
+    assumes diagonal elements bot both input matrices are zeros
+
+    :param x: first matrix, as a square numpy.ndarray
+    :param y: second matrix, as a square numpy.ndarray
+    :return: expected value (mu) and standard deviation as a tuple
+    """
     n = len(x)
     ax, bx, cx, dx, ex, fx, gx, hx, ix, jx, kx = matrix_sums(x)
     ay, by, cy, dy, ey, fy, gy, hy, iy, jy, ky = matrix_sums(y)
@@ -146,15 +156,19 @@ def mantel_moments(x: numpy.ndarray, y: numpy.ndarray) -> Tuple[float, float]:
 
 
 def matrix_sums(x: numpy.ndarray):
-    # assumes diagonal elements are zero
+    """
+    calculates a bunch of sums and sums of squares for different elements of a square matrix
+
+    assumes diagonal elements are zero
+    """
     aa = numpy.sum(x)  # sum of all values in matrix
     bb = numpy.sum(numpy.square(x))  # sum of all squared values in matrix
     cc = numpy.sum(x * numpy.transpose(x))  # sum of all corresponding elements; same as bb if matrix is symmetric
-    row_sums = numpy.sum(x, axis=1)
-    col_sums = numpy.sum(x, axis=0)
+    row_sums = numpy.sum(x, axis=1)  # vector containing sum of each row
+    col_sums = numpy.sum(x, axis=0)  # vector containing sum of each column
     dd = numpy.sum(numpy.square(col_sums))  # sum of squared column sums
     ee = numpy.sum(numpy.square(row_sums))  # sum of squared row sums
-    ff = numpy.sum(numpy.product(row_sums, col_sums))  # sum of product of corresponding row and columns sums
+    ff = numpy.sum(numpy.multiply(row_sums, col_sums))  # sum of product of corresponding row and columns sums
     gg = aa**2
     hh = dd - bb
     ii = ee - bb
@@ -173,12 +187,17 @@ def residuals_from_matrix_regression(y_matrix: numpy.ndarray, x: list) -> numpy.
 def residuals_from_simple_matrix_regression(y: numpy.ndarray, x: numpy.ndarray) -> numpy.ndarray:
     """
     performs a linear regression of matrix y on matrix x and returns the residuals
+
+    assumes the diagonals of the input matrices are all zeros
+
+    :param y: matrix of dependent variables, as a square numpy.ndarray
+    :param x: matrix of independenet variables, as a square numpy.ndarray
+    :return: matrix of residuals of the simple linear regression of y on x
     """
     n = check_for_square_matrix(y)
     if n != check_for_square_matrix(x):
         raise ValueError("matrices must be the same size")
 
-    # assumes the diagonals of the input matrices are all zeros
     sumx = numpy.sum(x)
     sumy = numpy.sum(y)
     sumx2 = numpy.sum(numpy.square(x))
@@ -281,13 +300,16 @@ def residuals_from_multi_matrix_regression(y: numpy.ndarray, x_list: list) -> nu
                        inc(k);
                        ResMat[i,j] := Yarray[1,k] - Yhat[1,k];
                     end;
-    
     """
 
 
 def square_matrix_covariance(x: numpy.ndarray, y: numpy.ndarray) -> float:
     """
     returns the covariance of two square matrices, assuming the diagonals are both zeros
+
+    :param x: first matrix, as a square numpy.ndarray
+    :param y: second matrix, as a square numpy.ndarray
+    :return: the covariance of the two matrices
     """
     n = check_for_square_matrix(y)
     if n != check_for_square_matrix(x):
@@ -295,7 +317,7 @@ def square_matrix_covariance(x: numpy.ndarray, y: numpy.ndarray) -> float:
 
     sumx = numpy.sum(x)
     sumy = numpy.sum(y)
-    sumxy = numpy.sum(numpy.product(x, y))
+    sumxy = numpy.sum(numpy.multiply(x, y))
     count = n**2 - n
 
     return (sumxy - sumx*sumy/count) / (count - 1)
