@@ -124,7 +124,6 @@ def pqv(transect: numpy.ndarray, min_block_size: int = 1, max_block_size: int = 
     output = []
     max_block_size = check_block_size(max_block_size, n, 2)
     for b in range(min_block_size, max_block_size + 1, block_step):
-        cnt = 0
         qv = 0
         if wrap:
             end_start_pos = n
@@ -161,7 +160,6 @@ def tqv(transect: numpy.ndarray, min_block_size: int = 1, max_block_size: int = 
     output = []
     max_block_size = check_block_size(max_block_size, n, 3)
     for b in range(min_block_size, max_block_size + 1, block_step):
-        cnt = 0
         qv = 0
         if wrap:
             end_start_pos = n
