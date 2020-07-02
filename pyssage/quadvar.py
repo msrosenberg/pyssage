@@ -86,6 +86,7 @@ def three_tlqv(transect: numpy.ndarray, min_block_size: int = 1, max_block_size:
     output = []
     max_block_size = check_block_size(max_block_size, n, 3)
     for b in range(min_block_size, max_block_size + 1, block_step):
+        # cnt = 0
         qv = 0
         if wrap:
             _transect = numpy.append(transect, transect)
@@ -123,6 +124,7 @@ def pqv(transect: numpy.ndarray, min_block_size: int = 1, max_block_size: int = 
     output = []
     max_block_size = check_block_size(max_block_size, n, 2)
     for b in range(min_block_size, max_block_size + 1, block_step):
+        cnt = 0
         qv = 0
         if wrap:
             end_start_pos = n
@@ -159,6 +161,7 @@ def tqv(transect: numpy.ndarray, min_block_size: int = 1, max_block_size: int = 
     output = []
     max_block_size = check_block_size(max_block_size, n, 3)
     for b in range(min_block_size, max_block_size + 1, block_step):
+        cnt = 0
         qv = 0
         if wrap:
             end_start_pos = n
@@ -211,6 +214,7 @@ def two_nlv(transect: numpy.ndarray, min_block_size: int = 1, max_block_size: in
             sum3 = sum1 - _transect[start_pos] + _transect[start_pos + b]
             sum4 = sum2 - _transect[start_pos + b] + _transect[start_pos + 2*b]
             term2 = (sum3 - sum4)**2
+            cnt += 1
             qv += abs(term1 - term2)
         try:
             qv /= 2*b*end_start_pos
@@ -243,6 +247,7 @@ def three_nlv(transect: numpy.ndarray, min_block_size: int = 1, max_block_size: 
     output = []
     max_block_size = check_block_size(max_block_size, n, 3)
     for b in range(min_block_size, max_block_size + 1, block_step):
+        cnt = 0
         qv = 0
         if wrap:
             _transect = numpy.append(transect, transect)
@@ -259,6 +264,8 @@ def three_nlv(transect: numpy.ndarray, min_block_size: int = 1, max_block_size: 
             sum5 = sum2 - _transect[start_pos + b] + _transect[start_pos + 2*b]
             sum6 = sum3 - _transect[start_pos + 2*b] + _transect[start_pos + 3*b]
             term2 = (sum4 - 2*sum5 + sum6)**2
+
+            cnt += 1
             qv += abs(term1 - term2)
         try:
             qv /= 8*b*end_start_pos
