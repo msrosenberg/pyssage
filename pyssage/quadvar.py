@@ -99,7 +99,6 @@ def three_tlqv(transect: numpy.ndarray, min_block_size: int = 1, max_block_size:
             sum2 = sum(_transect[start_pos + b:start_pos + 2*b])
             sum3 = sum(_transect[start_pos + 2*b:start_pos + 3*b])
             qv += (sum1 - 2*sum2 + sum3)**2
-        # qv /= 8*b*cnt
         qv /= 8*b*end_start_pos
         output.append([b * unit_scale, qv])
     return numpy.array(output)
@@ -133,10 +132,9 @@ def pqv(transect: numpy.ndarray, min_block_size: int = 1, max_block_size: int = 
         else:
             _transect = transect
             end_start_pos = n - b
-        for i in range(end_start_pos):
-            cnt += 1
-            qv += (_transect[i] - _transect[i + b])**2
-        qv /= 2*cnt
+        for start_pos in range(end_start_pos):
+            qv += (_transect[start_pos] - _transect[start_pos + b])**2
+        qv /= 2*end_start_pos
         output.append([b*unit_scale, qv])
     return numpy.array(output)
 
@@ -171,10 +169,9 @@ def tqv(transect: numpy.ndarray, min_block_size: int = 1, max_block_size: int = 
         else:
             _transect = transect
             end_start_pos = n - 2*b
-        for i in range(end_start_pos):
-            cnt += 1
-            qv += (transect[i] - 2*transect[i + b] + transect[i + 2*b])**2
-        qv /= 4*cnt
+        for start_pos in range(end_start_pos):
+            qv += (_transect[start_pos] - 2*_transect[start_pos + b] + _transect[start_pos + 2*b])**2
+        qv /= 4*end_start_pos
         output.append([b*unit_scale, qv])
     return numpy.array(output)
 
@@ -219,9 +216,11 @@ def two_nlv(transect: numpy.ndarray, min_block_size: int = 1, max_block_size: in
             term2 = (sum3 - sum4)**2
             cnt += 1
             qv += abs(term1 - term2)
-        if cnt > 0:
-            qv /= 2*b*cnt
+        try:
+            qv /= 2*b*end_start_pos
             output.append([b*unit_scale, qv])
+        except ZeroDivisionError:
+            pass
     return numpy.array(output)
 
 
@@ -268,9 +267,11 @@ def three_nlv(transect: numpy.ndarray, min_block_size: int = 1, max_block_size: 
 
             cnt += 1
             qv += abs(term1 - term2)
-        if cnt > 0:
-            qv /= 8*b*cnt
+        try:
+            qv /= 8*b*end_start_pos
             output.append([b*unit_scale, qv])
+        except ZeroDivisionError:
+            pass
     return numpy.array(output)
 
 
