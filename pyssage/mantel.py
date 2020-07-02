@@ -82,8 +82,11 @@ def mantel(input_matrix1, input_matrix2, partial, permutations: int = 0,
         cumulative_right = 0
         cumulative_equal = 1
         cumulative_total = 1
-        for p in range(permutations):
-            # matrix1 = permute_matrix(input_matrix1)
+        for p in range(permutations - 1):  # count observed as first permutation
+            # created permuted version of matrix 1, permuting rows and columns in tandem
+            rand_order = numpy.arange(n)
+            numpy.random.shuffle(rand_order)
+            matrix1 = input_matrix1[numpy.ix_(rand_order, rand_order)]
 
             if len(partial) > 0:  # if partial, calculate residuals for permuted matrix
                 matrix1 = residuals_from_matrix_regression(matrix1, partial)
@@ -91,7 +94,7 @@ def mantel(input_matrix1, input_matrix2, partial, permutations: int = 0,
             # Z which is faster
             if tail == "both":
                 numerator = square_matrix_covariance(matrix1, matrix2)
-                if len(partial > 0):
+                if len(partial) > 0:
                     denominator = sqrt(square_matrix_covariance(matrix1, matrix1) * sq_cov2)
                 else:  # for non-partial tests can save computation as denominator is fixed
                     denominator = sqxy
@@ -112,10 +115,10 @@ def mantel(input_matrix1, input_matrix2, partial, permutations: int = 0,
                     cumulative_right += 1
                 else:
                     cumulative_equal += 1
-        permuted_right_p = (cumulative_equal + cumulative_right) / (permutations + 1)
-        permuted_left_p = (cumulative_equal + cumulative_left) / (permutations + 1)
+        permuted_right_p = (cumulative_equal + cumulative_right) / permutations
+        permuted_left_p = (cumulative_equal + cumulative_left) / permutations
         if tail == "both":
-            permuted_two_p = cumulative_total / (permutations + 1)
+            permuted_two_p = cumulative_total / permutations
         else:
             permuted_two_p = 1
         output_text.append("Probability results from {} permutation".format(permutations))
