@@ -59,7 +59,7 @@ def ttlqv(transect: numpy.ndarray, min_block_size: int = 1, max_block_size: int 
             sum1 = sum(_transect[start_pos:start_pos + b])
             sum2 = sum(_transect[start_pos + b:start_pos + 2*b])
             qv += (sum1 - sum2)**2
-        qv /= 2*b*(end_start_pos + 1)
+        qv /= 2*b*end_start_pos
         output.append([b*unit_scale, qv])
     return numpy.array(output)
 
@@ -86,6 +86,7 @@ def three_tlqv(transect: numpy.ndarray, min_block_size: int = 1, max_block_size:
     output = []
     max_block_size = check_block_size(max_block_size, n, 3)
     for b in range(min_block_size, max_block_size + 1, block_step):
+        # cnt = 0
         qv = 0
         if wrap:
             _transect = numpy.append(transect, transect)
@@ -98,7 +99,8 @@ def three_tlqv(transect: numpy.ndarray, min_block_size: int = 1, max_block_size:
             sum2 = sum(_transect[start_pos + b:start_pos + 2*b])
             sum3 = sum(_transect[start_pos + 2*b:start_pos + 3*b])
             qv += (sum1 - 2*sum2 + sum3)**2
-        qv /= 8*b*(end_start_pos + 1)
+        # qv /= 8*b*cnt
+        qv /= 8*b*end_start_pos
         output.append([b * unit_scale, qv])
     return numpy.array(output)
 
@@ -123,6 +125,7 @@ def pqv(transect: numpy.ndarray, min_block_size: int = 1, max_block_size: int = 
     output = []
     max_block_size = check_block_size(max_block_size, n, 2)
     for b in range(min_block_size, max_block_size + 1, block_step):
+        cnt = 0
         qv = 0
         if wrap:
             end_start_pos = n
@@ -130,9 +133,10 @@ def pqv(transect: numpy.ndarray, min_block_size: int = 1, max_block_size: int = 
         else:
             _transect = transect
             end_start_pos = n - b
-        for start_pos in range(end_start_pos):
-            qv += (_transect[start_pos] - _transect[start_pos + b])**2
-        qv /= 2*(end_start_pos + 1)
+        for i in range(end_start_pos):
+            cnt += 1
+            qv += (_transect[i] - _transect[i + b])**2
+        qv /= 2*cnt
         output.append([b*unit_scale, qv])
     return numpy.array(output)
 
@@ -159,6 +163,7 @@ def tqv(transect: numpy.ndarray, min_block_size: int = 1, max_block_size: int = 
     output = []
     max_block_size = check_block_size(max_block_size, n, 3)
     for b in range(min_block_size, max_block_size + 1, block_step):
+        cnt = 0
         qv = 0
         if wrap:
             end_start_pos = n
@@ -166,9 +171,10 @@ def tqv(transect: numpy.ndarray, min_block_size: int = 1, max_block_size: int = 
         else:
             _transect = transect
             end_start_pos = n - 2*b
-        for start_pos in range(end_start_pos):
-            qv += (_transect[start_pos] - 2*_transect[start_pos + b] + _transect[start_pos + 2*b])**2
-        qv /= 4*(end_start_pos + 1)
+        for i in range(end_start_pos):
+            cnt += 1
+            qv += (transect[i] - 2*transect[i + b] + transect[i + 2*b])**2
+        qv /= 4*cnt
         output.append([b*unit_scale, qv])
     return numpy.array(output)
 
@@ -211,9 +217,11 @@ def two_nlv(transect: numpy.ndarray, min_block_size: int = 1, max_block_size: in
             sum3 = sum1 - _transect[start_pos] + _transect[start_pos + b]
             sum4 = sum2 - _transect[start_pos + b] + _transect[start_pos + 2*b]
             term2 = (sum3 - sum4)**2
+            cnt += 1
             qv += abs(term1 - term2)
-        qv /= 2*b*(end_start_pos + 1)
-        output.append([b*unit_scale, qv])
+        if cnt > 0:
+            qv /= 2*b*cnt
+            output.append([b*unit_scale, qv])
     return numpy.array(output)
 
 
@@ -240,6 +248,7 @@ def three_nlv(transect: numpy.ndarray, min_block_size: int = 1, max_block_size: 
     output = []
     max_block_size = check_block_size(max_block_size, n, 3)
     for b in range(min_block_size, max_block_size + 1, block_step):
+        cnt = 0
         qv = 0
         if wrap:
             _transect = numpy.append(transect, transect)
@@ -256,9 +265,12 @@ def three_nlv(transect: numpy.ndarray, min_block_size: int = 1, max_block_size: 
             sum5 = sum2 - _transect[start_pos + b] + _transect[start_pos + 2*b]
             sum6 = sum3 - _transect[start_pos + 2*b] + _transect[start_pos + 3*b]
             term2 = (sum4 - 2*sum5 + sum6)**2
+
+            cnt += 1
             qv += abs(term1 - term2)
-        qv /= 8*b*(end_start_pos + 1)
-        output.append([b*unit_scale, qv])
+        if cnt > 0:
+            qv /= 8*b*cnt
+            output.append([b*unit_scale, qv])
     return numpy.array(output)
 
 
