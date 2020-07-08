@@ -56,8 +56,8 @@ def ttlqv(transect: numpy.ndarray, min_block_size: int = 1, max_block_size: int 
             _transect = transect
             end_start_pos = n + 1 - 2*b
         for start_pos in range(end_start_pos):
-            sum1 = sum(_transect[start_pos:start_pos + b])
-            sum2 = sum(_transect[start_pos + b:start_pos + 2*b])
+            sum1 = numpy.sum(_transect[start_pos:start_pos + b])
+            sum2 = numpy.sum(_transect[start_pos + b:start_pos + 2*b])
             qv += (sum1 - sum2)**2
         qv /= 2*b*end_start_pos
         output.append([b*unit_scale, qv])
@@ -95,9 +95,9 @@ def three_tlqv(transect: numpy.ndarray, min_block_size: int = 1, max_block_size:
             _transect = transect
             end_start_pos = n + 1 - 3*b
         for start_pos in range(end_start_pos):
-            sum1 = sum(_transect[start_pos:start_pos + b])
-            sum2 = sum(_transect[start_pos + b:start_pos + 2*b])
-            sum3 = sum(_transect[start_pos + 2*b:start_pos + 3*b])
+            sum1 = numpy.sum(_transect[start_pos:start_pos + b])
+            sum2 = numpy.sum(_transect[start_pos + b:start_pos + 2*b])
+            sum3 = numpy.sum(_transect[start_pos + 2*b:start_pos + 3*b])
             qv += (sum1 - 2*sum2 + sum3)**2
         qv /= 8*b*end_start_pos
         output.append([b * unit_scale, qv])
@@ -206,8 +206,8 @@ def two_nlv(transect: numpy.ndarray, min_block_size: int = 1, max_block_size: in
             _transect = transect
             end_start_pos = n - 2*b
         for start_pos in range(end_start_pos):
-            sum1 = sum(_transect[start_pos:start_pos + b])
-            sum2 = sum(_transect[start_pos + b:start_pos + 2*b])
+            sum1 = numpy.sum(_transect[start_pos:start_pos + b])
+            sum2 = numpy.sum(_transect[start_pos + b:start_pos + 2*b])
             term1 = (sum1 - sum2)**2
             sum3 = sum1 - _transect[start_pos] + _transect[start_pos + b]
             sum4 = sum2 - _transect[start_pos + b] + _transect[start_pos + 2*b]
@@ -254,9 +254,9 @@ def three_nlv(transect: numpy.ndarray, min_block_size: int = 1, max_block_size: 
             _transect = transect
             end_start_pos = n - 3*b
         for start_pos in range(end_start_pos):
-            sum1 = sum(_transect[start_pos:start_pos + b])
-            sum2 = sum(_transect[start_pos + b:start_pos + 2*b])
-            sum3 = sum(_transect[start_pos + 2*b:start_pos + 3*b])
+            sum1 = numpy.sum(_transect[start_pos:start_pos + b])
+            sum2 = numpy.sum(_transect[start_pos + b:start_pos + 2*b])
+            sum3 = numpy.sum(_transect[start_pos + 2*b:start_pos + 3*b])
             term1 = (sum1 - 2*sum2 + sum3)**2
             sum4 = sum1 - _transect[start_pos] + _transect[start_pos + b]
             sum5 = sum2 - _transect[start_pos + b] + _transect[start_pos + 2*b]
