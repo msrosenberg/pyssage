@@ -379,94 +379,76 @@ def four_tlqv(surface: numpy.ndarray, min_block_size: int = 1, max_block_size: i
     return numpy.array(output)
 
 
-"""
+def nine_tlqv(surface: numpy.ndarray, min_block_size: int = 1, max_block_size: int = 0, block_step: int = 1,
+              unit_scale: Number = 1) -> numpy.ndarray:
+    """
+    Performs a Nine-Term Local Quadrat Variance analysis (9TLQV) on a surface. Method originally from:
 
-procedure Calc_9TLQV(DatMat,OutMat : TpasMatrix; outcol,maxxb : integer;
-          range : double);
-var
-   cnt,i,j,k,l,
-   b,maxb : integer;
-   sum1,sum2 : double;
-   good : boolean;
-begin
-     maxb := Min(trunc(DatMat.nrows * range),trunc(DatMat.ncols * range));
-     maxb := Min(maxb,maxxb);
-     for b := 1 to maxb do if ContinueProgress then begin
-         cnt := 0;
-         OutMat[b,outcol] := 0.0;
-         for i := 1 to DatMat.nrows + 1 - 3 * b do
-             for j := 1 to DatMat.ncols + 1 - 3 * b do if ContinueProgress then begin
-                 sum1 := 0.0; sum2 := 0.0;
-                 good := true;
-                 // first column
-                 for k := i to i + b - 1 do
-                     for l := j to j + 3 * b - 1 do
-                         if DatMat.IsNum[k,l] then
-                            sum1 := sum1 + DatMat[k,l]
-                         else good := false;
-                 // third column
-                 for k := i + 2 * b to i + 3 * b - 1 do
-                     for l := j to j + 3 * b - 1 do
-                         if DatMat.IsNum[k,l] then
-                            sum1 := sum1 + DatMat[k,l]
-                         else good := false;
-                 // second Column
-                 for k := i + b to i + 2 * b - 1 do begin
-                     for l := j to j + b - 1 do
-                         if DatMat.IsNum[k,l] then
-                            sum1 := sum1 + DatMat[k,l]
-                         else good := false;
-                     for l := j + b to j + 2 * b - 1 do
-                         if DatMat.IsNum[k,l] then
-                            sum2 := sum2 + DatMat[k,l]
-                         else good := false;
-                     for l := j + 2 * b to j + 3 * b - 1 do
-                         if DatMat.IsNum[k,l] then
-                            sum1 := sum1 + DatMat[k,l]
-                         else good := false;
-                 end;
-                 if good then begin
-                    inc(cnt);
-                    OutMat[b,outcol] := OutMat[b,outcol] + sqr(sum1 - 8.0 * sum2);
-                 end;
-             end;
-         if (cnt > 0) then
-            OutMat[b,outcol] := OutMat[b,outcol] / (72.0 * IntPower(b,3) * cnt)
-         else OutMat.IsEmpty[b,outcol] := true;
-         ProgressIncrement;
-     end;
-     if ContinueProgress then
-        for i := maxb+1 to maxxb do ProgressIncrement;
-end;
+    xxxxx
 
-procedure Calc_5QV(DatMat,OutMat : TpasMatrix; outcol,maxxb : integer;
-          range : double);
-var
-   cnt,i,j,
-   b,maxb : integer;
-begin
-     maxb := Min(trunc(DatMat.nrows * range),trunc(DatMat.ncols * range));
-     maxb := Min(maxb,maxxb);
-     for b := 1 to maxb do if ContinueProgress then begin
-         cnt := 0;
-         OutMat[b,outcol] := 0.0;
-         for i := b + 1 to DatMat.nrows - b do
-             for j := b + 1 to DatMat.ncols - b do if ContinueProgress then
-                 if DatMat.IsNum[i,j] and DatMat.IsNum[i-b,j] and
-                    DatMat.IsNum[i+b,j] and DatMat.IsNum[i,j-b] and
-                    DatMat.IsNum[i,j+b] then begin
-                    inc(cnt);
-                    OutMat[b,outcol] := OutMat[b,outcol] +
-                      sqr(DatMat[i-b,j] + DatMat[i+b,j] + DatMat[i,j-b] +
-                          DatMat[i,j+b] - 4.0 * DatMat[i,j]);
-                 end;
-         if (cnt > 0) then
-            OutMat[b,outcol] := OutMat[b,outcol] / (20.0 * cnt)
-         else OutMat.IsEmpty[b,outcol] := true;
-         ProgressIncrement;
-     end;
-     if ContinueProgress then
-        for i := maxb+1 to maxxb do ProgressIncrement;
-end;
+    :param surface: a two-dimensional numpy array containing the surface data
+    :param min_block_size: the smallest block size of the analysis (default = 1)
+    :param max_block_size: the largest block size of the analysis (default = 0, indicating 50% of the transect length)
+    :param block_step: the incremental size increase of each block size (default = 1)
+    :param unit_scale: represents the unit scale of a single block (default = 1). Can be used to rescale the units of
+           the output, e.g., if the blocks are measured in centimeters, you could use a scale of 0.01 to have the
+           output expressed in meters.
+    :return: a two column numpy array, with the first column containing the scaled block size and the second the
+             calculated variance
+    """
+    nrows, ncols = surface.shape
+    max_block_size = check_2d_block_size(max_block_size, min(nrows, ncols), 3)
+    output = []
 
-"""
+    for b in range(min_block_size, max_block_size + 1, block_step):
+        qv = 0
+        end_row_start = nrows + 1 - 3*b
+        end_col_start = ncols + 1 - 3*b
+        for row in range(end_row_start):
+            for col in range(end_col_start):
+                sum_outer = sum(surface[row:row + 3*b, col:col + b])  # first column
+                sum_outer += sum(surface[row:row + 3*b, col + 2*b:col + 3*b])  # third column
+                sum_outer += sum(surface[row:row + b, col + b:col + 2*b])  # top row, middle column
+                sum_outer += sum(surface[row + 2*b:row + 3*b, col + b:col + 2*b])  # bottom row, middle column
+                sum_middle = sum(surface[row + b:row + 2*b, col + b:col + 2*b])  # middle cell
+                qv += (8*sum_middle - sum_outer)**2
+
+        qv /= 72 * b**3 * end_row_start * end_col_start
+        output.append([b*unit_scale, qv])
+
+    return numpy.array(output)
+
+
+def five_qv(surface: numpy.ndarray, min_block_size: int = 1, max_block_size: int = 0, block_step: int = 1,
+            unit_scale: Number = 1) -> numpy.ndarray:
+    """
+    Performs a Pentuplet Quadrat Variance analysis (5QV) on a surface. Method originally from:
+
+    xxxx
+
+    :param surface: a two-dimensional numpy array containing the surface data
+    :param min_block_size: the smallest block size of the analysis (default = 1)
+    :param max_block_size: the largest block size of the analysis (default = 0, indicating 50% of the transect length)
+    :param block_step: the incremental size increase of each block size (default = 1)
+    :param unit_scale: represents the unit scale of a single block (default = 1). Can be used to rescale the units of
+           the output, e.g., if the blocks are measured in centimeters, you could use a scale of 0.01 to have the
+           output expressed in meters.
+    :return: a two column numpy array, with the first column containing the scaled block size and the second the
+             calculated variance
+    """
+    nrows, ncols = surface.shape
+    max_block_size = check_2d_block_size(max_block_size, min(nrows, ncols), 3)
+    output = []
+
+    for b in range(min_block_size, max_block_size + 1, block_step):
+        qv = 0
+        end_row_start = nrows + 1 - 3*b
+        end_col_start = ncols + 1 - 3*b
+        for row in range(end_row_start):
+            for col in range(end_col_start):
+                qv += (4*surface[row + b, col + b] - surface[row + b, col] - surface[row + 2*b, col] -
+                       surface[row, col + b] - surface[row, col + 2*b])**2
+        qv /= 20 * end_row_start * end_col_start
+        output.append([b*unit_scale, qv])
+
+    return numpy.array(output)
