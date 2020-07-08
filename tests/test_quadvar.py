@@ -1,6 +1,6 @@
 import pyssage.quadvar
 import pyssage.graph
-from tests.test_common import test_transect
+from tests.test_common import test_transect, test_surface
 
 
 def test_ttlqv():
@@ -3117,11 +3117,102 @@ def test_threet_nlv_random():
     pyssage.graph.draw_quadvar_result(summary[:, 0:2], summary[:, 2], title="3NLV Test with Randomization",
                                       varlabel="Observed", randlabel="{:0.2%} confidence limit".format(0.95))
 
+    """
+    Notes:
+    
+    2NLV and 3NLV do not have the same formula as in the passage manual; in particular the denominator is not the 
+    same. Need to check references and see if there is a good reason why.
+    
+    """
 
-"""
-Notes:
 
-2NLV and 3NLV do not have the same formula as in the passage manual; in particular the denominator is not the 
-same. Need to check references and see if there is a good reason why.
+def test_4tlqv():
+    # discovered small bug in PASSaGE 2 analysis, which caused a very minor shift in the values. can therefore not
+    # use for testing purposes
+    result = pyssage.quadvar.four_tlqv(test_surface())
+    pyssage.graph.draw_quadvar_result(result, title="4TLQV Test")
 
-"""
+
+def test_9tlqv():
+    # answer calculated from PASSaGE 2 and exported to 5 decimals
+    answer = (0.04498,
+              0.10895,
+              0.21302,
+              0.35183,
+              0.49153,
+              0.57159,
+              0.57633,
+              0.50129,
+              0.38749,
+              0.27113,
+              0.1747,
+              0.12292,
+              0.08447,
+              0.04966,
+              0.021,
+              0.00554,
+              0.00119,
+              0.00017,
+              0.00001,
+              0,
+              0,
+              0.00007,
+              0.00046,
+              0.00162,
+              0.00354,
+              0.00587,
+              0.01004,
+              0.01471,
+              0.01713,
+              0.01317,
+              0.00329,
+              0.00043,
+              0.00001)
+
+    result = pyssage.quadvar.nine_tlqv(test_surface())
+    pyssage.graph.draw_quadvar_result(result, title="9TLQV Test")
+    for i in range(33):
+        assert round(result[i, 1], 5) == answer[i]
+
+
+def test_5qv():
+    # answer calculated from PASSaGE 2 and exported to 5 decimals
+    #   only testing first 33 values because P2 restricted this to 1/3 of size rather than 1/2
+    answer = (0.02174,
+              0.05156,
+              0.09045,
+              0.13951,
+              0.2,
+              0.29421,
+              0.39989,
+              0.51837,
+              0.65116,
+              0.8,
+              0.67758,
+              0.55568,
+              0.43492,
+              0.31605,
+              0.2,
+              0.15017,
+              0.10413,
+              0.06289,
+              0.02768,
+              0,
+              0.02021,
+              0.04847,
+              0.08642,
+              0.13609,
+              0.2,
+              0.28611,
+              0.38601,
+              0.50248,
+              0.639,
+              0.8,
+              0.69197,
+              0.57778,
+              0.45744)
+
+    result = pyssage.quadvar.five_qv(test_surface())
+    pyssage.graph.draw_quadvar_result(result, title="5QV Test")
+    for i in range(33):
+        assert round(result[i, 1], 5) == answer[i]

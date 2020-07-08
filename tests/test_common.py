@@ -18,7 +18,7 @@ def test_transect():
 
 def test_coords():
     """
-    creates a 355 x 2 array of coordinate locations, based on the 355 western European cancer registration sites
+    Creates a 355 x 2 array of coordinate locations, based on the 355 western European cancer registration sites
     """
     return numpy.array([[4.33, 50.83],
                         [4.5, 51.17],
@@ -375,6 +375,21 @@ def test_coords():
                         [3.75, 51.45],
                         [5, 51.5],
                         [5.83, 51.23]])
+
+
+def test_surface():
+    """
+    Reads a 100 x 100 surface (checkerboard of 1's and 0's in 10 x 10 blocks) from a file
+    """
+    surface = []
+    with open("data/test_surface.txt", "r") as infile:
+        for line in infile:
+            data = line.strip().split()
+            row = []
+            for d in data:
+                row.append(eval(d))
+            surface.append(row)
+    return numpy.array(surface)
 
 
 def load_answer(filename: str) -> numpy.ndarray:

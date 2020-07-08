@@ -56,11 +56,15 @@ def ttlqv(transect: numpy.ndarray, min_block_size: int = 1, max_block_size: int 
             _transect = transect
             end_start_pos = n + 1 - 2*b
         for start_pos in range(end_start_pos):
-            sum1 = sum(_transect[start_pos:start_pos + b])
-            sum2 = sum(_transect[start_pos + b:start_pos + 2*b])
+            sum1 = numpy.sum(_transect[start_pos:start_pos + b])
+            sum2 = numpy.sum(_transect[start_pos + b:start_pos + 2*b])
             qv += (sum1 - sum2)**2
-        qv /= 2*b*end_start_pos
-        output.append([b*unit_scale, qv])
+        try:
+            qv /= 2*b*end_start_pos
+            output.append([b*unit_scale, qv])
+        except ZeroDivisionError:
+            pass
+
     return numpy.array(output)
 
 
@@ -95,12 +99,16 @@ def three_tlqv(transect: numpy.ndarray, min_block_size: int = 1, max_block_size:
             _transect = transect
             end_start_pos = n + 1 - 3*b
         for start_pos in range(end_start_pos):
-            sum1 = sum(_transect[start_pos:start_pos + b])
-            sum2 = sum(_transect[start_pos + b:start_pos + 2*b])
-            sum3 = sum(_transect[start_pos + 2*b:start_pos + 3*b])
+            sum1 = numpy.sum(_transect[start_pos:start_pos + b])
+            sum2 = numpy.sum(_transect[start_pos + b:start_pos + 2*b])
+            sum3 = numpy.sum(_transect[start_pos + 2*b:start_pos + 3*b])
             qv += (sum1 - 2*sum2 + sum3)**2
-        qv /= 8*b*end_start_pos
-        output.append([b * unit_scale, qv])
+        try:
+            qv /= 8*b*end_start_pos
+            output.append([b * unit_scale, qv])
+        except ZeroDivisionError:
+            pass
+
     return numpy.array(output)
 
 
@@ -133,8 +141,12 @@ def pqv(transect: numpy.ndarray, min_block_size: int = 1, max_block_size: int = 
             end_start_pos = n - b
         for start_pos in range(end_start_pos):
             qv += (_transect[start_pos] - _transect[start_pos + b])**2
-        qv /= 2*end_start_pos
-        output.append([b*unit_scale, qv])
+        try:
+            qv /= 2*end_start_pos
+            output.append([b*unit_scale, qv])
+        except ZeroDivisionError:
+            pass
+
     return numpy.array(output)
 
 
@@ -169,8 +181,12 @@ def tqv(transect: numpy.ndarray, min_block_size: int = 1, max_block_size: int = 
             end_start_pos = n - 2*b
         for start_pos in range(end_start_pos):
             qv += (_transect[start_pos] - 2*_transect[start_pos + b] + _transect[start_pos + 2*b])**2
-        qv /= 4*end_start_pos
-        output.append([b*unit_scale, qv])
+        try:
+            qv /= 4*end_start_pos
+            output.append([b*unit_scale, qv])
+        except ZeroDivisionError:
+            pass
+
     return numpy.array(output)
 
 
@@ -206,8 +222,8 @@ def two_nlv(transect: numpy.ndarray, min_block_size: int = 1, max_block_size: in
             _transect = transect
             end_start_pos = n - 2*b
         for start_pos in range(end_start_pos):
-            sum1 = sum(_transect[start_pos:start_pos + b])
-            sum2 = sum(_transect[start_pos + b:start_pos + 2*b])
+            sum1 = numpy.sum(_transect[start_pos:start_pos + b])
+            sum2 = numpy.sum(_transect[start_pos + b:start_pos + 2*b])
             term1 = (sum1 - sum2)**2
             sum3 = sum1 - _transect[start_pos] + _transect[start_pos + b]
             sum4 = sum2 - _transect[start_pos + b] + _transect[start_pos + 2*b]
@@ -219,6 +235,7 @@ def two_nlv(transect: numpy.ndarray, min_block_size: int = 1, max_block_size: in
             output.append([b*unit_scale, qv])
         except ZeroDivisionError:
             pass
+
     return numpy.array(output)
 
 
@@ -254,9 +271,9 @@ def three_nlv(transect: numpy.ndarray, min_block_size: int = 1, max_block_size: 
             _transect = transect
             end_start_pos = n - 3*b
         for start_pos in range(end_start_pos):
-            sum1 = sum(_transect[start_pos:start_pos + b])
-            sum2 = sum(_transect[start_pos + b:start_pos + 2*b])
-            sum3 = sum(_transect[start_pos + 2*b:start_pos + 3*b])
+            sum1 = numpy.sum(_transect[start_pos:start_pos + b])
+            sum2 = numpy.sum(_transect[start_pos + b:start_pos + 2*b])
+            sum3 = numpy.sum(_transect[start_pos + 2*b:start_pos + 3*b])
             term1 = (sum1 - 2*sum2 + sum3)**2
             sum4 = sum1 - _transect[start_pos] + _transect[start_pos + b]
             sum5 = sum2 - _transect[start_pos + b] + _transect[start_pos + 2*b]
@@ -270,6 +287,7 @@ def three_nlv(transect: numpy.ndarray, min_block_size: int = 1, max_block_size: 
             output.append([b*unit_scale, qv])
         except ZeroDivisionError:
             pass
+
     return numpy.array(output)
 
 
@@ -318,57 +336,137 @@ def quadrat_variance_randomization(qv_function, nreps: int, transect: numpy.ndar
     return summary_output, all_output
 
 
-"""
+def check_2d_block_size(max_block_size: int, n: int, x: int) -> int:
+    """
+    Check the maximum block size to be sure it doesn't exceed limits for the particular analysis and input data
 
-procedure Calc_rPQV(DatMat,OutMat : TpasMatrix; outcol,maxxb : integer;
-          range : double; DoWrap : boolean);
-var
-   maxr,rcnt,cnt,i,j,k,b,maxb : integer;
-   Used : TpasBooleanArray;
-   Cnts : TpasIntegerArray;
-begin
-     maxb := trunc(DatMat.nrows * range);
-     maxb := Min(maxb,maxxb);
-     SetLength(Used,DatMat.nrows+1);
-     SetLength(Cnts,maxb);
-     for b := 1 to maxb do begin
-         OutMat[b,outcol] := 0.0;
-         Cnts[b-1] := 0;
-     end;
-     cnt := 0;
-     Used[0] := true;
-     for i := 1 to DatMat.nrows do
-         if DatMat.IsNum[i,1] then begin
-            Used[i] := false;
-            inc(cnt);
-         end else Used[i] := true;
-     j := 1;
-     maxr := DatMat.nrows;
-     for i := 1 to cnt div 2 do begin
-         while Used[j] do inc(j);
-         rcnt := 0;
-         repeat
-               inc(rcnt);
-               k := rand(seed,j+1,DatMat.nrows);
-               b := k - j;
-               if DoWrap then b := Min(b,j+DatMat.nrows-k);
-         until (not Used[k] and (b <= maxb)) or (rcnt = maxr);
-         if (rcnt <> maxr) then begin
-            OutMat[b,outcol] := OutMat[b,outcol] + sqr(DatMat[j,1] - DatMat[k,1]) / 2.0;
-            inc(Cnts[b-1]);
-            Used[k] := true;
-         end;
-         Used[j] := true;
-     end;
-     for b := 1 to maxb do if ContinueProgress then begin
-         if (Cnts[b-1] > 0) then OutMat[b,outcol] := OutMat[b,outcol] / Cnts[b-1]
-         else OutMat.IsEmpty[b,outcol] := true;
-         ProgressIncrement;
-     end;
-     Used := nil;
-     Cnts := nil;
-     if ContinueProgress then
-        for i := maxb+1 to maxxb do ProgressIncrement;
-end;
+    :param max_block_size: the requested largest block size
+    :param n: the smallest side of the surface
+    :param x: the number of "blocks" (in 1D) that make up the analysis; this affects the maximum allowable size
+    :return: the maximum block size that will actually be used in the analysis
+    """
+    if max_block_size == 0:
+        max_block_size = n // x
+    if max_block_size < 2:
+        max_block_size = 2
+    elif max_block_size > n // x:
+        max_block_size = n // x
+        print("Maximum block size cannot exceed {:0.1f}% of the smallest side of the surface. "
+              "Reduced to {}.".format(100 / x, max_block_size))
+    return max_block_size
 
-"""
+
+def four_tlqv(surface: numpy.ndarray, min_block_size: int = 1, max_block_size: int = 0, block_step: int = 1,
+              unit_scale: Number = 1) -> numpy.ndarray:
+    """
+    Performs a Four-Term Local Quadrat Variance analysis (4TLQV) on a surface. Method originally from:
+
+    xxxxx
+
+    :param surface: a two-dimensional numpy array containing the surface data
+    :param min_block_size: the smallest block size of the analysis (default = 1)
+    :param max_block_size: the largest block size of the analysis (default = 0, indicating 50% of the transect length)
+    :param block_step: the incremental size increase of each block size (default = 1)
+    :param unit_scale: represents the unit scale of a single block (default = 1). Can be used to rescale the units of
+           the output, e.g., if the blocks are measured in centimeters, you could use a scale of 0.01 to have the
+           output expressed in meters.
+    :return: a two column numpy array, with the first column containing the scaled block size and the second the
+             calculated variance
+    """
+    nrows, ncols = surface.shape
+    max_block_size = check_2d_block_size(max_block_size, min(nrows, ncols), 2)
+    output = []
+    for b in range(min_block_size, max_block_size + 1, block_step):
+        qv = 0
+        end_row_start = nrows + 1 - 2*b
+        end_col_start = ncols + 1 - 2*b
+        for row in range(end_row_start):
+            for col in range(end_col_start):
+                sum1 = numpy.sum(surface[row:row + b, col:col + b])
+                sum2 = numpy.sum(surface[row:row + b, col + b:col + 2*b])
+                sum3 = numpy.sum(surface[row + b:row + 2*b, col:col + b])
+                sum4 = numpy.sum(surface[row + b:row + 2*b, col + b:col + 2*b])
+                # treat each block as a potential focal block, relative to the other three
+                qv += (3*sum1 - sum2 - sum3 - sum4)**2 + (3*sum2 - sum1 - sum3 - sum4)**2 + \
+                      (3*sum3 - sum1 - sum2 - sum4)**2 + (3*sum4 - sum1 - sum2 - sum3)**2
+
+        qv /= 32 * b**3 * end_row_start * end_col_start
+        output.append([b*unit_scale, qv])
+
+    return numpy.array(output)
+
+
+def nine_tlqv(surface: numpy.ndarray, min_block_size: int = 1, max_block_size: int = 0, block_step: int = 1,
+              unit_scale: Number = 1) -> numpy.ndarray:
+    """
+    Performs a Nine-Term Local Quadrat Variance analysis (9TLQV) on a surface. Method originally from:
+
+    xxxxx
+
+    :param surface: a two-dimensional numpy array containing the surface data
+    :param min_block_size: the smallest block size of the analysis (default = 1)
+    :param max_block_size: the largest block size of the analysis (default = 0, indicating 50% of the transect length)
+    :param block_step: the incremental size increase of each block size (default = 1)
+    :param unit_scale: represents the unit scale of a single block (default = 1). Can be used to rescale the units of
+           the output, e.g., if the blocks are measured in centimeters, you could use a scale of 0.01 to have the
+           output expressed in meters.
+    :return: a two column numpy array, with the first column containing the scaled block size and the second the
+             calculated variance
+    """
+    nrows, ncols = surface.shape
+    max_block_size = check_2d_block_size(max_block_size, min(nrows, ncols), 3)
+    output = []
+    for b in range(min_block_size, max_block_size + 1, block_step):
+        qv = 0
+        end_row_start = nrows + 1 - 3*b
+        end_col_start = ncols + 1 - 3*b
+        for row in range(end_row_start):
+            for col in range(end_col_start):
+                sum_outer = numpy.sum(surface[row:row + 3*b, col:col + b])  # first column
+                sum_outer += numpy.sum(surface[row:row + 3*b, col + 2*b:col + 3*b])  # third column
+                sum_outer += numpy.sum(surface[row:row + b, col + b:col + 2*b])  # top row, middle column
+                sum_outer += numpy.sum(surface[row + 2*b:row + 3*b, col + b:col + 2*b])  # bottom row, middle column
+                sum_middle = numpy.sum(surface[row + b:row + 2*b, col + b:col + 2*b])  # middle cell
+                qv += (8*sum_middle - sum_outer)**2
+
+        qv /= 72 * b**3 * end_row_start * end_col_start
+        output.append([b*unit_scale, qv])
+
+    return numpy.array(output)
+
+
+def five_qv(surface: numpy.ndarray, min_block_size: int = 1, max_block_size: int = 0, block_step: int = 1,
+            unit_scale: Number = 1) -> numpy.ndarray:
+    """
+    Performs a Pentuplet Quadrat Variance analysis (5QV) on a surface. Method originally from:
+
+    xxxx
+
+    :param surface: a two-dimensional numpy array containing the surface data
+    :param min_block_size: the smallest block size of the analysis (default = 1)
+    :param max_block_size: the largest block size of the analysis (default = 0, indicating 50% of the transect length)
+    :param block_step: the incremental size increase of each block size (default = 1)
+    :param unit_scale: represents the unit scale of a single block (default = 1). Can be used to rescale the units of
+           the output, e.g., if the blocks are measured in centimeters, you could use a scale of 0.01 to have the
+           output expressed in meters.
+    :return: a two column numpy array, with the first column containing the scaled block size and the second the
+             calculated variance
+    """
+    nrows, ncols = surface.shape
+    max_block_size = check_2d_block_size(max_block_size, min(nrows, ncols), 2)
+    output = []
+    for b in range(min_block_size, max_block_size + 1, block_step):
+        qv = 0
+        end_row_start = nrows - 2*b
+        end_col_start = ncols - 2*b
+        for row in range(end_row_start):
+            for col in range(end_col_start):
+                qv += (4*surface[row + b, col + b] - surface[row + b, col] - surface[row, col + b] -
+                       surface[row + 2*b, col + b] - surface[row + b, col + 2*b])**2
+        try:
+            qv /= 20 * end_row_start * end_col_start
+            output.append([b*unit_scale, qv])
+        except ZeroDivisionError:
+            pass
+
+    return numpy.array(output)
