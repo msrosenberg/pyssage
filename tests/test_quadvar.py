@@ -3128,35 +3128,147 @@ def test_threet_nlv_random():
 
 def test_4tlqv():
     # answer calculated from PASSaGE 2 and exported to 5 decimals
-    # answer = (0.00385,
-    #           0)
+    answer = (0.08032,
+              0.21917,
+              0.42217,
+              0.66049,
+              0.90013,
+              1.1028,
+              1.21282,
+              1.19269,
+              1.0448,
+              0.79542,
+              0.50818,
+              0.3067,
+              0.17004,
+              0.08285,
+              0.03331,
+              0.01058,
+              0.00248,
+              0.00034,
+              0.00001,
+              0,
+              0.00001,
+              0.00016,
+              0.00091,
+              0.00302,
+              0.00718,
+              0.01369,
+              0.02196,
+              0.02964,
+              0.03358,
+              0.03082,
+              0.02183,
+              0.01499,
+              0.00966,
+              0.00554,
+              0.00261,
+              0.00094,
+              0.00025,
+              0.00004,
+              0,
+              0,
+              0,
+              0.00002,
+              0.00011,
+              0.00043,
+              0.0012,
+              0.00272,
+              0.00633,
+              0.01376,
+              0.02743,
+              0.0525)
 
     result = pyssage.quadvar.four_tlqv(test_surface())
     pyssage.graph.draw_quadvar_result(result, title="4TLQV Test")
-    # for i in range(333):
-    #     assert round(result[i, 1], 5) == answer[i]
-    assert True
+    for i in range(50):
+        print(round(result[i, 1], 5), answer[i])
+
+    for i in range(50):
+        assert round(result[i, 1], 5) == answer[i]
 
 
 def test_9tlqv():
     # answer calculated from PASSaGE 2 and exported to 5 decimals
-    # answer = (0.00385,
-    #           0)
+    answer = (0.04498,
+              0.10895,
+              0.21302,
+              0.35183,
+              0.49153,
+              0.57159,
+              0.57633,
+              0.50129,
+              0.38749,
+              0.27113,
+              0.1747,
+              0.12292,
+              0.08447,
+              0.04966,
+              0.021,
+              0.00554,
+              0.00119,
+              0.00017,
+              0.00001,
+              0,
+              0,
+              0.00007,
+              0.00046,
+              0.00162,
+              0.00354,
+              0.00587,
+              0.01004,
+              0.01471,
+              0.01713,
+              0.01317,
+              0.00329,
+              0.00043,
+              0.00001)
 
     result = pyssage.quadvar.nine_tlqv(test_surface())
     pyssage.graph.draw_quadvar_result(result, title="9TLQV Test")
-    # for i in range(333):
-    #     assert round(result[i, 1], 5) == answer[i]
-    assert True
+    for i in range(33):
+        assert round(result[i, 1], 5) == answer[i]
 
 
 def test_5qv():
     # answer calculated from PASSaGE 2 and exported to 5 decimals
-    # answer = (0.00385,
-    #           0)
+    answer = (0.02174,
+              0.05156,
+              0.09045,
+              0.13951,
+              0.2,
+              0.29421,
+              0.39989,
+              0.51837,
+              0.65116,
+              0.8,
+              0.67758,
+              0.55568,
+              0.43492,
+              0.31605,
+              0.2,
+              0.15017,
+              0.10413,
+              0.06289,
+              0.02768,
+              0,
+              0.02021,
+              0.04847,
+              0.08642,
+              0.13609,
+              0.2,
+              0.28611,
+              0.38601,
+              0.50248,
+              0.639,
+              0.8,
+              0.69197,
+              0.57778,
+              0.45744)
 
     result = pyssage.quadvar.five_qv(test_surface())
     pyssage.graph.draw_quadvar_result(result, title="5QV Test")
-    # for i in range(333):
-    #     assert round(result[i, 1], 5) == answer[i]
-    assert True
+    for i in range(33):
+        print(round(result[i, 1], 5), answer[i])
+    for i in range(33):
+        assert round(result[i, 1], 5) == answer[i]
