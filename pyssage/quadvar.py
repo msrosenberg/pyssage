@@ -365,10 +365,10 @@ def four_tlqv(surface: numpy.ndarray, min_block_size: int = 1, max_block_size: i
         end_col_start = ncols + 1 - 2*b
         for row in range(end_row_start):
             for col in range(end_col_start):
-                sum1 = sum(surface[row:row + b, col:col + b])
-                sum2 = sum(surface[row:row + b, col + b:col + 2*b])
-                sum3 = sum(surface[row + b:row + 2*b, col:col + b])
-                sum4 = sum(surface[row + b:row + 2*b, col + b:col + 2*b])
+                sum1 = numpy.sum(surface[row:row + b, col:col + b])
+                sum2 = numpy.sum(surface[row:row + b, col + b:col + 2*b])
+                sum3 = numpy.sum(surface[row + b:row + 2*b, col:col + b])
+                sum4 = numpy.sum(surface[row + b:row + 2*b, col + b:col + 2*b])
                 # treat each block as a potential focal block, relative to the other three
                 qv += (3*sum1 - sum2 - sum3 - sum4)**2 + (3*sum2 - sum1 - sum3 - sum4)**2 + \
                       (3*sum3 - sum1 - sum2 - sum4)**2 + (3*sum4 - sum1 - sum2 - sum3)**2
@@ -406,11 +406,11 @@ def nine_tlqv(surface: numpy.ndarray, min_block_size: int = 1, max_block_size: i
         end_col_start = ncols + 1 - 3*b
         for row in range(end_row_start):
             for col in range(end_col_start):
-                sum_outer = sum(surface[row:row + 3*b, col:col + b])  # first column
-                sum_outer += sum(surface[row:row + 3*b, col + 2*b:col + 3*b])  # third column
-                sum_outer += sum(surface[row:row + b, col + b:col + 2*b])  # top row, middle column
-                sum_outer += sum(surface[row + 2*b:row + 3*b, col + b:col + 2*b])  # bottom row, middle column
-                sum_middle = sum(surface[row + b:row + 2*b, col + b:col + 2*b])  # middle cell
+                sum_outer = numpy.sum(surface[row:row + 3*b, col:col + b])  # first column
+                sum_outer += numpy.sum(surface[row:row + 3*b, col + 2*b:col + 3*b])  # third column
+                sum_outer += numpy.sum(surface[row:row + b, col + b:col + 2*b])  # top row, middle column
+                sum_outer += numpy.sum(surface[row + 2*b:row + 3*b, col + b:col + 2*b])  # bottom row, middle column
+                sum_middle = numpy.sum(surface[row + b:row + 2*b, col + b:col + 2*b])  # middle cell
                 qv += (8*sum_middle - sum_outer)**2
 
         qv /= 72 * b**3 * end_row_start * end_col_start
