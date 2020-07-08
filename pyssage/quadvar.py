@@ -437,7 +437,7 @@ def five_qv(surface: numpy.ndarray, min_block_size: int = 1, max_block_size: int
              calculated variance
     """
     nrows, ncols = surface.shape
-    max_block_size = check_2d_block_size(max_block_size, min(nrows, ncols), 3)
+    max_block_size = check_2d_block_size(max_block_size, min(nrows, ncols), 2)
     output = []
 
     for b in range(min_block_size, max_block_size + 1, block_step):
@@ -448,7 +448,10 @@ def five_qv(surface: numpy.ndarray, min_block_size: int = 1, max_block_size: int
             for col in range(end_col_start):
                 qv += (4*surface[row + b, col + b] - surface[row + b, col] - surface[row, col + b] -
                        surface[row + 2*b, col + b] - surface[row + b, col + 2*b])**2
-        qv /= 20 * end_row_start * end_col_start
-        output.append([b*unit_scale, qv])
+        try:
+            qv /= 20 * end_row_start * end_col_start
+            output.append([b*unit_scale, qv])
+        except ZeroDivisionError:
+            pass
 
     return numpy.array(output)
