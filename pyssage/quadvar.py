@@ -318,55 +318,153 @@ def quadrat_variance_randomization(qv_function, nreps: int, transect: numpy.ndar
     return summary_output, all_output
 
 
+def check_2d_block_size(max_block_size: int, n: int, x: int) -> int:
+    """
+    Check the maximum block size to be sure it doesn't exceed limits for the particular analysis and input data
+
+    :param max_block_size: the requested largest block size
+    :param n: the smallest side of the surface
+    :param x: the number of "blocks" (in 1D) that make up the analysis; this affects the maximum allowable size
+    :return: the maximum block size that will actually be used in the analysis
+    """
+    if max_block_size == 0:
+        max_block_size = n // x
+    if max_block_size < 2:
+        max_block_size = 2
+    elif max_block_size > n // x:
+        max_block_size = n // x
+        print("Maximum block size cannot exceed {:0.1f}% of the smallest side of the surface. "
+              "Reduced to {}.".format(100 / x, max_block_size))
+    return max_block_size
+
+
+def four_tlqv(surface: numpy.ndarray, min_block_size: int = 1, max_block_size: int = 0, block_step: int = 1,
+              unit_scale: Number = 1) -> numpy.ndarray:
+    """
+    Performs a Four-Term Local Quadrat Variance analysis (4TLQV) on a surface. Method originally from:
+
+    xxxxx
+
+    :param surface: a two-dimensional numpy array containing the surface data
+    :param min_block_size: the smallest block size of the analysis (default = 1)
+    :param max_block_size: the largest block size of the analysis (default = 0, indicating 50% of the transect length)
+    :param block_step: the incremental size increase of each block size (default = 1)
+    :param unit_scale: represents the unit scale of a single block (default = 1). Can be used to rescale the units of
+           the output, e.g., if the blocks are measured in centimeters, you could use a scale of 0.01 to have the
+           output expressed in meters.
+    :return: a two column numpy array, with the first column containing the scaled block size and the second the
+             calculated variance
+    """
+    nrows, ncols = surface.shape
+    max_block_size = check_2d_block_size(max_block_size, min(nrows, ncols), 2)
+    output = []
+
+    for b in range(min_block_size, max_block_size + 1, block_step):
+        qv = 0
+        end_row_start = nrows + 1 - 2*b
+        end_col_start = ncols + 1 - 2*b
+        for row in range(end_row_start):
+            for col in range(end_col_start):
+                sum1 = sum(surface[row:row + b, col:col + b])
+                sum2 = sum(surface[row:row + b, col + b:col + 2*b])
+                sum3 = sum(surface[row + b:row + 2*b, col:col + b])
+                sum4 = sum(surface[row + b:row + 2*b, col + b:col + 2*b])
+                # treat each block as a potential focal block, relative to the other three
+                qv += (3*sum1 - sum2 - sum3 - sum4)**2 + (3*sum2 - sum1 - sum3 - sum4)**2 + \
+                      (3*sum3 - sum1 - sum2 - sum4)**2 + (3*sum4 - sum1 - sum2 - sum3)**2
+
+        qv /= 32 * b**3 * end_row_start * end_col_start
+        output.append([b*unit_scale, qv])
+
+    return numpy.array(output)
+
+
 """
 
-procedure Calc_rPQV(DatMat,OutMat : TpasMatrix; outcol,maxxb : integer;
-          range : double; DoWrap : boolean);
+procedure Calc_9TLQV(DatMat,OutMat : TpasMatrix; outcol,maxxb : integer;
+          range : double);
 var
-   maxr,rcnt,cnt,i,j,k,b,maxb : integer;
-   Used : TpasBooleanArray;
-   Cnts : TpasIntegerArray;
+   cnt,i,j,k,l,
+   b,maxb : integer;
+   sum1,sum2 : double;
+   good : boolean;
 begin
-     maxb := trunc(DatMat.nrows * range);
+     maxb := Min(trunc(DatMat.nrows * range),trunc(DatMat.ncols * range));
      maxb := Min(maxb,maxxb);
-     SetLength(Used,DatMat.nrows+1);
-     SetLength(Cnts,maxb);
-     for b := 1 to maxb do begin
-         OutMat[b,outcol] := 0.0;
-         Cnts[b-1] := 0;
-     end;
-     cnt := 0;
-     Used[0] := true;
-     for i := 1 to DatMat.nrows do
-         if DatMat.IsNum[i,1] then begin
-            Used[i] := false;
-            inc(cnt);
-         end else Used[i] := true;
-     j := 1;
-     maxr := DatMat.nrows;
-     for i := 1 to cnt div 2 do begin
-         while Used[j] do inc(j);
-         rcnt := 0;
-         repeat
-               inc(rcnt);
-               k := rand(seed,j+1,DatMat.nrows);
-               b := k - j;
-               if DoWrap then b := Min(b,j+DatMat.nrows-k);
-         until (not Used[k] and (b <= maxb)) or (rcnt = maxr);
-         if (rcnt <> maxr) then begin
-            OutMat[b,outcol] := OutMat[b,outcol] + sqr(DatMat[j,1] - DatMat[k,1]) / 2.0;
-            inc(Cnts[b-1]);
-            Used[k] := true;
-         end;
-         Used[j] := true;
-     end;
      for b := 1 to maxb do if ContinueProgress then begin
-         if (Cnts[b-1] > 0) then OutMat[b,outcol] := OutMat[b,outcol] / Cnts[b-1]
+         cnt := 0;
+         OutMat[b,outcol] := 0.0;
+         for i := 1 to DatMat.nrows + 1 - 3 * b do
+             for j := 1 to DatMat.ncols + 1 - 3 * b do if ContinueProgress then begin
+                 sum1 := 0.0; sum2 := 0.0;
+                 good := true;
+                 // first column
+                 for k := i to i + b - 1 do
+                     for l := j to j + 3 * b - 1 do
+                         if DatMat.IsNum[k,l] then
+                            sum1 := sum1 + DatMat[k,l]
+                         else good := false;
+                 // third column
+                 for k := i + 2 * b to i + 3 * b - 1 do
+                     for l := j to j + 3 * b - 1 do
+                         if DatMat.IsNum[k,l] then
+                            sum1 := sum1 + DatMat[k,l]
+                         else good := false;
+                 // second Column
+                 for k := i + b to i + 2 * b - 1 do begin
+                     for l := j to j + b - 1 do
+                         if DatMat.IsNum[k,l] then
+                            sum1 := sum1 + DatMat[k,l]
+                         else good := false;
+                     for l := j + b to j + 2 * b - 1 do
+                         if DatMat.IsNum[k,l] then
+                            sum2 := sum2 + DatMat[k,l]
+                         else good := false;
+                     for l := j + 2 * b to j + 3 * b - 1 do
+                         if DatMat.IsNum[k,l] then
+                            sum1 := sum1 + DatMat[k,l]
+                         else good := false;
+                 end;
+                 if good then begin
+                    inc(cnt);
+                    OutMat[b,outcol] := OutMat[b,outcol] + sqr(sum1 - 8.0 * sum2);
+                 end;
+             end;
+         if (cnt > 0) then
+            OutMat[b,outcol] := OutMat[b,outcol] / (72.0 * IntPower(b,3) * cnt)
          else OutMat.IsEmpty[b,outcol] := true;
          ProgressIncrement;
      end;
-     Used := nil;
-     Cnts := nil;
+     if ContinueProgress then
+        for i := maxb+1 to maxxb do ProgressIncrement;
+end;
+
+procedure Calc_5QV(DatMat,OutMat : TpasMatrix; outcol,maxxb : integer;
+          range : double);
+var
+   cnt,i,j,
+   b,maxb : integer;
+begin
+     maxb := Min(trunc(DatMat.nrows * range),trunc(DatMat.ncols * range));
+     maxb := Min(maxb,maxxb);
+     for b := 1 to maxb do if ContinueProgress then begin
+         cnt := 0;
+         OutMat[b,outcol] := 0.0;
+         for i := b + 1 to DatMat.nrows - b do
+             for j := b + 1 to DatMat.ncols - b do if ContinueProgress then
+                 if DatMat.IsNum[i,j] and DatMat.IsNum[i-b,j] and
+                    DatMat.IsNum[i+b,j] and DatMat.IsNum[i,j-b] and
+                    DatMat.IsNum[i,j+b] then begin
+                    inc(cnt);
+                    OutMat[b,outcol] := OutMat[b,outcol] +
+                      sqr(DatMat[i-b,j] + DatMat[i+b,j] + DatMat[i,j-b] +
+                          DatMat[i,j+b] - 4.0 * DatMat[i,j]);
+                 end;
+         if (cnt > 0) then
+            OutMat[b,outcol] := OutMat[b,outcol] / (20.0 * cnt)
+         else OutMat.IsEmpty[b,outcol] := true;
+         ProgressIncrement;
+     end;
      if ContinueProgress then
         for i := maxb+1 to maxxb do ProgressIncrement;
 end;
