@@ -1,6 +1,6 @@
 import pyssage.quadvar
 import pyssage.graph
-from tests.test_common import test_transect
+from tests.test_common import test_transect, test_surface
 
 
 def test_ttlqv():
@@ -3117,11 +3117,46 @@ def test_threet_nlv_random():
     pyssage.graph.draw_quadvar_result(summary[:, 0:2], summary[:, 2], title="3NLV Test with Randomization",
                                       varlabel="Observed", randlabel="{:0.2%} confidence limit".format(0.95))
 
+    """
+    Notes:
+    
+    2NLV and 3NLV do not have the same formula as in the passage manual; in particular the denominator is not the 
+    same. Need to check references and see if there is a good reason why.
+    
+    """
 
-"""
-Notes:
 
-2NLV and 3NLV do not have the same formula as in the passage manual; in particular the denominator is not the 
-same. Need to check references and see if there is a good reason why.
+def test_4tlqv():
+    # answer calculated from PASSaGE 2 and exported to 5 decimals
+    # answer = (0.00385,
+    #           0)
 
-"""
+    result = pyssage.quadvar.four_tlqv(test_surface())
+    pyssage.graph.draw_quadvar_result(result, title="4TLQV Test")
+    # for i in range(333):
+    #     assert round(result[i, 1], 5) == answer[i]
+    assert True
+
+
+def test_9tlqv():
+    # answer calculated from PASSaGE 2 and exported to 5 decimals
+    # answer = (0.00385,
+    #           0)
+
+    result = pyssage.quadvar.nine_tlqv(test_surface())
+    pyssage.graph.draw_quadvar_result(result, title="9TLQV Test")
+    # for i in range(333):
+    #     assert round(result[i, 1], 5) == answer[i]
+    assert True
+
+
+def test_5qv():
+    # answer calculated from PASSaGE 2 and exported to 5 decimals
+    # answer = (0.00385,
+    #           0)
+
+    result = pyssage.quadvar.five_qv(test_surface())
+    pyssage.graph.draw_quadvar_result(result, title="5QV Test")
+    # for i in range(333):
+    #     assert round(result[i, 1], 5) == answer[i]
+    assert True
