@@ -59,8 +59,12 @@ def ttlqv(transect: numpy.ndarray, min_block_size: int = 1, max_block_size: int 
             sum1 = numpy.sum(_transect[start_pos:start_pos + b])
             sum2 = numpy.sum(_transect[start_pos + b:start_pos + 2*b])
             qv += (sum1 - sum2)**2
-        qv /= 2*b*end_start_pos
-        output.append([b*unit_scale, qv])
+        try:
+            qv /= 2*b*end_start_pos
+            output.append([b*unit_scale, qv])
+        except ZeroDivisionError:
+            pass
+
     return numpy.array(output)
 
 
@@ -99,8 +103,12 @@ def three_tlqv(transect: numpy.ndarray, min_block_size: int = 1, max_block_size:
             sum2 = numpy.sum(_transect[start_pos + b:start_pos + 2*b])
             sum3 = numpy.sum(_transect[start_pos + 2*b:start_pos + 3*b])
             qv += (sum1 - 2*sum2 + sum3)**2
-        qv /= 8*b*end_start_pos
-        output.append([b * unit_scale, qv])
+        try:
+            qv /= 8*b*end_start_pos
+            output.append([b * unit_scale, qv])
+        except ZeroDivisionError:
+            pass
+
     return numpy.array(output)
 
 
@@ -133,8 +141,12 @@ def pqv(transect: numpy.ndarray, min_block_size: int = 1, max_block_size: int = 
             end_start_pos = n - b
         for start_pos in range(end_start_pos):
             qv += (_transect[start_pos] - _transect[start_pos + b])**2
-        qv /= 2*end_start_pos
-        output.append([b*unit_scale, qv])
+        try:
+            qv /= 2*end_start_pos
+            output.append([b*unit_scale, qv])
+        except ZeroDivisionError:
+            pass
+
     return numpy.array(output)
 
 
@@ -169,8 +181,12 @@ def tqv(transect: numpy.ndarray, min_block_size: int = 1, max_block_size: int = 
             end_start_pos = n - 2*b
         for start_pos in range(end_start_pos):
             qv += (_transect[start_pos] - 2*_transect[start_pos + b] + _transect[start_pos + 2*b])**2
-        qv /= 4*end_start_pos
-        output.append([b*unit_scale, qv])
+        try:
+            qv /= 4*end_start_pos
+            output.append([b*unit_scale, qv])
+        except ZeroDivisionError:
+            pass
+
     return numpy.array(output)
 
 
@@ -219,6 +235,7 @@ def two_nlv(transect: numpy.ndarray, min_block_size: int = 1, max_block_size: in
             output.append([b*unit_scale, qv])
         except ZeroDivisionError:
             pass
+
     return numpy.array(output)
 
 
@@ -270,6 +287,7 @@ def three_nlv(transect: numpy.ndarray, min_block_size: int = 1, max_block_size: 
             output.append([b*unit_scale, qv])
         except ZeroDivisionError:
             pass
+
     return numpy.array(output)
 
 
@@ -358,7 +376,6 @@ def four_tlqv(surface: numpy.ndarray, min_block_size: int = 1, max_block_size: i
     nrows, ncols = surface.shape
     max_block_size = check_2d_block_size(max_block_size, min(nrows, ncols), 2)
     output = []
-
     for b in range(min_block_size, max_block_size + 1, block_step):
         qv = 0
         end_row_start = nrows + 1 - 2*b
@@ -399,7 +416,6 @@ def nine_tlqv(surface: numpy.ndarray, min_block_size: int = 1, max_block_size: i
     nrows, ncols = surface.shape
     max_block_size = check_2d_block_size(max_block_size, min(nrows, ncols), 3)
     output = []
-
     for b in range(min_block_size, max_block_size + 1, block_step):
         qv = 0
         end_row_start = nrows + 1 - 3*b
@@ -439,7 +455,6 @@ def five_qv(surface: numpy.ndarray, min_block_size: int = 1, max_block_size: int
     nrows, ncols = surface.shape
     max_block_size = check_2d_block_size(max_block_size, min(nrows, ncols), 2)
     output = []
-
     for b in range(min_block_size, max_block_size + 1, block_step):
         qv = 0
         end_row_start = nrows - 2*b
