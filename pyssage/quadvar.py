@@ -442,8 +442,8 @@ def five_qv(surface: numpy.ndarray, min_block_size: int = 1, max_block_size: int
 
     for b in range(min_block_size, max_block_size + 1, block_step):
         qv = 0
-        end_row_start = nrows + 1 - 3*b
-        end_col_start = ncols + 1 - 3*b
+        end_row_start = nrows - 2*b
+        end_col_start = ncols - 2*b
         for row in range(end_row_start):
             for col in range(end_col_start):
                 qv += (4*surface[row + b, col + b] - surface[row + b, col] - surface[row, col + b] -

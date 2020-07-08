@@ -3269,6 +3269,4 @@ def test_5qv():
     result = pyssage.quadvar.five_qv(test_surface())
     pyssage.graph.draw_quadvar_result(result, title="5QV Test")
     for i in range(33):
-        print(round(result[i, 1], 5), answer[i])
-    for i in range(33):
         assert round(result[i, 1], 5) == answer[i]
