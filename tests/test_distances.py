@@ -4,14 +4,14 @@ import math
 import pyssage.connections
 import pyssage.distances
 import pyssage.graph
-from tests.test_common import test_coords, load_answer
+from tests.test_common import create_test_coords, load_answer
 
 
 def test_euc_dist_matrix():
     # answer calculated from PASSaGE 2 and exported to 5 decimals
     answer = load_answer("answers/euc_distmat_answer.txt")
 
-    coords = test_coords()
+    coords = create_test_coords()
     output = pyssage.distances.euc_dist_matrix(coords[:, 0], coords[:, 1])
     for i in range(len(answer)):
         for j in range(len(answer)):
@@ -22,7 +22,7 @@ def test_euc_angle_matrix():
     # answer calculated from PASSaGE 2 and exported to 5 decimals
     answer = load_answer("answers/euc_anglemat_answer.txt")
 
-    coords = test_coords()
+    coords = create_test_coords()
     output = pyssage.distances.euc_angle_matrix(coords[:, 0], coords[:, 1])
     for i in range(len(answer)):
         for j in range(len(answer)):
@@ -39,7 +39,7 @@ def test_sph_dist_matrix():
 
     this change might cascade to other tests that relied upon these distances
     """
-    coords = test_coords()
+    coords = create_test_coords()
     pyssage.distances.sph_dist_matrix(coords[:, 0], coords[:, 1])
 
 
@@ -48,7 +48,7 @@ def test_sph_angle_matrix():
     completely rewritten the way this is done, for a variety of reasons it is difficult to impossible to match
     against PASSaGE 2 output
     """
-    coords = test_coords()
+    coords = create_test_coords()
     pyssage.distances.sph_angle_matrix(coords[:, 0], coords[:, 1])
 
 
@@ -60,7 +60,7 @@ def test_shortest_path_distances():
     answer = load_answer("answers/shortest_path_minspan_answer.txt")
 
     # test a fully connected network
-    coords = test_coords()
+    coords = create_test_coords()
     distances = pyssage.distances.euc_dist_matrix(coords[:, 0], coords[:, 1])
     connections = pyssage.connections.minimum_spanning_tree(distances)
     geodists, trace = pyssage.distances.shortest_path_distances(distances, connections)
@@ -75,7 +75,7 @@ def test_shortest_path_distances():
 
 
 def test_create_distance_classes():
-    coords = test_coords()
+    coords = create_test_coords()
     distances = pyssage.distances.sph_dist_matrix(coords[:, 0], coords[:, 1])
     dc = pyssage.distances.create_distance_classes(distances, "determine class width", 10)
     pyssage.graph.draw_distance_class_distribution(distances, dc, title="Ten Equal Width Distance Classes")

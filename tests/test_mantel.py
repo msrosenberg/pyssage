@@ -1,4 +1,4 @@
-from tests.test_common import test_coords
+from tests.test_common import create_test_coords
 import pyssage.distances
 import pyssage.mantel
 # import numpy
@@ -21,7 +21,7 @@ def test_mantel():
 
     although not asserted (as not part of function output), manual inspection of Z and t are also identical
     """
-    coords = test_coords()
+    coords = create_test_coords()
     distances = pyssage.distances.euc_dist_matrix(coords[:, 0], coords[:, 1])
     angles = pyssage.distances.euc_angle_matrix(coords[:, 0], coords[:, 1])
     r, p_value, output_text, _, _, _ = pyssage.mantel.mantel(distances, angles, [])
@@ -37,7 +37,7 @@ def test_mantel_with_permutation():
     cannot formally test permutation results
 
     """
-    coords = test_coords()
+    coords = create_test_coords()
     distances = pyssage.distances.euc_dist_matrix(coords[:, 0], coords[:, 1])
     angles = pyssage.distances.euc_angle_matrix(coords[:, 0], coords[:, 1])
     r, p_value, output_text, _, _, _ = pyssage.mantel.mantel(distances, angles, [], permutations=100)

@@ -3,14 +3,14 @@ import pytest
 import pyssage.connections
 import pyssage.distances
 import pyssage.graph
-from tests.test_common import test_coords, load_answer
+from tests.test_common import create_test_coords, load_answer
 
 
 def test_delaunay_tessellation():
     # answer calculated from PASSaGE 2 and exported as a binary connection matrix
     answer = load_answer("answers/delaunay_answer.txt")
 
-    coords = test_coords()
+    coords = create_test_coords()
     tessellation, connections = pyssage.connections.delaunay_tessellation(coords[:, 0], coords[:, 1])
     pyssage.graph.draw_tessellation(tessellation, coords[:, 0], coords[:, 1], "Tessellation Test")
     pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1], title="Delaunay Connections Test")
@@ -19,29 +19,11 @@ def test_delaunay_tessellation():
             assert connections[i, j] == answer[i, j]
 
 
-def test_check_input_distance_matrix():
-    # valid test
-    test_size = 5
-    matrix = numpy.zeros((test_size, test_size))
-    n = pyssage.connections.check_input_distance_matrix(matrix)
-    assert n == test_size
-
-    with pytest.raises(ValueError, match="distance matrix must be two-dimensional"):
-        # broken test --> should raise error
-        matrix = numpy.zeros((1, 2, 3))
-        pyssage.connections.check_input_distance_matrix(matrix)
-
-    with pytest.raises(ValueError, match="distance matrix must be square"):
-        # broken test --> should raise error
-        matrix = numpy.zeros((test_size, test_size * 2))
-        pyssage.connections.check_input_distance_matrix(matrix)
-
-
 def test_relative_neighborhood_network():
     # answer calculated from PASSaGE 2 and exported as a binary connection matrix
     answer = load_answer("answers/rel_neighbor_answer.txt")
 
-    coords = test_coords()
+    coords = create_test_coords()
     distances = pyssage.distances.sph_dist_matrix(coords[:, 0], coords[:, 1])
     connections = pyssage.connections.relative_neighborhood_network(distances)
     pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1], title="Relative Neighborhood Network Test")
@@ -54,7 +36,7 @@ def test_gabriel_network():
     # answer calculated from PASSaGE 2 and exported as a binary connection matrix
     answer = load_answer("answers/gabriel_answer.txt")
 
-    coords = test_coords()
+    coords = create_test_coords()
     distances = pyssage.distances.sph_dist_matrix(coords[:, 0], coords[:, 1])
     connections = pyssage.connections.gabriel_network(distances)
     pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1], title="Gabriel Graph/Network Test")
@@ -67,7 +49,7 @@ def test_minimum_spanning_tree():
     # answer calculated from PASSaGE 2 and exported as a binary connection matrix
     answer = load_answer("answers/minspan_answer.txt")
 
-    coords = test_coords()
+    coords = create_test_coords()
     distances = pyssage.distances.sph_dist_matrix(coords[:, 0], coords[:, 1])
     connections = pyssage.connections.minimum_spanning_tree(distances)
     pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1], title="Minimum-Spanning Tree Test")
@@ -86,7 +68,7 @@ def test_connect_distance_range():
     # answer calculated from PASSaGE 2 and exported as a binary connection matrix
     answer = load_answer("answers/distance_based_connect_7-12_answer.txt")
 
-    coords = test_coords()
+    coords = create_test_coords()
     distances = pyssage.distances.euc_dist_matrix(coords[:, 0], coords[:, 1])
     connections = pyssage.connections.connect_distance_range(distances, mindist=7, maxdist=12)
     pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1],
@@ -97,7 +79,7 @@ def test_connect_distance_range():
 
 
 def test_least_diagonal_network():
-    coords = test_coords()
+    coords = create_test_coords()
     distances = pyssage.distances.sph_dist_matrix(coords[:, 0], coords[:, 1])
     connections = pyssage.connections.least_diagonal_network(coords[:, 0], coords[:, 1], distances)
     pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1], title="Least Diagonal Network Test")
@@ -131,7 +113,7 @@ def test_nearest_neighbor_connections():
     negative when looking at nearest neighbors for later points in the list, thus eliminating some potential
     asymmetric connections
     """
-    coords = test_coords()
+    coords = create_test_coords()
     distances = pyssage.distances.sph_dist_matrix(coords[:, 0], coords[:, 1])
     connections = pyssage.connections.nearest_neighbor_connections(distances, 1)
     pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1],

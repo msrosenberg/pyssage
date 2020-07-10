@@ -1,7 +1,7 @@
 import numpy
 
 
-def test_transect():
+def create_test_transect():
     """
     Creates a transect of 1000 cells, alternating 0 and 0.8 every 40 cells
     """
@@ -16,7 +16,7 @@ def test_transect():
     return numpy.array(transect)
 
 
-def test_coords():
+def create_test_coords():
     """
     Creates a 355 x 2 array of coordinate locations, based on the 355 western European cancer registration sites
     """
@@ -377,7 +377,7 @@ def test_coords():
                         [5.83, 51.23]])
 
 
-def test_surface():
+def create_test_surface():
     """
     Reads a 100 x 100 surface (checkerboard of 1's and 0's in 10 x 10 blocks) from a file
     """

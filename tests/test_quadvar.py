@@ -1,6 +1,6 @@
 import pyssage.quadvar
 import pyssage.graph
-from tests.test_common import test_transect, test_surface
+from tests.test_common import create_test_transect, create_test_surface
 
 
 def test_ttlqv():
@@ -506,7 +506,7 @@ def test_ttlqv():
               0,
               0)
 
-    result = pyssage.quadvar.ttlqv(test_transect())
+    result = pyssage.quadvar.ttlqv(create_test_transect())
     pyssage.graph.draw_quadvar_result(result, title="TTLQV Test")
     for i in range(500):
         assert round(result[i, 1], 5) == answer[i]
@@ -1015,7 +1015,7 @@ def test_ttlqv_wrap():
               0.41003,
               0.4098)
 
-    result = pyssage.quadvar.ttlqv(test_transect(), wrap=True)
+    result = pyssage.quadvar.ttlqv(create_test_transect(), wrap=True)
     pyssage.graph.draw_quadvar_result(result, title="TTLQV Wrap Test")
     for i in range(500):
         assert round(result[i, 1], 5) == answer[i]
@@ -1357,7 +1357,7 @@ def test_3tlqv():
               0,
               0)
 
-    result = pyssage.quadvar.three_tlqv(test_transect())
+    result = pyssage.quadvar.three_tlqv(create_test_transect())
     pyssage.graph.draw_quadvar_result(result, title="3TLQV Test")
     for i in range(333):
         assert round(result[i, 1], 5) == answer[i]
@@ -1866,7 +1866,7 @@ def test_pqv():
               0.14563,
               0.1536)
 
-    result = pyssage.quadvar.pqv(test_transect())
+    result = pyssage.quadvar.pqv(create_test_transect())
     pyssage.graph.draw_quadvar_result(result, title="PQV Test")
     for i in range(500):
         assert round(result[i, 1], 5) == answer[i]
@@ -2208,7 +2208,7 @@ def test_tqv():
               0.09143,
               0.09964)
 
-    result = pyssage.quadvar.tqv(test_transect())
+    result = pyssage.quadvar.tqv(create_test_transect())
     pyssage.graph.draw_quadvar_result(result, title="tQV Test")
     for i in range(333):
         assert round(result[i, 1], 5) == answer[i]
@@ -2716,7 +2716,7 @@ def test_2nlv():
               0,
               0)
 
-    result = pyssage.quadvar.two_nlv(test_transect())
+    result = pyssage.quadvar.two_nlv(create_test_transect())
     pyssage.graph.draw_quadvar_result(result, title="2NLV Test")
     for i in range(499):
         assert round(result[i, 1], 5) == answer[i]
@@ -3058,7 +3058,7 @@ def test_3nlv():
               0,
               0)
 
-    result = pyssage.quadvar.three_nlv(test_transect())
+    result = pyssage.quadvar.three_nlv(create_test_transect())
     pyssage.graph.draw_quadvar_result(result, title="3NLV Test")
     for i in range(333):
         assert round(result[i, 1], 5) == answer[i]
@@ -3067,7 +3067,7 @@ def test_3nlv():
 def test_ttlqv_random():
     # fixed answer not possible due to stochastic nature of test. instead tests algorithm does not crash and
     # produces a visual result for general insepction
-    summary, _ = pyssage.quadvar.quadrat_variance_randomization(pyssage.quadvar.ttlqv, 100, test_transect(),
+    summary, _ = pyssage.quadvar.quadrat_variance_randomization(pyssage.quadvar.ttlqv, 100, create_test_transect(),
                                                                 max_block_size=100)
     pyssage.graph.draw_quadvar_result(summary[:, 0:2], summary[:, 2], title="TTLQV Test with Randomization",
                                       varlabel="Observed", randlabel="{:0.2%} confidence limit".format(0.95))
@@ -3076,7 +3076,7 @@ def test_ttlqv_random():
 def test_threetlqv_random():
     # fixed answer not possible due to stochastic nature of test. instead tests algorithm does not crash and
     # produces a visual result for general insepction
-    summary, _ = pyssage.quadvar.quadrat_variance_randomization(pyssage.quadvar.three_tlqv, 100, test_transect(),
+    summary, _ = pyssage.quadvar.quadrat_variance_randomization(pyssage.quadvar.three_tlqv, 100, create_test_transect(),
                                                                 max_block_size=100)
     pyssage.graph.draw_quadvar_result(summary[:, 0:2], summary[:, 2], title="3TLQV Test with Randomization",
                                       varlabel="Observed", randlabel="{:0.2%} confidence limit".format(0.95))
@@ -3085,7 +3085,7 @@ def test_threetlqv_random():
 def test_pqv_random():
     # fixed answer not possible due to stochastic nature of test. instead tests algorithm does not crash and
     # produces a visual result for general insepction
-    summary, _ = pyssage.quadvar.quadrat_variance_randomization(pyssage.quadvar.pqv, 50, test_transect(),
+    summary, _ = pyssage.quadvar.quadrat_variance_randomization(pyssage.quadvar.pqv, 50, create_test_transect(),
                                                                 max_block_size=50)
     pyssage.graph.draw_quadvar_result(summary[:, 0:2], summary[:, 2], title="PQV Test with Randomization",
                                       varlabel="Observed", randlabel="{:0.2%} confidence limit".format(0.95))
@@ -3094,7 +3094,7 @@ def test_pqv_random():
 def test_tqv_random():
     # fixed answer not possible due to stochastic nature of test. instead tests algorithm does not crash and
     # produces a visual result for general insepction
-    summary, _ = pyssage.quadvar.quadrat_variance_randomization(pyssage.quadvar.tqv, 50, test_transect(),
+    summary, _ = pyssage.quadvar.quadrat_variance_randomization(pyssage.quadvar.tqv, 50, create_test_transect(),
                                                                 max_block_size=50)
     pyssage.graph.draw_quadvar_result(summary[:, 0:2], summary[:, 2], title="TQV Test with Randomization",
                                       varlabel="Observed", randlabel="{:0.2%} confidence limit".format(0.95))
@@ -3103,7 +3103,7 @@ def test_tqv_random():
 def test_2nlv_random():
     # fixed answer not possible due to stochastic nature of test. instead tests algorithm does not crash and
     # produces a visual result for general insepction
-    summary, _ = pyssage.quadvar.quadrat_variance_randomization(pyssage.quadvar.two_nlv, 100, test_transect(),
+    summary, _ = pyssage.quadvar.quadrat_variance_randomization(pyssage.quadvar.two_nlv, 100, create_test_transect(),
                                                                 max_block_size=100)
     pyssage.graph.draw_quadvar_result(summary[:, 0:2], summary[:, 2], title="2NLV Test with Randomization",
                                       varlabel="Observed", randlabel="{:0.2%} confidence limit".format(0.95))
@@ -3112,7 +3112,7 @@ def test_2nlv_random():
 def test_threet_nlv_random():
     # fixed answer not possible due to stochastic nature of test. instead tests algorithm does not crash and
     # produces a visual result for general insepction
-    summary, _ = pyssage.quadvar.quadrat_variance_randomization(pyssage.quadvar.three_nlv, 100, test_transect(),
+    summary, _ = pyssage.quadvar.quadrat_variance_randomization(pyssage.quadvar.three_nlv, 100, create_test_transect(),
                                                                 max_block_size=100)
     pyssage.graph.draw_quadvar_result(summary[:, 0:2], summary[:, 2], title="3NLV Test with Randomization",
                                       varlabel="Observed", randlabel="{:0.2%} confidence limit".format(0.95))
@@ -3129,7 +3129,7 @@ def test_threet_nlv_random():
 def test_4tlqv():
     # discovered small bug in PASSaGE 2 analysis, which caused a very minor shift in the values. can therefore not
     # use for testing purposes
-    result = pyssage.quadvar.four_tlqv(test_surface())
+    result = pyssage.quadvar.four_tlqv(create_test_surface())
     pyssage.graph.draw_quadvar_result(result, title="4TLQV Test")
 
 
@@ -3169,7 +3169,7 @@ def test_9tlqv():
               0.00043,
               0.00001)
 
-    result = pyssage.quadvar.nine_tlqv(test_surface())
+    result = pyssage.quadvar.nine_tlqv(create_test_surface())
     pyssage.graph.draw_quadvar_result(result, title="9TLQV Test")
     for i in range(33):
         assert round(result[i, 1], 5) == answer[i]
@@ -3212,7 +3212,7 @@ def test_5qv():
               0.57778,
               0.45744)
 
-    result = pyssage.quadvar.five_qv(test_surface())
+    result = pyssage.quadvar.five_qv(create_test_surface())
     pyssage.graph.draw_quadvar_result(result, title="5QV Test")
     for i in range(33):
         assert round(result[i, 1], 5) == answer[i]
