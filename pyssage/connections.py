@@ -575,7 +575,7 @@ def connect_distance_range(distances: numpy.ndarray, maxdist: float, mindist: fl
     points are not connected to themselves, even with a distance of zero
 
     :param distances: an n x n matrix containing distances among points
-    :param maxdist: the maximum distance between points to connect. this distance is inclusive
+    :param maxdist: the maximum distance between points to connect. this distance is exclusive
     :param mindist: the minimum distance between points to connect (default = 0). this distance is inclusive
     :return: returns a Connections object
     """
@@ -583,7 +583,7 @@ def connect_distance_range(distances: numpy.ndarray, maxdist: float, mindist: fl
     output = Connections(n)
     for i in range(n):
         for j in range(i):
-            if mindist <= distances[i, j] <= maxdist:
+            if mindist <= distances[i, j] < maxdist:
                 output.store(i, j)
     return output
 
