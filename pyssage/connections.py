@@ -708,3 +708,18 @@ def nearest_neighbor_connections(distances: numpy.ndarray, k: int = 1, symmetric
         for p in range(c):  # connect the c closest points to the ith point
             output.store(i, dists[p][1])
     return output
+
+
+def distance_classes_to_connections(dist_classes: numpy.ndarray, distances: numpy.ndarray) -> list:
+    """
+    create a list of connections objects corresponding to each distance class
+
+    :param dist_classes: an n x 2 matrix containing the lower and upper bounds of each distance class
+    :param distances: an n x n matrix containing the distances among a set of points
+    :return: returns a list containing the connections
+    """
+    output = []
+    for c in dist_classes:
+        new_connections = connect_distance_range(distances, mindist=c[0], maxdist=c[1])
+        output.append(new_connections)
+    return output
