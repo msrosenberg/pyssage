@@ -59,12 +59,6 @@ def test_minimum_spanning_tree():
 
 
 def test_connect_distance_range():
-    """
-    Note: there is a logic change between PASSaGE 2 and pyssage that could cause this test to fail with
-    the right data set. PASSaGE 2 treated the maximum distance as exclusive of the class; pyssage currently
-    treats it as inclusive of the class. If a pair of points is exactly the maximum specified distance, the
-    two algorithms will come to a different conclusion as to their connection status
-    """
     # answer calculated from PASSaGE 2 and exported as a binary connection matrix
     answer = load_answer("answers/distance_based_connect_7-12_answer.txt")
 
