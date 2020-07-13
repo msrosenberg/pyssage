@@ -79,3 +79,16 @@ def test_gearys_c():
     for i, row in enumerate(answer):
         for j, ans in enumerate(row):
             assert ans == round(output[i][j], 5)
+
+
+def test_bearing_correlogram():
+    data, _ = create_test_scattered()
+    coords = create_test_coords()
+    distances = pyssage.distances.euc_dist_matrix(coords[:, 0], coords[:, 1])
+    angles = pyssage.distances.euc_angle_matrix(coords[:, 0], coords[:, 1])
+    dist_classes = pyssage.distances.create_distance_classes(distances, "determine pair count", 15)
+    dc_con = pyssage.connections.distance_classes_to_connections(dist_classes, distances)
+    output, output_text = pyssage.correlogram.bearing_correlogram(data[:, 22], dc_con, angles)
+    pyssage.graph.draw_bearing_correlogram(numpy.array(output), "Moran's I Bearing Correlogram")
+    for line in output_text:
+        print(line)

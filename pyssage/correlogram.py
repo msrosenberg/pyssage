@@ -1,4 +1,4 @@
-from math import sqrt
+from math import sqrt, pi, degrees
 from typing import Optional, Tuple
 import numpy
 import scipy.stats
@@ -13,12 +13,15 @@ def check_variance_assumption(x: Optional[str]) -> None:
                          ", ".join((str(i) for i in valid)))
 
 
-def morans_i(y: numpy.ndarray, weights: Connections, variance: Optional[str] = "random"):
+def morans_i(y: numpy.ndarray, weights: Connections, alt_weights: Optional[numpy.ndarray] = None,
+             variance: Optional[str] = "random"):
     check_variance_assumption(variance)
     n = len(y)
     mean_y = numpy.average(y)
     dev_y = y - mean_y  # deviations from mean
     w = weights.as_binary()
+    if alt_weights is not None:  # multiply to create non-binary weights, if necessary
+        w = w * alt_weights
     sumyij = numpy.sum(numpy.outer(dev_y, dev_y) * w, dtype=numpy.float64)
     sumy2 = numpy.sum(numpy.square(dev_y), dtype=numpy.float64)  # sum of squared deviations from mean
     sumw = numpy.sum(w, dtype=numpy.float64)  # sum of weight matrix
@@ -43,12 +46,15 @@ def morans_i(y: numpy.ndarray, weights: Connections, variance: Optional[str] = "
     return weights.min_scale, weights.max_scale, weights.n_pairs(), expected, moran, sd, z, p
 
 
-def gearys_c(y: numpy.ndarray, weights: Connections, variance: Optional[str] = "random"):
+def gearys_c(y: numpy.ndarray, weights: Connections, alt_weights: Optional[numpy.ndarray] = None,
+             variance: Optional[str] = "random"):
     check_variance_assumption(variance)
     n = len(y)
     mean_y = numpy.average(y)
     dev_y = y - mean_y  # deviations from mean
     w = weights.as_binary()
+    if alt_weights is not None:  # multiply to create non-binary weights, if necessary
+        w *= alt_weights
     sumdif2 = numpy.sum(numpy.square(w * (dev_y[:, numpy.newaxis] - dev_y)), dtype=numpy.float64)
     sumy2 = numpy.sum(numpy.square(dev_y), dtype=numpy.float64)  # sum of squared deviations from mean
     sumw = numpy.sum(w, dtype=numpy.float64)  # sum of weight matrix
@@ -74,8 +80,8 @@ def gearys_c(y: numpy.ndarray, weights: Connections, variance: Optional[str] = "
     return weights.min_scale, weights.max_scale, weights.n_pairs(), 1, geary, sd, z, p
 
 
-def correlogram(data: numpy.ndarray, dist_class_connections: list, metric: morans_i, variance: Optional[str] = "random",
-                distances: Optional[numpy.ndarray] = None, angles: Optional[numpy.ndarray] = None):
+def correlogram(data: numpy.ndarray, dist_class_connections: list, metric: morans_i,
+                variance: Optional[str] = "random"):
     if metric == morans_i:
         metric_title = "Moran's I"
         exp_format = "f"
@@ -99,6 +105,48 @@ def correlogram(data: numpy.ndarray, dist_class_connections: list, metric: moran
     output_text.append("")
     col_headers = ("Min dist", "Max dist", "# pairs", "Expected", metric_title, "SD", "Z", "Prob")
     col_formats = ("f", "f", "d", exp_format, "f", "f", "f", "f")
+    create_output_table(output_text, output, col_headers, col_formats)
+
+    return output, output_text
+
+
+def bearing_correlogram(data: numpy.ndarray, dist_class_connections: list, angles: numpy.ndarray, n_bearings: int = 18,
+                        metric=morans_i, variance: Optional[str] = "random"):
+    if metric == morans_i:
+        metric_title = "Moran's I"
+        exp_format = "f"
+    elif metric == gearys_c:
+        metric_title = "Geary's c"
+        exp_format = "d"
+    else:
+        metric_title = ""
+        exp_format = ""
+
+    # calculate bearings and bearing weight matrices
+    bearings = []
+    bearing_weights = []
+    for b in range(n_bearings):
+        a = b * pi / n_bearings
+        bearings.append(a)
+        bearing_weights.append(numpy.square(numpy.cos(angles - a)))
+
+    output = []
+    for dc in dist_class_connections:
+        for i, b in enumerate(bearing_weights):
+            tmp_out = list(metric(data, dc, b, variance))
+            tmp_out.insert(2, degrees(bearings[i]))
+            output.append(tmp_out)
+
+    # create basic output text
+    output_text = list()
+    output_text.append(metric_title + " Bearing Correlogram")
+    output_text.append("")
+    output_text.append("# of data points = {}".format(len(data)))
+    if variance is not None:
+        output_text.append("Distribution assumption = {}".format(variance))
+    output_text.append("")
+    col_headers = ("Min dist", "Max dist", "Bearing", "# pairs", "Expected", metric_title, "SD", "Z", "Prob")
+    col_formats = ("f", "f", "f", "d", exp_format, "f", "f", "f", "f")
     create_output_table(output_text, output, col_headers, col_formats)
 
     return output, output_text

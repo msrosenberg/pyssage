@@ -1,10 +1,12 @@
 from typing import Optional
+from math import pi
 from pyssage.classes import Number
 import pyssage.connections
 import pyssage.distances
 import pyssage.utils
 import matplotlib.pyplot as pyplot
 from matplotlib.lines import Line2D
+from matplotlib import collections
 # import matplotlib.patches as mpatches
 import numpy
 
@@ -221,6 +223,66 @@ def draw_correlogram(data: numpy.ndarray, metric_title: str = "", title: str = "
 
     axs.set_xlabel("Scale")
     axs.set_ylabel(metric_title)
+    if title != "":
+        axs.set_title(title)
+    pyplot.show()
+
+
+def draw_bearing_correlogram(data: numpy.ndarray, title: str = "", symmetric: bool = True):
+    # column order is: min_scale, max_scale, bearing, # pairs, expected, observed, sd, z, prob
+    b_col = 2
+    exp_col = 4
+    obs_col = 5
+    p_col = 8
+    dist_classes = sorted(set(data[:, 0]))
+    n_dists = len(dist_classes)
+    deviation = data[:, obs_col] - data[:, exp_col]
+    base_circle = numpy.array([dist_classes.index(row[0])+1 for row in data])
+    r = base_circle + deviation
+    theta = numpy.radians(data[:, b_col])
+    drop_lines = [[(theta[i], base_circle[i]), (theta[i], r[i])] for i in range(len(r))]
+
+    # mark positive and negative significant scales and angles
+    sig_mask = [p <= 0.05 for p in data[:, p_col]]
+    pos_mask = [i > 0 for i in data[:, obs_col]]
+    neg_mask = numpy.invert(pos_mask)
+    pos_mask = numpy.logical_and(sig_mask, pos_mask)  # combine to get positive significant
+    neg_mask = numpy.logical_and(sig_mask, neg_mask)  # combine to get negative significant
+
+    r_sig_pos = r[pos_mask]
+    theta_sig_pos = theta[pos_mask]
+    r_sig_neg = r[neg_mask]
+    theta_sig_neg = theta[neg_mask]
+
+    # mark non-significant scales and angles
+    ns_mask = numpy.invert(sig_mask)
+    r_ns = r[ns_mask]
+    theta_ns = theta[ns_mask]
+
+    if symmetric:
+        # duplicate on opposite side of circle if drawing a full symmetric display
+        r_sig_pos = numpy.append(r_sig_pos, r_sig_pos)
+        theta_sig_pos = numpy.append(theta_sig_pos, theta_sig_pos + pi)
+        r_sig_neg = numpy.append(r_sig_neg, r_sig_neg)
+        theta_sig_neg = numpy.append(theta_sig_neg, theta_sig_neg + pi)
+        r_ns = numpy.append(r_ns, r_ns)
+        theta_ns = numpy.append(theta_ns, theta_ns + pi)
+        for i in range(len(r)):
+            drop_lines.append([(theta[i] + pi, base_circle[i]), (theta[i] + pi, r[i])])
+
+    fig = pyplot.figure()
+    axs = fig.add_subplot(projection="polar")
+
+    drop_collection = collections.LineCollection(drop_lines, colors="silver", zorder=1)
+    axs.add_collection(drop_collection)
+
+    axs.scatter(theta_sig_pos, r_sig_pos, color="blue", edgecolors="black", zorder=3, s=15)
+    axs.scatter(theta_sig_neg, r_sig_neg, color="red", edgecolors="black", zorder=3, s=15)
+    axs.scatter(theta_ns, r_ns, color="white", edgecolors="black", zorder=3, s=5)
+    pyplot.yticks(numpy.arange(1, n_dists+1))
+    axs.set_yticklabels([])
+    axs.set_ylim(0, n_dists+1)
+
     if title != "":
         axs.set_title(title)
     pyplot.show()
