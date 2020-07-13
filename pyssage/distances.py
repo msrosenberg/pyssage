@@ -1,5 +1,5 @@
 from typing import Optional, Tuple
-from math import sqrt, sin, cos, acos, pi, atan2
+from math import sqrt, sin, cos, acos, pi, atan2, radians
 import numpy
 from pyssage.classes import Number
 from pyssage.connections import Connections
@@ -63,10 +63,14 @@ def sph_dist(lat1: float, lat2: float, lon1: float, lon2: float, earth_radius: f
     :return: the distance between the points, in units equivalent to those of earth_radius (default = kilometers)
     """
     # convert to radians
-    lon1 *= pi/180
-    lon2 *= pi/180
-    lat1 *= pi/180
-    lat2 *= pi/180
+    # lon1 *= pi/180
+    # lon2 *= pi/180
+    # lat1 *= pi/180
+    # lat2 *= pi/180
+    lon1 = radians(lon1)
+    lon2 = radians(lon2)
+    lat1 = radians(lat1)
+    lat2 = radians(lat2)
     dlon = abs(lon1 - lon2)  # difference in longitudes
     angle = sin(lat1)*sin(lat2) + cos(lat1)*cos(lat2)*cos(dlon)
     if angle >= 1:
@@ -103,10 +107,14 @@ def sph_angle(lat1: float, lat2: float, lon1: float, lon2: float, mode: str = "m
         raise ValueError("invalid mode for spherical angle calculation")
 
     # convert to radians
-    lon1 *= pi/180
-    lon2 *= pi/180
-    lat1 *= pi/180
-    lat2 *= pi/180
+    # lon1 *= pi/180
+    # lon2 *= pi/180
+    # lat1 *= pi/180
+    # lat2 *= pi/180
+    lon1 = radians(lon1)
+    lon2 = radians(lon2)
+    lat1 = radians(lat1)
+    lat2 = radians(lat2)
     dlon = lon2 - lon1
     if mode == "initial":  # initial bearing
         y = sin(dlon)*cos(lat2)
