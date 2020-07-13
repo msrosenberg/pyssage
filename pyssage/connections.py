@@ -26,6 +26,7 @@ class Connections:
         self._symmetric = symmetric
         self._n = n
         self._connections = {i: set() for i in range(n)}
+        self.scale = None
 
     def __len__(self):
         """
@@ -581,6 +582,7 @@ def connect_distance_range(distances: numpy.ndarray, maxdist: float, mindist: fl
     """
     n = check_for_square_matrix(distances)
     output = Connections(n)
+    output.scale = mindist + (maxdist - mindist) / 2
     for i in range(n):
         for j in range(i):
             if mindist <= distances[i, j] < maxdist:
