@@ -1,5 +1,3 @@
-# import numpy
-# import pytest
 import math
 import pyssage.connections
 import pyssage.distances
@@ -26,7 +24,7 @@ def test_euc_angle_matrix():
     output = pyssage.distances.euc_angle_matrix(coords[:, 0], coords[:, 1])
     for i in range(len(answer)):
         for j in range(len(answer)):
-            assert round(output[i, j]*180/math.pi, 5) == answer[i, j]
+            assert round(math.degrees(output[i, j]), 5) == answer[i, j]
 
 
 def test_sph_dist_matrix():
