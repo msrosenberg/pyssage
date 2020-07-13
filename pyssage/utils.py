@@ -1,5 +1,6 @@
 import numpy
 from math import pi, atan2
+from pyssage.common import OUT_DEC
 
 
 def flatten_half(x: numpy.ndarray) -> numpy.ndarray:
@@ -57,3 +58,38 @@ def check_for_square_matrix(distances: numpy.ndarray) -> int:
         raise ValueError("distance matrix must be square")
     else:
         return len(distances)
+
+
+def create_output_table(output_text: list, table_data: list, col_headers: tuple, col_formats: tuple,
+                        out_dec: int = OUT_DEC, sbc: int = 3):
+    # determine maximum width for each column
+    max_width = [len(h) for h in col_headers]
+    for row in table_data:
+        for i, x in enumerate(row):
+            if col_formats[i] == "f":
+                frmt = "0.{}f".format(out_dec)
+            else:
+                frmt = col_formats[i]
+            max_width[i] = max(max_width[i], len(format(x, frmt)))
+
+    col_spacer = " "*sbc
+
+    # create table header
+    cols = [format(h, ">{}".format(max_width[i])) for i, h in enumerate(col_headers)]
+    header = col_spacer.join(cols)
+    output_text.append(header)
+    output_text.append("-"*len(header))
+
+    # create table data template
+    cols = []
+    for i, f in enumerate(col_formats):
+        if f == "f":
+            frmt = "{{:>{}.{}f}}".format(max_width[i], out_dec)
+        else:
+            frmt = "{{:>{}{}}}".format(max_width[i], f)
+        cols.append(frmt)
+    template = col_spacer.join(cols)
+
+    # create table data
+    for row in table_data:
+        output_text.append(template.format(*row))

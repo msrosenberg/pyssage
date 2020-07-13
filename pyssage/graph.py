@@ -180,3 +180,47 @@ def draw_distance_class_distribution(dist_matrix: numpy.ndarray, dist_class: num
     if title != "":
         axs.set_title(title)
     pyplot.show()
+
+
+def draw_correlogram(data: numpy.ndarray, metric_title: str = "", title: str = ""):
+    # column order is: min_scale, max_scale, # pairs, expected, observed, sd, z, prob
+    min_col = 0
+    max_col = 1
+    exp_col = 3
+    obs_col = 4
+    p_col = 7
+
+    # plot at midpoint of distance range
+    scale = numpy.array([x[min_col] + (x[max_col] - x[min_col])/2 for x in data])
+
+    fig, axs = pyplot.subplots()
+    # draw expected values
+    y = [data[0, exp_col], data[0, exp_col]]
+    x = [0, scale[len(scale)-1]]
+    # x = [0, data[len(data)-1, scale_col]]
+    line = Line2D(x, y, color="silver", zorder=1)
+    axs.add_line(line)
+
+    # draw base line
+    axs.plot(scale, data[:, obs_col], zorder=2)
+    # axs.plot(data[:, scale_col], data[:, obs_col], zorder=2)
+
+    # mark significant scales
+    sig_mask = [p <= 0.05 for p in data[:, p_col]]
+    # x = data[sig_mask, scale_col]
+    x = scale[sig_mask]
+    y = data[sig_mask, obs_col]
+    pyplot.scatter(x, y, color="black", edgecolors="black", zorder=3, s=25)
+
+    # mark non-significant scales
+    ns_mask = numpy.invert(sig_mask)
+    # x = data[ns_mask, scale_col]
+    x = scale[ns_mask]
+    y = data[ns_mask, obs_col]
+    pyplot.scatter(x, y, color="white", edgecolors="black", zorder=3, s=15)
+
+    axs.set_xlabel("Scale")
+    axs.set_ylabel(metric_title)
+    if title != "":
+        axs.set_title(title)
+    pyplot.show()

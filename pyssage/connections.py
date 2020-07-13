@@ -26,7 +26,10 @@ class Connections:
         self._symmetric = symmetric
         self._n = n
         self._connections = {i: set() for i in range(n)}
-        self.scale = None
+        self.min_scale = None
+        self.max_scale = None
+        self.distances = None
+        self.angles = None
 
     def __len__(self):
         """
@@ -47,6 +50,21 @@ class Connections:
 
     def __repr__(self):
         return str(self.as_point_dict())
+
+    def mid_scale(self) -> float:
+        return self.min_scale + (self.max_scale - self.min_scale)/2
+
+    def n_pairs(self):
+        """
+        return the number of connected pairs of points
+
+        for an asymmetric matrix, each connection counts as 1/2, so result may not be an integer
+        """
+        np = numpy.sum(self.as_binary())
+        if np % 2 == 0:  # return as an integer if possible
+            return np // 2
+        else:
+            return np / 2
 
     def is_symmetric(self) -> bool:
         """
@@ -582,7 +600,8 @@ def connect_distance_range(distances: numpy.ndarray, maxdist: float, mindist: fl
     """
     n = check_for_square_matrix(distances)
     output = Connections(n)
-    output.scale = mindist + (maxdist - mindist) / 2
+    output.min_scale = mindist
+    output.max_scale = maxdist
     for i in range(n):
         for j in range(i):
             if mindist <= distances[i, j] < maxdist:

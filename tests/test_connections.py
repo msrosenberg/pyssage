@@ -1,5 +1,3 @@
-import numpy
-import pytest
 import pyssage.connections
 import pyssage.distances
 import pyssage.graph

@@ -402,3 +402,22 @@ def load_answer(filename: str) -> numpy.ndarray:
                     dat[i] = eval(dat[i])  # convert to numbers
             data.append(dat)
     return numpy.array(data)
+
+
+def create_test_scattered():
+    """
+    Reads the 355 x 40 data set of cancer registration area mortality rates
+    """
+    data = []
+    with open("data/test_cancer_data.txt", "r") as infile:
+        headers = None
+        for line in infile:
+            if headers is None:
+                headers = line.strip().split()
+            else:
+                rowdat = line.strip().split()
+                row = []
+                for d in rowdat:
+                    row.append(eval(d))
+                data.append(row)
+    return numpy.array(data), headers
