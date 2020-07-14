@@ -237,8 +237,11 @@ def draw_bearing_correlogram(data: numpy.ndarray, title: str = "", symmetric: bo
     dist_classes = sorted(set(data[:, 0]))
     n_dists = len(dist_classes)
     deviation = data[:, obs_col] - data[:, exp_col]
+    # one circle for each dist class, by ordinal rank, representing the expected value for that class
     base_circle = numpy.array([dist_classes.index(row[0])+1 for row in data])
+    # the radius of each point is its base circle plus its deviation from its expectation
     r = base_circle + deviation
+    # the angle (theta) is just the bearing that was tested
     theta = numpy.radians(data[:, b_col])
     drop_lines = [[(theta[i], base_circle[i]), (theta[i], r[i])] for i in range(len(r))]
 
@@ -282,6 +285,8 @@ def draw_bearing_correlogram(data: numpy.ndarray, title: str = "", symmetric: bo
     pyplot.yticks(numpy.arange(1, n_dists+1))
     axs.set_yticklabels([])
     axs.set_ylim(0, n_dists+1)
+    if not symmetric:
+        axs.set_xlim(0, pi)
 
     if title != "":
         axs.set_title(title)

@@ -93,7 +93,7 @@ def correlogram(data: numpy.ndarray, dist_class_connections: list, metric: moran
         exp_format = ""
     output = []
     for dc in dist_class_connections:
-        output.append(metric(data, dc, variance))
+        output.append(metric(data, dc, variance=variance))
 
     # create basic output text
     output_text = list()
@@ -131,8 +131,8 @@ def bearing_correlogram(data: numpy.ndarray, dist_class_connections: list, angle
         bearing_weights.append(numpy.square(numpy.cos(angles - a)))
 
     output = []
-    for dc in dist_class_connections:
-        for i, b in enumerate(bearing_weights):
+    for i, b in enumerate(bearing_weights):
+        for dc in dist_class_connections:
             tmp_out = list(metric(data, dc, b, variance))
             tmp_out.insert(2, degrees(bearings[i]))
             output.append(tmp_out)
