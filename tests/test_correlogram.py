@@ -425,9 +425,17 @@ def test_windrose_correlogram():
     coords = create_test_coords()
     distances = pyssage.distances.euc_dist_matrix(coords[:, 0], coords[:, 1])
     angles = pyssage.distances.euc_angle_matrix(coords[:, 0], coords[:, 1])
-    output, output_text, low_output = pyssage.correlogram.windrose_correlogram(data[:, 22], distances, angles,
+    output, output_text, all_output = pyssage.correlogram.windrose_correlogram(data[:, 22], distances, angles,
                                                                                radius_c=3, radius_d=0, radius_e=0)
-    pyssage.graph.draw_windrose_correlogram(numpy.array(output), numpy.array(low_output),
-                                            "Moran's I Windrose Correlogram")
+    pyssage.graph.draw_windrose_correlogram(numpy.array(all_output), title="Moran's I Windrose Correlogram")
     for line in output_text:
         print(line)
+
+    output, output_text, all_output = pyssage.correlogram.windrose_correlogram(data[:, 22], distances, angles,
+                                                                               radius_c=3, radius_d=0, radius_e=0,
+                                                                               segment_param=6)
+    pyssage.graph.draw_windrose_correlogram(numpy.array(all_output), title="Moran's I Windrose Correlogram")
+
+    output, output_text, all_output = pyssage.correlogram.windrose_correlogram(data[:, 22], distances, angles,
+                                                                               radius_c=1, radius_d=0, radius_e=0)
+    pyssage.graph.draw_windrose_correlogram(numpy.array(all_output), title="Moran's I Windrose Correlogram")

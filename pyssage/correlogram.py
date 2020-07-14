@@ -31,12 +31,12 @@ def morans_i(y: numpy.ndarray, weights: Connections, alt_weights: Optional[numpy
     if variance is None:
         sd, z, p = None, None, None
     else:
-        s1 = numpy.sum(numpy.square(w + numpy.transpose(w))) / 2
-        s2 = numpy.sum(numpy.square(numpy.sum(w, axis=0) + numpy.sum(w, axis=1)))
+        s1 = numpy.sum(numpy.square(w + numpy.transpose(w)), dtype=numpy.float64) / 2
+        s2 = numpy.sum(numpy.square(numpy.sum(w, axis=0) + numpy.sum(w, axis=1)), dtype=numpy.float64)
         if variance == "normal":
             v = ((n**2 * s1) - n*s2 + 3*sumw2) / ((n**2 - 1) * sumw2)
         else:  # random
-            b2 = n * numpy.sum(numpy.power(dev_y, 4)) / (sumy2**2)
+            b2 = n * numpy.sum(numpy.power(dev_y, 4), dtype=numpy.float64) / (sumy2**2)
             v = ((n*((n**2 - 3*n + 3)*s1 - n*s2 + 3*sumw2) - b2*((n**2 - n)*s1 - 2*n*s2 + 6*sumw2)) /
                  ((n - 1)*(n - 2)*(n - 3)*sumw2)) - 1/(n - 1)**2
         sd = sqrt(v)  # convert to standard dev
@@ -63,12 +63,12 @@ def gearys_c(y: numpy.ndarray, weights: Connections, alt_weights: Optional[numpy
     if variance is None:
         sd, z, p = None, None, None
     else:
-        s1 = numpy.sum(numpy.square(w + numpy.transpose(w))) / 2
-        s2 = numpy.sum(numpy.square(numpy.sum(w, axis=0) + numpy.sum(w, axis=1)))
+        s1 = numpy.sum(numpy.square(w + numpy.transpose(w)), dtype=numpy.float64) / 2
+        s2 = numpy.sum(numpy.square(numpy.sum(w, axis=0) + numpy.sum(w, axis=1)), dtype=numpy.float64)
         if variance == "normal":
             v = ((2*s1 + s2)*(n - 1) - 4*sumw2) / (2*(n + 1)*sumw2)
         else:  # random
-            b2 = n * numpy.sum(numpy.power(dev_y, 4)) / (sumy2 ** 2)
+            b2 = n * numpy.sum(numpy.power(dev_y, 4), dtype=numpy.float64) / (sumy2 ** 2)
             nn2n3 = n * (n - 2) * (n - 3)
             v = ((n - 1)*s1*(n**2 - 3*n + 3 - (n - 1)*b2) / (nn2n3*sumw2) -
                  (n - 1)*s2*(n**2 + 3*n - 6 - (n**2 - n + 2)*b2) / (4*nn2n3*sumw2) +
@@ -194,7 +194,7 @@ def windrose_correlogram(data: numpy.ndarray, distances: numpy.ndarray, angles: 
         n_annuli = 7  # maximum annuli is 7
 
     output = []
-    low_output = []
+    all_output = []
     for annulus in range(n_annuli):
         for sector in range(windrose_sectors_per_annulus(segment_param, annulus)):
             connection, min_ang, max_ang = create_windrose_connections(distances, angles, annulus, sector,
@@ -206,10 +206,11 @@ def windrose_correlogram(data: numpy.ndarray, distances: numpy.ndarray, angles: 
                 tmp_out.insert(2, degrees(min_ang))
                 tmp_out.insert(3, degrees(max_ang))
                 output.append(tmp_out)
-            elif np > 0:
+                all_output.append(tmp_out)
+            else:
                 tmp_out = [connection.min_scale, connection.max_scale, degrees(min_ang), degrees(max_ang),
-                           connection.n_pairs()]
-                low_output.append(tmp_out)
+                           np, 0, 0, 0, 0, -1]
+                all_output.append(tmp_out)
 
     # create basic output text
     output_text = list()
@@ -229,4 +230,4 @@ def windrose_correlogram(data: numpy.ndarray, distances: numpy.ndarray, angles: 
     col_formats = ("f", "f", "f", "f", "d", exp_format, "f", "f", "f", "f")
     create_output_table(output_text, output, col_headers, col_formats)
 
-    return output, output_text, low_output
+    return output, output_text, all_output

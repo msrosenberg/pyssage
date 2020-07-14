@@ -1,12 +1,12 @@
 from typing import Optional
-from math import pi
+from math import pi, radians
 from pyssage.classes import Number
 import pyssage.connections
 import pyssage.distances
 import pyssage.utils
 import matplotlib.pyplot as pyplot
 from matplotlib.lines import Line2D
-from matplotlib import collections
+from matplotlib import collections, colors
 # import matplotlib.patches as mpatches
 import numpy
 
@@ -294,70 +294,114 @@ def draw_bearing_correlogram(data: numpy.ndarray, title: str = "", symmetric: bo
     pyplot.show()
 
 
-def draw_windrose_correlogram(data: numpy.ndarray, low_data: numpy.ndarray, title: str = "", symmetric: bool = True,
-                              alpha: float = 0.05):
+def draw_windrose_correlogram(data: numpy.ndarray, title: str = "", symmetric: bool = True, alpha: float = 0.05):
+    # pre-determined spacing between sectors in each annulus
+    spacer = (14 * pi / 180, 10 * pi / 180, 8 * pi / 180, 6 * pi / 180, 4 * pi / 180, 3 * pi / 180, 2 * pi / 180)
+    sig_height = 0.9
+
     # column order is: min_scale, max_scale, min_angle, max_angle, # pairs, expected, observed, sd, z, prob
     mindist_col = 0
-    b_col = 2
-    exp_col = 4
-    obs_col = 5
-    p_col = 8
+    sang_col = 2
+    eang_col = 3
+    np_col = 4
+    exp_col = 5
+    obs_col = 6
+    p_col = 9
     annuli = set(data[:, mindist_col])
-    annuli.add(low_data[:, mindist_col])
     annuli = sorted(annuli)
     n_annuli = len(annuli)
 
-    # # one circle for each dist class, by ordinal rank, representing the expected value for that class
-    # base_circle = numpy.array([dist_classes.index(row[0])+1 for row in data])
-    # # the radius of each point is its base circle plus its deviation from its expectation
-    # r = base_circle + deviation
-    # # the angle (theta) is just the bearing that was tested
-    # theta = numpy.radians(data[:, b_col])
-    # drop_lines = [[(theta[i], base_circle[i]), (theta[i], r[i])] for i in range(len(r))]
-    #
-    # # mark positive and negative significant scales and angles
-    # sig_mask = [p <= alpha for p in data[:, p_col]]
-    # pos_mask = [i > 0 for i in data[:, obs_col]]
-    # neg_mask = numpy.invert(pos_mask)
-    # pos_mask = numpy.logical_and(sig_mask, pos_mask)  # combine to get positive significant
-    # neg_mask = numpy.logical_and(sig_mask, neg_mask)  # combine to get negative significant
-    #
-    # r_sig_pos = r[pos_mask]
-    # theta_sig_pos = theta[pos_mask]
-    # r_sig_neg = r[neg_mask]
-    # theta_sig_neg = theta[neg_mask]
-    #
-    # # mark non-significant scales and angles
-    # ns_mask = numpy.invert(sig_mask)
-    # r_ns = r[ns_mask]
-    # theta_ns = theta[ns_mask]
-    #
-    # if symmetric:
-    #     # duplicate on opposite side of circle if drawing a full symmetric display
-    #     r_sig_pos = numpy.append(r_sig_pos, r_sig_pos)
-    #     theta_sig_pos = numpy.append(theta_sig_pos, theta_sig_pos + pi)
-    #     r_sig_neg = numpy.append(r_sig_neg, r_sig_neg)
-    #     theta_sig_neg = numpy.append(theta_sig_neg, theta_sig_neg + pi)
-    #     r_ns = numpy.append(r_ns, r_ns)
-    #     theta_ns = numpy.append(theta_ns, theta_ns + pi)
-    #     for i in range(len(r)):
-    #         drop_lines.append([(theta[i] + pi, base_circle[i]), (theta[i] + pi, r[i])])
-    #
-    # fig = pyplot.figure()
-    # axs = fig.add_subplot(projection="polar")
-    #
-    # drop_collection = collections.LineCollection(drop_lines, colors="silver", zorder=1)
-    # axs.add_collection(drop_collection)
-    #
-    # axs.scatter(theta_sig_pos, r_sig_pos, color="blue", edgecolors="black", zorder=3, s=15)
-    # axs.scatter(theta_sig_neg, r_sig_neg, color="red", edgecolors="black", zorder=3, s=15)
-    # axs.scatter(theta_ns, r_ns, color="white", edgecolors="black", zorder=3, s=5)
-    # pyplot.yticks(numpy.arange(1, n_dists+1))
-    # axs.set_yticklabels([])
-    # axs.set_ylim(0, n_dists+1)
-    # if not symmetric:
-    #     axs.set_xlim(0, pi)
+    sector_widths = numpy.radians(data[:, eang_col] - data[:, sang_col])
+    thetas = numpy.radians(data[:, sang_col]) + sector_widths/2
 
-    # if title != "":
-    #     axs.set_title(title)
+    # need to know metric to rescale value for color scheme
+    if data[0, exp_col] == 1:  # Geary's c
+        normalize = colors.Normalize(vmin=0, vmax=2)  # technically larger than this, but should suffice
+    else:  # Moran's I
+        normalize = colors.Normalize(vmin=-1, vmax=1)
+    s_colors = pyplot.cm.bwr_r(normalize(data[:, obs_col]))
+
+    fig = pyplot.figure()
+    axs = fig.add_subplot(projection="polar")
+    for annulus in range(n_annuli):
+        mask = [annuli[annulus] == row[mindist_col] for row in data]
+        annulus_data = data[mask, :]
+        annulus_thetas = thetas[mask]
+        annulus_widths = sector_widths[mask]
+        annulus_colors = s_colors[mask]
+        if len(annulus_data) == 1:
+            space = 0
+            bottom = 0
+        else:
+            space = spacer[annulus]
+            bottom = annulus + (1 - sig_height)
+
+        # significant sectors in this annulus
+        sig_mask = [0 <= p <= alpha for p in annulus_data[:, p_col]]
+        sig_annulus_data = annulus_data[sig_mask, :]
+        sig_annulus_thetas = annulus_thetas[sig_mask]
+        sig_annulus_widths = annulus_widths[sig_mask]
+        sig_annulus_colors = annulus_colors[sig_mask]
+        plot_widths = []
+        radii = []
+        plot_thetas = []
+        for i, sector in enumerate(sig_annulus_data):
+            plot_thetas.append(sig_annulus_thetas[i])
+            plot_widths.append(sig_annulus_widths[i] - space)
+            radii.append(sig_height)
+        if symmetric:
+            for i, sector in enumerate(sig_annulus_data):
+                plot_thetas.append(sig_annulus_thetas[i] + pi)
+                plot_widths.append(sig_annulus_widths[i] - space)
+                radii.append(sig_height)
+        axs.bar(plot_thetas, radii, width=plot_widths, bottom=bottom, color=sig_annulus_colors, edgecolor="black")
+
+        # non-significant sectors in this annulus
+        bottom = annulus + (1 - sig_height/2)
+        ns_mask = [p > alpha for p in annulus_data[:, p_col]]
+        ns_annulus_data = annulus_data[ns_mask, :]
+        ns_annulus_thetas = annulus_thetas[ns_mask]
+        ns_annulus_widths = annulus_widths[ns_mask]
+        ns_annulus_colors = annulus_colors[ns_mask]
+        plot_widths = []
+        radii = []
+        plot_thetas = []
+        for i, sector in enumerate(ns_annulus_data):
+            plot_thetas.append(ns_annulus_thetas[i])
+            plot_widths.append(ns_annulus_widths[i] - space)
+            radii.append(sig_height/2)
+        if symmetric:
+            for i, sector in enumerate(ns_annulus_data):
+                plot_thetas.append(ns_annulus_thetas[i] + pi)
+                plot_widths.append(ns_annulus_widths[i] - space)
+                radii.append(sig_height/2)
+        axs.bar(plot_thetas, radii, width=plot_widths, bottom=bottom, color=ns_annulus_colors, edgecolor="black")
+
+        # sectors below the point threshold in this annulus
+        dash_mask = [p == -1 for p in annulus_data[:, p_col]]  # could be no pairs or too few pairs
+        dash_annulus_data = annulus_data[dash_mask, :]
+        dash_annulus_thetas = annulus_thetas[dash_mask]
+        dash_annulus_widths = annulus_widths[dash_mask]
+        plot_widths = []
+        radii = []
+        plot_thetas = []
+        for i, sector in enumerate(dash_annulus_data):
+            if sector[np_col] > 0:  # only draw if there were some point pairs
+                plot_thetas.append(dash_annulus_thetas[i])
+                plot_widths.append(dash_annulus_widths[i] - space)
+                radii.append(sig_height/2)
+        if symmetric:
+            for i, sector in enumerate(dash_annulus_data):
+                if sector[np_col] > 0:
+                    plot_thetas.append(dash_annulus_thetas[i] + pi)
+                    plot_widths.append(dash_annulus_widths[i] - space)
+                    radii.append(sig_height/2)
+        axs.bar(plot_thetas, radii, width=plot_widths, bottom=bottom, linestyle="--", color="white", edgecolor="black")
+
+    if not symmetric:
+        axs.set_xlim(0, pi)
+    pyplot.axis("off")
+    if title != "":
+        axs.set_title(title)
+    pyplot.colorbar(pyplot.cm.ScalarMappable(norm=normalize, cmap=pyplot.cm.bwr_r), ax=axs)
     pyplot.show()
