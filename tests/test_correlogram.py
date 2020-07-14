@@ -418,3 +418,16 @@ def test_bearing_correlogram():
     for i, row in enumerate(answer):
         for j, ans in enumerate(row):
             assert round(output[i][j], 2) == round(ans, 2)
+
+
+def test_windrose_correlogram():
+    data, _ = create_test_scattered()
+    coords = create_test_coords()
+    distances = pyssage.distances.euc_dist_matrix(coords[:, 0], coords[:, 1])
+    angles = pyssage.distances.euc_angle_matrix(coords[:, 0], coords[:, 1])
+    output, output_text, low_output = pyssage.correlogram.windrose_correlogram(data[:, 22], distances, angles,
+                                                                               radius_c=3, radius_d=0, radius_e=0)
+    pyssage.graph.draw_windrose_correlogram(numpy.array(output), numpy.array(low_output),
+                                            "Moran's I Windrose Correlogram")
+    for line in output_text:
+        print(line)
