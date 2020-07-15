@@ -47,13 +47,14 @@ def ttlqv(transect: numpy.ndarray, min_block_size: int = 1, max_block_size: int 
     n = len(transect)
     output = []
     max_block_size = check_block_size(max_block_size, n, 2)
+    if wrap:
+        _transect = numpy.append(transect, transect)
+    else:
+        _transect = transect
+    end_start_pos = n
     for b in range(min_block_size, max_block_size + 1, block_step):
         qv = 0
-        if wrap:
-            end_start_pos = n
-            _transect = numpy.append(transect, transect)
-        else:
-            _transect = transect
+        if not wrap:
             end_start_pos = n + 1 - 2*b
         for start_pos in range(end_start_pos):
             sum1 = numpy.sum(_transect[start_pos:start_pos + b])
@@ -89,14 +90,15 @@ def three_tlqv(transect: numpy.ndarray, min_block_size: int = 1, max_block_size:
     n = len(transect)
     output = []
     max_block_size = check_block_size(max_block_size, n, 3)
+    if wrap:
+        _transect = numpy.append(transect, transect)
+    else:
+        _transect = transect
+    end_start_pos = n
     for b in range(min_block_size, max_block_size + 1, block_step):
         # cnt = 0
         qv = 0
-        if wrap:
-            _transect = numpy.append(transect, transect)
-            end_start_pos = n
-        else:
-            _transect = transect
+        if not wrap:
             end_start_pos = n + 1 - 3*b
         for start_pos in range(end_start_pos):
             sum1 = numpy.sum(_transect[start_pos:start_pos + b])
@@ -131,13 +133,14 @@ def pqv(transect: numpy.ndarray, min_block_size: int = 1, max_block_size: int = 
     n = len(transect)
     output = []
     max_block_size = check_block_size(max_block_size, n, 2)
+    if wrap:
+        _transect = numpy.append(transect, transect)
+    else:
+        _transect = transect
+    end_start_pos = n
     for b in range(min_block_size, max_block_size + 1, block_step):
         qv = 0
-        if wrap:
-            end_start_pos = n
-            _transect = numpy.append(transect, transect)
-        else:
-            _transect = transect
+        if not wrap:
             end_start_pos = n - b
         for start_pos in range(end_start_pos):
             qv += (_transect[start_pos] - _transect[start_pos + b])**2
@@ -171,13 +174,14 @@ def tqv(transect: numpy.ndarray, min_block_size: int = 1, max_block_size: int = 
     n = len(transect)
     output = []
     max_block_size = check_block_size(max_block_size, n, 3)
+    if wrap:
+        _transect = numpy.append(transect, transect)
+    else:
+        _transect = transect
+    end_start_pos = n
     for b in range(min_block_size, max_block_size + 1, block_step):
         qv = 0
-        if wrap:
-            end_start_pos = n
-            _transect = numpy.append(transect, transect)
-        else:
-            _transect = transect
+        if not wrap:
             end_start_pos = n - 2*b
         for start_pos in range(end_start_pos):
             qv += (_transect[start_pos] - 2*_transect[start_pos + b] + _transect[start_pos + 2*b])**2
@@ -212,14 +216,15 @@ def two_nlv(transect: numpy.ndarray, min_block_size: int = 1, max_block_size: in
     n = len(transect)
     output = []
     max_block_size = check_block_size(max_block_size, n, 2)
+    if wrap:
+        _transect = numpy.append(transect, transect)
+    else:
+        _transect = transect
+    end_start_pos = n
     for b in range(min_block_size, max_block_size + 1, block_step):
         cnt = 0
         qv = 0
-        if wrap:
-            _transect = numpy.append(transect, transect)
-            end_start_pos = n
-        else:
-            _transect = transect
+        if not wrap:
             end_start_pos = n - 2*b
         for start_pos in range(end_start_pos):
             sum1 = numpy.sum(_transect[start_pos:start_pos + b])
@@ -261,14 +266,15 @@ def three_nlv(transect: numpy.ndarray, min_block_size: int = 1, max_block_size: 
     n = len(transect)
     output = []
     max_block_size = check_block_size(max_block_size, n, 3)
+    if wrap:
+        _transect = numpy.append(transect, transect)
+    else:
+        _transect = transect
+    end_start_pos = n
     for b in range(min_block_size, max_block_size + 1, block_step):
         cnt = 0
         qv = 0
-        if wrap:
-            _transect = numpy.append(transect, transect)
-            end_start_pos = n
-        else:
-            _transect = transect
+        if not wrap:
             end_start_pos = n - 3*b
         for start_pos in range(end_start_pos):
             sum1 = numpy.sum(_transect[start_pos:start_pos + b])
