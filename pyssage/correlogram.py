@@ -195,6 +195,8 @@ def windrose_correlogram(data: numpy.ndarray, distances: numpy.ndarray, angles: 
 
     output = []
     all_output = []
+    # all_output is needed for graphing the output *if* we want to include those sectors with too few pairs, but
+    # still more than zero
     for annulus in range(n_annuli):
         for sector in range(windrose_sectors_per_annulus(segment_param, annulus)):
             connection, min_ang, max_ang = create_windrose_connections(distances, angles, annulus, sector,
@@ -208,6 +210,7 @@ def windrose_correlogram(data: numpy.ndarray, distances: numpy.ndarray, angles: 
                 output.append(tmp_out)
                 all_output.append(tmp_out)
             else:
+                # using -1 for the probability as an indicator that nothing was calculated
                 tmp_out = [connection.min_scale, connection.max_scale, degrees(min_ang), degrees(max_ang),
                            np, 0, 0, 0, 0, -1]
                 all_output.append(tmp_out)

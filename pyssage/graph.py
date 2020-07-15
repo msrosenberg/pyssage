@@ -294,7 +294,8 @@ def draw_bearing_correlogram(data: numpy.ndarray, title: str = "", symmetric: bo
     pyplot.show()
 
 
-def draw_windrose_correlogram(data: numpy.ndarray, title: str = "", symmetric: bool = True, alpha: float = 0.05):
+def draw_windrose_correlogram(data: numpy.ndarray, title: str = "", symmetric: bool = True, alpha: float = 0.05,
+                              show_counts: bool = False):
     # pre-determined spacing between sectors in each annulus
     spacer = (14 * pi / 180, 10 * pi / 180, 8 * pi / 180, 6 * pi / 180, 4 * pi / 180, 3 * pi / 180, 2 * pi / 180)
     sig_height = 0.9
@@ -311,10 +312,10 @@ def draw_windrose_correlogram(data: numpy.ndarray, title: str = "", symmetric: b
     annuli = sorted(annuli)
     n_annuli = len(annuli)
 
-    sector_widths = numpy.radians(data[:, eang_col] - data[:, sang_col])
-    thetas = numpy.radians(data[:, sang_col]) + sector_widths/2
+    sector_widths = numpy.radians(data[:, eang_col] - data[:, sang_col])  # width of each segment in radians
+    thetas = numpy.radians(data[:, sang_col]) + sector_widths/2  # angle representing the center of each segment
 
-    # need to know metric to rescale value for color scheme
+    # need to normalize values for automatic color-coding
     if data[0, exp_col] == 1:  # Geary's c
         normalize = colors.Normalize(vmin=0, vmax=2)  # technically larger than this, but should suffice
     else:  # Moran's I
@@ -336,72 +337,98 @@ def draw_windrose_correlogram(data: numpy.ndarray, title: str = "", symmetric: b
             space = spacer[annulus]
             bottom = annulus + (1 - sig_height)
 
-        # significant sectors in this annulus
-        sig_mask = [0 <= p <= alpha for p in annulus_data[:, p_col]]
-        sig_annulus_data = annulus_data[sig_mask, :]
-        sig_annulus_thetas = annulus_thetas[sig_mask]
-        sig_annulus_widths = annulus_widths[sig_mask]
-        sig_annulus_colors = annulus_colors[sig_mask]
-        plot_widths = []
-        radii = []
-        plot_thetas = []
-        for i, sector in enumerate(sig_annulus_data):
-            plot_thetas.append(sig_annulus_thetas[i])
-            plot_widths.append(sig_annulus_widths[i] - space)
-            radii.append(sig_height)
-        if symmetric:
-            for i, sector in enumerate(sig_annulus_data):
-                plot_thetas.append(sig_annulus_thetas[i] + pi)
+        if show_counts:  # draw sectors with pair counts, rather than correlogram results
+            cnt_mask = [np > 0 for np in annulus_data[:, np_col]]
+            cnt_annulus_data = annulus_data[cnt_mask, :]
+            cnt_annulus_thetas = annulus_thetas[cnt_mask]
+            cnt_annulus_widths = annulus_widths[cnt_mask]
+            plot_widths = []
+            radii = []
+            plot_thetas = []
+            for i, sector in enumerate(cnt_annulus_data):
+                plot_thetas.append(cnt_annulus_thetas[i])
+                plot_widths.append(cnt_annulus_widths[i] - space)
+                radii.append(sig_height)
+            if symmetric:
+                for i, sector in enumerate(cnt_annulus_data):
+                    plot_thetas.append(cnt_annulus_thetas[i] + pi)
+                    plot_widths.append(cnt_annulus_widths[i] - space)
+                    radii.append(sig_height)
+            axs.bar(plot_thetas, radii, width=plot_widths, bottom=bottom, linestyle="--", color="white",
+                    edgecolor="black")
+            for i, sector in enumerate(cnt_annulus_data):
+                axs.text(plot_thetas[i], bottom + 0.45, str(int(sector[np_col])), horizontalalignment="center",
+                         verticalalignment="center", fontdict={"size": 8})
+                if symmetric:
+                    axs.text(plot_thetas[i] + pi, bottom + 0.45, str(int(sector[np_col])), horizontalalignment="center",
+                             verticalalignment="center", fontdict={"size": 8})
+        else:  # draw correlogram results
+            # significant sectors in this annulus
+            sig_mask = [0 <= p <= alpha for p in annulus_data[:, p_col]]
+            sig_annulus_thetas = annulus_thetas[sig_mask]
+            sig_annulus_widths = annulus_widths[sig_mask]
+            sig_annulus_colors = annulus_colors[sig_mask]
+            plot_widths = []
+            radii = []
+            plot_thetas = []
+            for i in range(len(sig_annulus_thetas)):
+                plot_thetas.append(sig_annulus_thetas[i])
                 plot_widths.append(sig_annulus_widths[i] - space)
                 radii.append(sig_height)
-        axs.bar(plot_thetas, radii, width=plot_widths, bottom=bottom, color=sig_annulus_colors, edgecolor="black")
+            if symmetric:
+                for i in range(len(sig_annulus_thetas)):
+                    plot_thetas.append(sig_annulus_thetas[i] + pi)
+                    plot_widths.append(sig_annulus_widths[i] - space)
+                    radii.append(sig_height)
+            axs.bar(plot_thetas, radii, width=plot_widths, bottom=bottom, color=sig_annulus_colors, edgecolor="black")
 
-        # non-significant sectors in this annulus
-        bottom = annulus + (1 - sig_height/2)
-        ns_mask = [p > alpha for p in annulus_data[:, p_col]]
-        ns_annulus_data = annulus_data[ns_mask, :]
-        ns_annulus_thetas = annulus_thetas[ns_mask]
-        ns_annulus_widths = annulus_widths[ns_mask]
-        ns_annulus_colors = annulus_colors[ns_mask]
-        plot_widths = []
-        radii = []
-        plot_thetas = []
-        for i, sector in enumerate(ns_annulus_data):
-            plot_thetas.append(ns_annulus_thetas[i])
-            plot_widths.append(ns_annulus_widths[i] - space)
-            radii.append(sig_height/2)
-        if symmetric:
-            for i, sector in enumerate(ns_annulus_data):
-                plot_thetas.append(ns_annulus_thetas[i] + pi)
+            # non-significant sectors in this annulus
+            bottom = annulus + (1 - sig_height/2)
+            ns_mask = [p > alpha for p in annulus_data[:, p_col]]
+            ns_annulus_thetas = annulus_thetas[ns_mask]
+            ns_annulus_widths = annulus_widths[ns_mask]
+            ns_annulus_colors = annulus_colors[ns_mask]
+            plot_widths = []
+            radii = []
+            plot_thetas = []
+            for i in range(len(ns_annulus_thetas)):
+                plot_thetas.append(ns_annulus_thetas[i])
                 plot_widths.append(ns_annulus_widths[i] - space)
                 radii.append(sig_height/2)
-        axs.bar(plot_thetas, radii, width=plot_widths, bottom=bottom, color=ns_annulus_colors, edgecolor="black")
+            if symmetric:
+                for i in range(len(ns_annulus_thetas)):
+                    plot_thetas.append(ns_annulus_thetas[i] + pi)
+                    plot_widths.append(ns_annulus_widths[i] - space)
+                    radii.append(sig_height/2)
+            axs.bar(plot_thetas, radii, width=plot_widths, bottom=bottom, color=ns_annulus_colors, edgecolor="black")
 
-        # sectors below the point threshold in this annulus
-        dash_mask = [p == -1 for p in annulus_data[:, p_col]]  # could be no pairs or too few pairs
-        dash_annulus_data = annulus_data[dash_mask, :]
-        dash_annulus_thetas = annulus_thetas[dash_mask]
-        dash_annulus_widths = annulus_widths[dash_mask]
-        plot_widths = []
-        radii = []
-        plot_thetas = []
-        for i, sector in enumerate(dash_annulus_data):
-            if sector[np_col] > 0:  # only draw if there were some point pairs
-                plot_thetas.append(dash_annulus_thetas[i])
-                plot_widths.append(dash_annulus_widths[i] - space)
-                radii.append(sig_height/2)
-        if symmetric:
+            # sectors below the pair threshold in this annulus
+            dash_mask = [p == -1 for p in annulus_data[:, p_col]]  # could be no pairs or too few pairs
+            dash_annulus_data = annulus_data[dash_mask, :]
+            dash_annulus_thetas = annulus_thetas[dash_mask]
+            dash_annulus_widths = annulus_widths[dash_mask]
+            plot_widths = []
+            radii = []
+            plot_thetas = []
             for i, sector in enumerate(dash_annulus_data):
-                if sector[np_col] > 0:
-                    plot_thetas.append(dash_annulus_thetas[i] + pi)
+                if sector[np_col] > 0:  # only draw if there were some point pairs
+                    plot_thetas.append(dash_annulus_thetas[i])
                     plot_widths.append(dash_annulus_widths[i] - space)
                     radii.append(sig_height/2)
-        axs.bar(plot_thetas, radii, width=plot_widths, bottom=bottom, linestyle="--", color="white", edgecolor="black")
+            if symmetric:
+                for i, sector in enumerate(dash_annulus_data):
+                    if sector[np_col] > 0:
+                        plot_thetas.append(dash_annulus_thetas[i] + pi)
+                        plot_widths.append(dash_annulus_widths[i] - space)
+                        radii.append(sig_height/2)
+            axs.bar(plot_thetas, radii, width=plot_widths, bottom=bottom, linestyle="--", color="white",
+                    edgecolor="black")
 
     if not symmetric:
         axs.set_xlim(0, pi)
     pyplot.axis("off")
     if title != "":
         axs.set_title(title)
-    pyplot.colorbar(pyplot.cm.ScalarMappable(norm=normalize, cmap=pyplot.cm.bwr_r), ax=axs)
+    if not show_counts:
+        pyplot.colorbar(pyplot.cm.ScalarMappable(norm=normalize, cmap=pyplot.cm.bwr_r), ax=axs)
     pyplot.show()
