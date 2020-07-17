@@ -411,6 +411,7 @@ def test_bearing_correlogram():
     dist_classes = pyssage.distances.create_distance_classes(distances, "determine pair count", 15)
     dc_con = pyssage.connections.distance_classes_to_connections(dist_classes, distances)
     output, output_text = pyssage.correlogram.bearing_correlogram(data[:, 22], dc_con, angles)
+    # pyssage.graph.draw_bearing_correlogram_old(numpy.array(output), "Moran's I Bearing Correlogram")
     pyssage.graph.draw_bearing_correlogram(numpy.array(output), "Moran's I Bearing Correlogram")
     for line in output_text:
         print(line)
