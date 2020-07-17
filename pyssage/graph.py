@@ -228,7 +228,7 @@ def draw_correlogram(data: numpy.ndarray, metric_title: str = "", title: str = "
     pyplot.show()
 
 
-def draw_bearing_correlogram(data: numpy.ndarray, title: str = "", symmetric: bool = True, alpha: float = 0.05):
+def draw_bearing_correlogram_old(data: numpy.ndarray, title: str = "", symmetric: bool = True, alpha: float = 0.05):
     # column order is: min_scale, max_scale, bearing, # pairs, expected, observed, sd, z, prob
     mindist_col = 0
     b_col = 2
@@ -291,6 +291,67 @@ def draw_bearing_correlogram(data: numpy.ndarray, title: str = "", symmetric: bo
 
     if title != "":
         axs.set_title(title)
+    pyplot.show()
+
+
+def draw_bearing_correlogram(data: numpy.ndarray, title: str = "", symmetric: bool = True, alpha: float = 0.05):
+    # column order is: min_scale, max_scale, bearing, # pairs, expected, observed, sd, z, prob
+    mindist_col = 0
+    b_col = 2
+    exp_col = 4
+    obs_col = 5
+    p_col = 8
+    dist_classes = sorted(set(data[:, mindist_col]))
+    n_dists = len(dist_classes)
+    deviation = data[:, obs_col] - data[:, exp_col]
+    # one circle for each dist class, by ordinal rank, representing the expected value for that class
+    base_circle = numpy.array([dist_classes.index(row[0])+1 for row in data])
+    # the radius of each point is its base circle plus its deviation from its expectation
+    r = base_circle + deviation
+    # the angle (theta) is just the bearing that was tested
+    theta = numpy.radians(data[:, b_col])
+    pnt_sizes = []
+    edges = []
+    for p in data[:, p_col]:
+        if p <= alpha:
+            pnt_sizes.append(20)
+            edges.append("black")
+        else:
+            pnt_sizes.append(5)
+            edges.append("gray")
+    # need to normalize values for automatic color-coding
+    if data[0, exp_col] == 1:  # Geary's c
+        normalize = colors.Normalize(vmin=0, vmax=2)  # technically larger than this, but should suffice
+    else:  # Moran's I
+        normalize = colors.Normalize(vmin=-1, vmax=1)
+    p_colors = pyplot.cm.bwr_r(normalize(data[:, obs_col]))
+    print(p_colors)
+    if symmetric:
+        r = numpy.append(r, r)
+        theta = numpy.append(theta, theta + pi)
+        pnt_sizes = numpy.append(pnt_sizes, pnt_sizes)
+        p_colors = numpy.reshape(numpy.append(p_colors, p_colors), (-1, 4))
+        base_circle = numpy.append(base_circle, base_circle)
+        edges = edges + edges
+    drop_lines = [[(theta[i], base_circle[i]), (theta[i], r[i])] for i in range(len(r))]
+    print(p_colors)
+
+    fig = pyplot.figure()
+    axs = fig.add_subplot(projection="polar")
+
+    drop_collection = collections.LineCollection(drop_lines, colors="silver", zorder=1)
+    axs.add_collection(drop_collection)
+    axs.scatter(theta, r, facecolor=p_colors, edgecolor=edges, zorder=3, s=pnt_sizes)
+
+    pyplot.yticks(numpy.arange(1, n_dists+1))
+    axs.set_yticklabels([])
+    axs.set_ylim(0, n_dists+1)
+    if not symmetric:
+        axs.set_xlim(0, pi)
+
+    if title != "":
+        axs.set_title(title)
+    pyplot.colorbar(pyplot.cm.ScalarMappable(norm=normalize, cmap=pyplot.cm.bwr_r), ax=axs)
     pyplot.show()
 
 

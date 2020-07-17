@@ -83,3 +83,9 @@ def test_create_distance_classes():
     pyssage.graph.draw_distance_class_distribution(distances, dc, title="Distance Class Width Set to 200")
     dc = pyssage.distances.create_distance_classes(distances, "set pair count", 5000)
     pyssage.graph.draw_distance_class_distribution(distances, dc, title="Distance Class Pair Count Set to 5000")
+    dc = pyssage.distances.create_distance_classes(distances, "determine class width", 10, set_max_dist=2000)
+    pyssage.graph.draw_distance_class_distribution(distances, dc,
+                                                   title="Ten Equal Width Distance Classes (max dist 2000)")
+    dc = pyssage.distances.create_distance_classes(distances, "determine class width", 10, set_max_dist="0.5")
+    pyssage.graph.draw_distance_class_distribution(distances, dc,
+                                                   title="Ten Equal Width Distance Classes (max dist 50%)")

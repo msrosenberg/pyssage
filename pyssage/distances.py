@@ -1,4 +1,4 @@
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Union
 from math import sqrt, sin, cos, acos, pi, atan2, radians
 import numpy
 from pyssage.classes import Number
@@ -271,7 +271,8 @@ def trace_path(i: int, j: int, trace_matrix: dict) -> list:
         return output
 
 
-def create_distance_classes(dist_matrix: numpy.ndarray, class_mode: str, mode_value: Number) -> numpy.ndarray:
+def create_distance_classes(dist_matrix: numpy.ndarray, class_mode: str, mode_value: Number, 
+                            set_max_dist: Union[float, str, None] = None) -> numpy.ndarray:
     """
     automatically create distance classes for a distance matrix based on one of four criteria:
 
@@ -292,6 +293,14 @@ def create_distance_classes(dist_matrix: numpy.ndarray, class_mode: str, mode_va
     :param class_mode: a string specifying the mode used to create the distance classes. Valid values are
                        "set class width", "set pair count", "determine class width", "determine pair count"
     :param mode_value: an additional value whose specific meaning changes depending on the class_mode
+    :param set_max_dist: an optional parameter one case use to set the maximum bound for class creation. Normally
+                         classes are created up-to-and-including the largest observed distance in this matrix. Setting a
+                         value for this parameter will restrict class creation up to (and including) that value. To
+                         specify the maximum as a percentage of the observed max, enter the fraction as a string between
+                         0 and 1 (e.g., "0.5" to indicate 50%). When a value is set all automatic divisions will only
+                         include distances below the value. As an example, if one is requesting 10 classes of equal
+                         width, those ten classes will be created as 1/10th of this set maximum value, rather than the
+                         observed. Default = None (include all distances)
     :return: a two-column matrix where each row containts the lower and upper bounds (first and second columns,
              respectively) of each class. The lower bound is inclusive of the class, the upper bound is exclusive
     """
@@ -300,10 +309,20 @@ def create_distance_classes(dist_matrix: numpy.ndarray, class_mode: str, mode_va
     if class_mode not in valid_modes:
         raise ValueError("Invalid class_mode")
 
+    if set_max_dist is None:
+        maxdist = numpy.max(dist_matrix)
+    else:
+        if isinstance(set_max_dist, str):
+            p = eval(set_max_dist)
+            if not (0 < p <= 1):
+                raise ValueError()
+            maxdist = p * numpy.max(dist_matrix)
+        else:
+            maxdist = set_max_dist
+
     limits = []
     nclasses = 0
     if "width" in class_mode:
-        maxdist = numpy.max(dist_matrix)
         class_width = 0
         if class_mode == "set class width":
             class_width = mode_value
@@ -316,6 +335,8 @@ def create_distance_classes(dist_matrix: numpy.ndarray, class_mode: str, mode_va
 
     elif "pair" in class_mode:
         distances = flatten_half(dist_matrix)  # only need to flatten half the matrix
+        if set_max_dist is not None:  # filter by input maximum distance
+            distances = distances[distances < maxdist]
         distances.sort()  # we only need to do this for these modes
         total = len(distances)
         pairs_per_class = 0
