@@ -226,84 +226,16 @@ def residuals_from_multi_matrix_regression(y: numpy.ndarray, x_list: list) -> nu
         if n != check_for_square_matrix(x):
             raise ValueError("matrices must be the same size")
 
-    """
-         // count number of elements for regression
-         cnt := 0;
-         for i := 1 to n do
-             for j := 1 to n do
-                 if (i <> j) then
-                    if GoodMat[i,j] then inc(cnt);
-         // construct input data arrays
-         SetLength(Yarray,2,cnt+1);
-         SetLength(Xarray,XList.Count+2,cnt+1);
-         // set first column to all 1's
-         // store zero's
-    
-         for i := 1 to cnt do Xarray[1,i] := 1.0;
-         k := 0;
-         for i := 1 to n do
-             for j := 1 to n do
-                 if (i <> j) then
-                    if GoodMat[i,j] then begin
-                       inc(k);
-                       case yt of
-                            1 : Yarray[1,k] := TpasSymmetricMatrix(YMat)[order[i],order[j]];
-                            2 : if TpasBooleanMatrix(YMat)[order[i],order[j]] then
-                                   Yarray[1,k] := 1.0
-                                else Yarray[1,k] := 0.0;
-                            3 : Yarray[1,k] := TpasAngleMatrix(YMat)[order[i],order[j]];
-                       end;
-                       for m := 0 to XList.Count - 1 do begin
-                           tMat := TpasBasicMatrix(XList[m]);
-                           case xt[m] of
-                                1 : Xarray[m+2,k] := TpasSymmetricMatrix(tMat)[i,j];
-                                2 : if TpasBooleanMatrix(tMat)[i,j] then
-                                       Xarray[m+2,k] := 1.0
-                                    else Xarray[m+2,k] := 0.0;
-                                3 : Xarray[m+2,k] := TpasAngleMatrix(tMat)[i,j];
-                           end;
-                       end;
-                    end;
-         // do multiple regression
-    
-         //tmpoutput(xarray,'xarray.txt');
-         //tmpoutput(yarray,'yarray.txt');
-    
-         Xtrans := MatrixTransposition(Xarray);
-    
-         //tmpoutput(xtrans,'xtrans.txt');
-    
-         XtX := MatrixMultiply(Xtrans,Xarray);
-    
-         //tmpoutput(xtx,'xtx.txt');
-    
-         InvXtX := MatrixInverse(XtX);
-    
-         //tmpoutput(Invxtx,'InvXtX.txt');
-    
-         XtXIXt := MatrixMultiply(InvXtX,Xtrans);
-    
-         //tmpoutput(xtxixt,'xtxixt.txt');
-    
-         Barray := MatrixMultiply(XtXIXt,Yarray);
-    
-         //tmpoutput(barray,'barray.txt');
-    
-         Yhat := MatrixMultiply(Xarray,Barray);
-    
-         //tmpoutput(yhat,'yhat.txt');
-    
-         // output residuals
-         ResMat := TpasMatrix.Create(n,n);
-         k := 0;
-         for i := 1 to n do
-             for j := 1 to n do
-                 if (i <> j) then
-                    if GoodMat[i,j] then begin
-                       inc(k);
-                       ResMat[i,j] := Yarray[1,k] - Yhat[1,k];
-                    end;
-    """
+    # create a column of y values
+    ymat = y.flatten()
+    # create an x matrix with the first column 1's and one additional column for each matrix in the x list
+    xmat = numpy.ones((len(ymat), len(x_list) + 1), dtype=float)
+    for i, x in enumerate(x_list):
+        xmat[:, i+1] = x.flatten()
+    b = numpy.outer(numpy.outer(numpy.linalg.inv(numpy.outer(xmat.T,  xmat)), xmat.T), ymat)
+    yhat = numpy.outer(xmat, b)
+    residuals = ymat - yhat
+    return numpy.reshape(residuals, (n, n))
 
 
 def square_matrix_covariance(x: numpy.ndarray, y: numpy.ndarray) -> float:
