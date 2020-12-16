@@ -2,7 +2,8 @@ import math
 import pyssage.connections
 import pyssage.distances
 import pyssage.graph
-from tests.test_common import create_test_coords, load_answer
+from tests.test_common import create_test_coords, load_answer, create_test_scattered
+import numpy
 
 
 def test_euc_dist_matrix():
@@ -89,3 +90,57 @@ def test_create_distance_classes():
     dc = pyssage.distances.create_distance_classes(distances, "determine class width", 10, set_max_dist="0.5")
     pyssage.graph.draw_distance_class_distribution(distances, dc,
                                                    title="Ten Equal Width Distance Classes (max dist 50%)")
+
+
+def test_data_euc_dist():
+    """
+    testing euclidean distances from rows of a data matrix
+
+    includes a mini test and a large test
+    """
+    data = [[1, 2, 3, 4, 5],
+            [1, 3, 5, 7, 9],
+            [1, 4, 7, 10, 13]]
+    answer = [[0, 5.47723, 10.95445],
+              [5.47723, 0, 5.47723],
+              [10.95445, 5.47723, 0]]
+
+    data = numpy.array(data)
+    distances = pyssage.distances.data_distance_matrix(data, pyssage.distances.data_euc_dist)
+    print()
+    for i in range(len(distances)):
+        for j in range(len(distances)):
+            print(format(distances[i, j], "8.5f"), end="   ")
+        print()
+
+    for i in range(len(answer)):
+        for j in range(len(answer)):
+            assert round(distances[i, j], 5) == answer[i][j]
+
+    # second answer set calculated from PASSaGE 2 and exported to 5 decimals
+    answer = load_answer("answers/data_euc_dists_answer.txt")
+    data, _ = create_test_scattered()
+    output = pyssage.distances.data_distance_matrix(data, pyssage.distances.data_euc_dist)
+    for i in range(len(answer)):
+        for j in range(len(answer)):
+            assert round(output[i, j], 5) == answer[i, j]
+
+
+def test_data_sq_euc_dist():
+    data = [[1, 2, 3, 4, 5],
+            [1, 3, 5, 7, 9],
+            [1, 4, 7, 10, 13]]
+    answer = [[0, 30, 120],
+              [30, 0, 30],
+              [120, 30, 0]]
+
+    data = numpy.array(data)
+    distances = pyssage.distances.data_distance_matrix(data, pyssage.distances.data_sq_euc_dist)
+    for i in range(len(distances)):
+        for j in range(len(distances)):
+            print(format(distances[i, j], "8.5f"), end="   ")
+        print()
+
+    for i in range(len(answer)):
+        for j in range(len(answer)):
+            assert round(distances[i, j], 5) == answer[i][j]
