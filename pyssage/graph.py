@@ -493,3 +493,43 @@ def draw_windrose_correlogram(data: numpy.ndarray, title: str = "", symmetric: b
     if not show_counts:
         pyplot.colorbar(pyplot.cm.ScalarMappable(norm=normalize, cmap=pyplot.cm.bwr_r), ax=axs)
     pyplot.show()
+
+
+def draw_bearing(data: numpy.ndarray, alpha: float = 0.05):
+    # # column order is: min_scale, max_scale, # pairs, expected, observed, sd, z, prob
+    # min_col = 0
+    # max_col = 1
+    # exp_col = 3
+    # obs_col = 4
+    # p_col = 7
+    #
+    # # plot at midpoint of distance range
+    # scale = numpy.array([x[min_col] + (x[max_col] - x[min_col])/2 for x in data])
+    #
+    fig, axs = pyplot.subplots()
+    n = len(data)
+
+    # draw expected value
+    y = [0, 0]
+    x = [data[0, 0], data[n-1, 0]]
+    line = Line2D(x, y, color="silver", zorder=1)
+    axs.add_line(line)
+
+    # draw base line
+    axs.plot(data[:, 0], data[:, 1], zorder=2)
+
+    # mark significant bearings
+    sig_mask = [p <= alpha for p in data[:, 2]]
+    x = data[sig_mask, 0]
+    y = data[sig_mask, 1]
+    pyplot.scatter(x, y, color="black", edgecolors="black", zorder=3, s=25)
+
+    # mark non-significant scales
+    ns_mask = numpy.invert(sig_mask)
+    x = data[ns_mask, 0]
+    y = data[ns_mask, 1]
+    pyplot.scatter(x, y, color="white", edgecolors="black", zorder=3, s=15)
+
+    axs.set_xlabel("Bearing")
+    axs.set_ylabel("Mantel Correlation")
+    pyplot.show()

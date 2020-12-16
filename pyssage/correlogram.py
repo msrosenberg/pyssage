@@ -4,6 +4,7 @@ import numpy
 import scipy.stats
 from pyssage.connections import Connections
 from pyssage.utils import create_output_table, check_for_square_matrix
+import pyssage.mantel
 
 
 def check_variance_assumption(x: Optional[str]) -> None:
@@ -80,6 +81,47 @@ def gearys_c(y: numpy.ndarray, weights: Connections, alt_weights: Optional[numpy
     return weights.min_scale, weights.max_scale, weights.n_pairs(), 1, geary, sd, z, p
 
 
+def mantel_correl(y: numpy.ndarray, weights: Connections, alt_weights: Optional[numpy.ndarray] = None,
+                  variance: Optional[str] = "random"):
+    r, p_value, tmp_text, _, _, _, z, sd = pyssage.mantel.mantel(y, weights.as_reverse_binary(), [])
+
+    # return r, p_value, output_text, permuted_left_p, permuted_right_p, permuted_two_p, z_score, observed_std
+
+    # # check_variance_assumption(variance)
+    # n = len(y)
+    #
+    # # def mantel(input_matrix1, input_matrix2, partial, permutations: int = 0,
+    # #            tail: str = "both") -> Tuple[float, float, list, float, float, float]:
+    #
+    # mean_y = numpy.average(y)
+    # dev_y = y - mean_y  # deviations from mean
+    # w = weights.as_binary()
+    # if alt_weights is not None:  # multiply to create non-binary weights, if necessary
+    #     w = w * alt_weights
+    # sumyij = numpy.sum(numpy.outer(dev_y, dev_y) * w, dtype=numpy.float64)
+    # sumy2 = numpy.sum(numpy.square(dev_y), dtype=numpy.float64)  # sum of squared deviations from mean
+    # sumw = numpy.sum(w, dtype=numpy.float64)  # sum of weight matrix
+    # sumw2 = sumw**2
+    # moran = n * sumyij / (sumw * sumy2)
+    # expected = -1 / (n - 1)
+    # if variance is None:
+    #     sd, z, p = None, None, None
+    # else:
+    #     s1 = numpy.sum(numpy.square(w + numpy.transpose(w)), dtype=numpy.float64) / 2
+    #     s2 = numpy.sum(numpy.square(numpy.sum(w, axis=0) + numpy.sum(w, axis=1)), dtype=numpy.float64)
+    #     if variance == "normal":
+    #         v = ((n**2 * s1) - n*s2 + 3*sumw2) / ((n**2 - 1) * sumw2)
+    #     else:  # random
+    #         b2 = n * numpy.sum(numpy.power(dev_y, 4), dtype=numpy.float64) / (sumy2**2)
+    #         v = ((n*((n**2 - 3*n + 3)*s1 - n*s2 + 3*sumw2) - b2*((n**2 - n)*s1 - 2*n*s2 + 6*sumw2)) /
+    #              ((n - 1)*(n - 2)*(n - 3)*sumw2)) - 1/(n - 1)**2
+    #     sd = sqrt(v)  # convert to standard dev
+    #     z = abs(moran - expected) / sd
+    #     p = scipy.stats.norm.sf(z)*2  # two-tailed test
+
+    return weights.min_scale, weights.max_scale, weights.n_pairs(), 0, r, sd, z, p_value
+
+
 def correlogram(data: numpy.ndarray, dist_class_connections: list, metric: morans_i,
                 variance: Optional[str] = "random"):
     if metric == morans_i:
@@ -87,6 +129,9 @@ def correlogram(data: numpy.ndarray, dist_class_connections: list, metric: moran
         exp_format = "f"
     elif metric == gearys_c:
         metric_title = "Geary's c"
+        exp_format = "d"
+    elif metric == mantel_correl:
+        metric_title = "Mantel"
         exp_format = "d"
     else:
         metric_title = ""
@@ -234,3 +279,130 @@ def windrose_correlogram(data: numpy.ndarray, distances: numpy.ndarray, angles: 
     create_output_table(output_text, output, col_headers, col_formats)
 
     return output, output_text, all_output
+
+
+def bearing(data: numpy.ndarray, distances: numpy.ndarray, angles: numpy.ndarray, nbearings: int):
+    angle_width = pi / nbearings
+    output = []
+    for a in range(nbearings):
+        test_angle = a * angle_width
+        b_matrix = distances * numpy.square(numpy.cos(angles - test_angle))
+        r, p_value, _, _, _, _, _, _ = pyssage.mantel.mantel(data, b_matrix, [])
+        output.append([a*180/nbearings, r, p_value])
+
+    # create basic output text
+    output_text = list()
+    output_text.append("Bearing Analysis")
+    output_text.append("")
+    output_text.append("Tested {} vectors".format(nbearings))
+    output_text.append("")
+    col_headers = ("Bearing", "Correlation", "Prob")
+    col_formats = ("f", "f", "f")
+    create_output_table(output_text, output, col_headers, col_formats)
+    return output, output_text
+
+
+"""
+procedure Bearing(DatMat,DistMat : TpasSymmetricMatrix; AngMat : TpasAngleMatrix;
+          n : integer; DoPlot, DoSave : boolean; SaveName : string;
+          DoRand : boolean; niter : integer);
+var
+   OutMat : TpasMatrix;
+   Header : TpasTableHeader;
+   tmpD : TpasSymmetricMatrix;
+   i,j,a : integer;
+   testv,ang,r,fang : double;
+   p,rp,lp,tp : extended;
+   tmpList : TList;
+   IntOut : TpasBooleanArray;
+   SubText : TStringList;
+   {$IFNDEF FPC}PlForm : TPlotForm;{$ENDIF}
+begin
+     if DoTimeStamp then StartTimeStamp('Bearing');
+     if DoRand then OutMat := TpasMatrix.Create(n,4)
+     else OutMat := TpasMatrix.Create(n,3);
+     OutMat.MatrixName := SaveName;
+     OutMat.ColLabel[1] := 'Bearing';
+     OutMat.ColLabel[2] := 'Correlation';
+     Outmat.ColLabel[3] := 'Asymp Prob';
+     if DoRand then OutMat.ColLabel[4] := 'Perm Prob';
+     for a := 1 to n do OutMat.RowLabel[a] := 'Bearing ' + IntToStr(a);
+
+     tmpD := TpasSymmetricMatrix.Create(DatMat.N);
+
+     ProgressRefresh(n,'Bearing Analysis...');
+     ProgressShow;
+     fang := Pi / n;
+     tmpList := TList.Create;
+
+     for a := 1 to n do
+         if ContinueProgress then begin
+            testv := (a - 1.0) * fang;
+            for i := 1 to DistMat.N do
+                for j := 1 to DistMat.N do
+                    if (i <> j) then
+                       if not AngMat.IsEmpty[i,j] and not DistMat.IsEmpty[i,j] then begin
+                          // Calculate iteration angle
+                          ang := AngMat[i,j];
+                          while (ang > pi) do ang := ang - pi;
+                          tmpD[i,j] := DistMat[i,j] * sqr(cos(ang - testv));
+                       end else tmpD.IsEmpty[i,j] := true;
+            Mantel(DatMat,tmpD,tmpList,DoRand,niter,false,true,r,p,rp,lp,tp);
+            OutMat[a,1] := (a - 1.0) * 180.0 / n;
+            OutMat[a,2] := r;
+            OutMat[a,3] := p;
+            if DoRand then OutMat[a,4] := tp;
+            ProgressIncrement;
+         end;
+     tmpList.Free;
+     tmpD.Free;
+
+     // Output
+     if ContinueProgress then begin
+        Header := TpasTableHeader.Create;
+        SetLength(IntOut,OutMat.ncols);
+        for i := 1 to OutMat.ncols do IntOut[i-1] := false;
+        Header.AddBase('Bearing');
+        Header.AddBase('Correlation');
+        if DoRand then begin
+           Header.AddBase('Asymp');
+           Header.AddBase('Perm');
+           Header.AddOther(2,3,4,'Probability');
+        end else Header.AddBase('Prob');
+        SubText := TStringList.Create;
+        SubText.Add('Data Distance Matrix: ' + DatMat.MatrixName);
+        SubText.Add('Geographic Distance Matrix: ' + DistMat.MatrixName);
+        SubText.Add('Angle Matrix : ' + AngMat.MatrixName);
+        SubText.Add('Tested ' + IntToStr(n) + ' vectors');
+        if DoRand then
+           SubText.Add('Permutation test based on ' + IntToStr(niter) + ' permutations.');
+        WriteOutputTable(OutMat,IntOut,Header,'Bearing Analysis',SubText);
+        SubText.Free;
+        Header.Free;
+        IntOut := nil;
+     end;
+
+     {$IFNDEF FPC}
+     if ContinueProgress and DoPlot then begin
+        MainForm.CreatePlotForm(PlForm);
+        with PLForm do begin
+             Caption := 'Bearing Analysis Plot';
+             DrawFixedNull(OutMat,1,0.0,'Null');
+             if DoRand then
+                DrawSigPointProfile(OutMat,1,1,2,4,-1,'Bearing','Correlation',true,false,0.05)
+             else DrawSigPointProfile(OutMat,1,1,2,3,-1,'Bearing','Correlation',true,false,0.05);
+             Show;
+        end;
+     end;
+     {$ENDIF}
+
+     if ContinueProgress and DoSave then begin
+        Data_AddData(OutMat);
+        OutputAddLine('Output saved to "' + OutMat.MatrixName + '".');
+        OutputAddBlankLine;
+     end else OutMat.Free;
+
+     ProgressClose;
+     if DoTimeStamp then EndTimeStamp;
+end;
+"""
