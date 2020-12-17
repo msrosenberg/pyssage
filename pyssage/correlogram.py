@@ -8,6 +8,12 @@ import pyssage.mantel
 
 
 def check_variance_assumption(x: Optional[str]) -> None:
+    """
+    check whether an input string is a valid describer of options for variance calculation. Acceptable values
+    are 'random' and 'normal'. The value None is also allowable.
+
+    :param x: the value to be tested
+    """
     valid = ("random", "normal", None)
     if x not in valid:
         raise ValueError(x + " is not a valid variance assumption. Valid values are: " +
