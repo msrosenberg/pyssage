@@ -102,6 +102,17 @@ def sph_dist_matrix(lon: numpy.ndarray, lat: numpy.ndarray, earth_radius: float 
 
 
 def sph_angle(lat1: float, lat2: float, lon1: float, lon2: float, mode: str = "midpoint") -> float:
+    """
+    calculate the spherical angle between a pair of points
+
+    :param lat1: the latititude of the first point
+    :param lat2: the latitidue of the second point
+    :param lon1: the longitude of the first point
+    :param lon2: the longitude of the second point
+    :param mode: a string representing the method for performing the calculation. Valid values are 'initial' and
+                 'midpoint' (default)
+    :return: the calculated angle as a floating point number, in radians
+    """
     valid_modes = ("midpoint", "initial")
     if mode not in valid_modes:
         raise ValueError("invalid mode for spherical angle calculation")
@@ -362,29 +373,60 @@ def create_distance_classes(dist_matrix: numpy.ndarray, class_mode: str, mode_va
     return numpy.array(limits)
 
 
-def data_distance_matrix(data, distance):
-    n = len(data)
-    output = numpy.zeros((n, n), dtype=float)
-    for i in range(n):
-        for j in range(i):
-            dist = distance(data[i, :], data[j, :])
-            output[i, j] = dist
-            output[j, i] = dist
-    return output
-
-
-def data_euc_dist(x, y):
+def data_euc_dist(x: numpy.ndarray, y: numpy.ndarray) -> float:
     """
     returns the Euclidean distance between two vectors
+
+    :param x: a one-dimensional numpy.ndarray
+    :param y: a one-dimensional numpy.ndarray
+    :return: a floating-point number representing the distance
     """
     return numpy.sqrt(numpy.sum(numpy.square(x-y)))
 
 
-def data_sq_euc_dist(x, y):
+def data_sq_euc_dist(x: numpy.ndarray, y: numpy.ndarray) -> float:
     """
     returns the squared Euclidean distance between two vectors
+
+    :param x: a one-dimensional numpy.ndarray
+    :param y: a one-dimensional numpy.ndarray
+    :return: a floating-point number representing the distance
     """
-    return numpy.sum(numpy.square(x-y))
+    return float(numpy.sum(numpy.square(x-y)))
+
+
+def data_manhattan_dist(x: numpy.ndarray, y: numpy.ndarray) -> float:
+    """
+    returns the Manhattan distance between two vectors
+
+    :param x: a one-dimensional numpy.ndarray
+    :param y: a one-dimensional numpy.ndarray
+    :return: a floating-point number representing the distance
+    """
+    return float(numpy.sum(numpy.abs(x - y)))
+
+
+def data_distance_matrix(data: numpy.ndarray, distance_measure=data_euc_dist) -> numpy.ndarray:
+    """
+    calculate a distance matrix from an input matrix, where multivariates distances are calculated between rows of
+    the input matrix. If the input matrix has r rows and columns, the output will be an r x r matrix
+
+    any function which can accept a pair of numpy vectors (one-dimensional ndarrays) as input can be substituted
+    for the distance measure. Euclidean distances is the default
+
+    :param data: the input matrix as a numpy.ndarray, containing r rows and c columns
+    :param distance_measure: the function via which to calculate the distances; the default is Euclidean distances
+                             (data_euc_dist)
+    :return: a square matrix containing the calculated distances among the rows of data
+    """
+    n = len(data)
+    output = numpy.zeros((n, n), dtype=float)
+    for i in range(n):
+        for j in range(i):
+            dist = distance_measure(data[i, :], data[j, :])
+            output[i, j] = dist
+            output[j, i] = dist
+    return output
 
 
 """

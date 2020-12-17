@@ -144,3 +144,7 @@ def test_data_sq_euc_dist():
     for i in range(len(answer)):
         for j in range(len(answer)):
             assert round(distances[i, j], 5) == answer[i][j]
+
+
+def test_data_manhattan_dist():
+    assert False
