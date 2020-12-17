@@ -45,7 +45,7 @@ def test_bearing_analysis():
               [175.00000, 0.13028, 0.00000]]
 
     data, _ = create_test_scattered()
-    data_distances = pyssage.distances.data_distance_matrix(data, pyssage.distances.data_euc_dist)
+    data_distances = pyssage.distances.data_distance_matrix(data, pyssage.distances.data_distance_euclidean)
     coords = create_test_coords()
     distances = pyssage.distances.euc_dist_matrix(coords[:, 0], coords[:, 1])
     angles = pyssage.distances.euc_angle_matrix(coords[:, 0], coords[:, 1])

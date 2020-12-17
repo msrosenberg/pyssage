@@ -139,7 +139,7 @@ def test_mantel_correl():
     distances = pyssage.distances.euc_dist_matrix(coords[:, 0], coords[:, 1])
     dist_classes = pyssage.distances.create_distance_classes(distances, "determine pair count", 15)
     dc_con = pyssage.connections.distance_classes_to_connections(dist_classes, distances)
-    data_distances = pyssage.distances.data_distance_matrix(data, pyssage.distances.data_euc_dist)
+    data_distances = pyssage.distances.data_distance_matrix(data, pyssage.distances.data_distance_euclidean)
     output, output_text = pyssage.correlogram.correlogram(data_distances, dc_con, pyssage.correlogram.mantel_correl,
                                                           variance=None)
     pyssage.graph.draw_correlogram(numpy.array(output), "Mantel r", "Correlogram", is_mantel=True)
@@ -465,7 +465,7 @@ def test_mantel_windrose_correlogram():
     coords = create_test_coords()
     distances = pyssage.distances.euc_dist_matrix(coords[:, 0], coords[:, 1])
     angles = pyssage.distances.euc_angle_matrix(coords[:, 0], coords[:, 1])
-    data_distances = pyssage.distances.data_distance_matrix(data, pyssage.distances.data_euc_dist)
+    data_distances = pyssage.distances.data_distance_matrix(data, pyssage.distances.data_distance_euclidean)
 
     output, output_text, all_output = pyssage.correlogram.windrose_correlogram(data_distances, distances, angles,
                                                                                radius_c=3, radius_d=0, radius_e=0,

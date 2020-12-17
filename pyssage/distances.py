@@ -373,7 +373,7 @@ def create_distance_classes(dist_matrix: numpy.ndarray, class_mode: str, mode_va
     return numpy.array(limits)
 
 
-def data_euc_dist(x: numpy.ndarray, y: numpy.ndarray) -> float:
+def data_distance_euclidean(x: numpy.ndarray, y: numpy.ndarray) -> float:
     """
     returns the Euclidean distance between two vectors
 
@@ -384,7 +384,7 @@ def data_euc_dist(x: numpy.ndarray, y: numpy.ndarray) -> float:
     return numpy.sqrt(numpy.sum(numpy.square(x-y)))
 
 
-def data_sq_euc_dist(x: numpy.ndarray, y: numpy.ndarray) -> float:
+def data_distance_squared_euclidean(x: numpy.ndarray, y: numpy.ndarray) -> float:
     """
     returns the squared Euclidean distance between two vectors
 
@@ -395,7 +395,7 @@ def data_sq_euc_dist(x: numpy.ndarray, y: numpy.ndarray) -> float:
     return float(numpy.sum(numpy.square(x-y)))
 
 
-def data_manhattan_dist(x: numpy.ndarray, y: numpy.ndarray) -> float:
+def data_distance_manhattan(x: numpy.ndarray, y: numpy.ndarray) -> float:
     """
     returns the Manhattan distance between two vectors
 
@@ -406,7 +406,55 @@ def data_manhattan_dist(x: numpy.ndarray, y: numpy.ndarray) -> float:
     return float(numpy.sum(numpy.abs(x - y)))
 
 
-def data_distance_matrix(data: numpy.ndarray, distance_measure=data_euc_dist) -> numpy.ndarray:
+def data_distance_canberra(x: numpy.ndarray, y: numpy.ndarray) -> float:
+    """
+    returns the Canberra distance between two vectors
+
+    :param x: a one-dimensional numpy.ndarray
+    :param y: a one-dimensional numpy.ndarray
+    :return: a floating-point number representing the distance
+    """
+    return float(numpy.sum(numpy.abs(x - y)/(x + y)))
+
+
+def data_distance_hamming(x: numpy.ndarray, y: numpy.ndarray) -> float:
+    """
+    returns the Hamming distance between two vectors
+
+    :param x: a one-dimensional numpy.ndarray
+    :param y: a one-dimensional numpy.ndarray
+    :return: a floating-point number representing the distance
+    """
+    return numpy.count_nonzero(x - y) / len(x)
+
+
+def data_distance_jaccard(x: numpy.ndarray, y: numpy.ndarray) -> float:
+    """
+    returns the Jaccard distance between two vectors
+
+    :param x: a one-dimensional numpy.ndarray
+    :param y: a one-dimensional numpy.ndarray
+    :return: a floating-point number representing the distance
+    """
+    cnt = 0
+    for i in range(len(x)):
+        if (x[i] != 0) or (y[i] != 0):
+            cnt += 1
+    return numpy.count_nonzero(x - y) / cnt
+
+
+def data_distance_cosine(x: numpy.ndarray, y: numpy.ndarray) -> float:
+    """
+    returns the cosine distance between two vectors
+
+    :param x: a one-dimensional numpy.ndarray
+    :param y: a one-dimensional numpy.ndarray
+    :return: a floating-point number representing the distance
+    """
+    return 1 - numpy.sum(x*y)/sqrt(numpy.sum(numpy.square(x)) * numpy.sum(numpy.square(y)))
+
+
+def data_distance_matrix(data: numpy.ndarray, distance_measure=data_distance_euclidean) -> numpy.ndarray:
     """
     calculate a distance matrix from an input matrix, where multivariates distances are calculated between rows of
     the input matrix. If the input matrix has r rows and columns, the output will be an r x r matrix
@@ -416,7 +464,7 @@ def data_distance_matrix(data: numpy.ndarray, distance_measure=data_euc_dist) ->
 
     :param data: the input matrix as a numpy.ndarray, containing r rows and c columns
     :param distance_measure: the function via which to calculate the distances; the default is Euclidean distances
-                             (data_euc_dist)
+                             (data_distance_euclidean)
     :return: a square matrix containing the calculated distances among the rows of data
     """
     n = len(data)
@@ -430,23 +478,6 @@ def data_distance_matrix(data: numpy.ndarray, distance_measure=data_euc_dist) ->
 
 
 """
-
-{---Calculate the Canberra Distance between two data rows---}
-function DatCanberraDist(var dist : double; r1,r2 : integer; Data : TpasMatrix;
-            IncCols : TpasBooleanArray) : boolean;
-var
-   col : integer;
-begin
-     dist := 0.0;
-     result := false;
-     for col := 1 to Data.ncols do
-         if IncCols[col-1] then
-            if Data.IsNum[r1,col] and Data.IsNum[r2,col] then begin
-               result := true;
-               dist := dist + abs(Data[r1,col] - Data[r2,col]) /
-                                     (Data[r1,col] + Data[r2,col]);
-            end;
-end;
 
 {---Calculate the Czekanowski Distance between two data rows---}
 function DatCzekanowskiDist(var dist : double; r1,r2 : integer; Data : TpasMatrix;
@@ -484,84 +515,6 @@ begin
                dist := dist + power(Data[r1,col] - Data[r2,col],Lambda);
             end;
      dist := power(dist,1.0 / Lambda);
-end;
-
-{---Calculate the Hamming Distance between two data rows---}
-function DatHammingDist(var dist : double; r1,r2 : integer; Data : TpasMatrix;
-            IncCols : TpasBooleanArray) : boolean;
-var
-   cnt,col : integer;
-begin
-     dist := 0.0;
-     result := false;
-     cnt := 0;
-     for col := 1 to Data.ncols do
-         if IncCols[col-1] then
-            if not Data.IsEmpty[r1,col] and not Data.IsEmpty[r2,col] then begin
-               inc(cnt);
-               result := true;
-               if Data.IsStr[r1,col] and Data.IsStr[r2,col] then begin
-                  if (ToUpper(Data.StrData[r1,col]) <> ToUpper(Data.StrData[r2,col]))
-                     then dist := dist + 1.0;
-               end else if Data.IsNum[r1,col] and Data.IsNum[r2,col] then begin
-                  if (Data[r1,col] <> Data[r2,col]) then dist := dist + 1.0;
-               end else dist := dist + 1.0;
-            end;
-     if result and (cnt > 0) then dist := dist / cnt;
-end;
-
-{---Calculate the Jaccard Distance between two data rows---}
-function DatJaccardDist(var dist : double; r1,r2 : integer; Data : TpasMatrix;
-            IncCols : TpasBooleanArray) : boolean;
-var
-   cnt,col : integer;
-begin
-     dist := 0.0;
-     result := false;
-     cnt := 0;
-     for col := 1 to Data.ncols do
-         if IncCols[col-1] then
-            if not Data.IsEmpty[r1,col] and not Data.IsEmpty[r2,col] then begin
-               if Data.IsStr[r1,col] and Data.IsStr[r2,col] then begin
-                  inc(cnt);
-                  result := true;
-                  if (ToUpper(Data.StrData[r1,col]) <> ToUpper(Data.StrData[r2,col]))
-                     then dist := dist + 1.0;
-               end else if Data.IsNum[r1,col] and Data.IsNum[r2,col] then begin
-                   if (Data[r1,col] <> 0) or (Data[r2,col] <> 0) then begin
-                      inc(cnt);
-                      result := true;
-                      if (Data[r1,col] <> Data[r2,col]) then dist := dist + 1.0;
-                   end;
-               end else begin
-                   inc(cnt);
-                   result := true;
-                   dist := dist + 1.0;
-               end;
-            end;
-     if result and (cnt > 0) then dist := dist / cnt;
-end;
-
-{---Calculate the Cosine Distance between two data rows---}
-function DatCosineDist(var dist : double; r1,r2 : integer; Data : TpasMatrix;
-            IncCols : TpasBooleanArray) : boolean;
-var
-   col : integer;
-   Sum12,Sum11,Sum22 : double;
-begin
-     Sum12 := 0.0; Sum11 := 0.0; Sum22 := 0.0;
-     result := false;
-     for col := 1 to Data.ncols do
-         if IncCols[col-1] then
-            if Data.IsNum[r1,col] and Data.IsNum[r2,col] then begin
-               result := true;
-               Sum12 := Sum12 + (Data[r1,col] * Data[r2,col]);
-               Sum11 := Sum11 + sqr(Data[r1,col]);
-               Sum22 := Sum22 + sqr(Data[r2,col]);
-            end;
-     if result and ((Sum11 > 0) and (Sum22 > 0)) then
-        dist := 1.0 - (Sum12 / (sqrt(Sum11 * Sum22)))
-     else result := false;
 end;
 
 {---Calculate the Standardized Euclidian Distance between two data rows---}

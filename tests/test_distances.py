@@ -92,7 +92,7 @@ def test_create_distance_classes():
                                                    title="Ten Equal Width Distance Classes (max dist 50%)")
 
 
-def test_data_euc_dist():
+def test_data_distance_euclidean():
     """
     testing euclidean distances from rows of a data matrix
 
@@ -106,7 +106,7 @@ def test_data_euc_dist():
               [10.95445, 5.47723, 0]]
 
     data = numpy.array(data)
-    distances = pyssage.distances.data_distance_matrix(data, pyssage.distances.data_euc_dist)
+    distances = pyssage.distances.data_distance_matrix(data, pyssage.distances.data_distance_euclidean)
     print()
     for i in range(len(distances)):
         for j in range(len(distances)):
@@ -120,13 +120,13 @@ def test_data_euc_dist():
     # second answer set calculated from PASSaGE 2 and exported to 5 decimals
     answer = load_answer("answers/data_euc_dists_answer.txt")
     data, _ = create_test_scattered()
-    output = pyssage.distances.data_distance_matrix(data, pyssage.distances.data_euc_dist)
+    output = pyssage.distances.data_distance_matrix(data, pyssage.distances.data_distance_euclidean)
     for i in range(len(answer)):
         for j in range(len(answer)):
             assert round(output[i, j], 5) == answer[i, j]
 
 
-def test_data_sq_euc_dist():
+def test_data_distance_euclidean_squared():
     data = [[1, 2, 3, 4, 5],
             [1, 3, 5, 7, 9],
             [1, 4, 7, 10, 13]]
@@ -135,7 +135,7 @@ def test_data_sq_euc_dist():
               [120, 30, 0]]
 
     data = numpy.array(data)
-    distances = pyssage.distances.data_distance_matrix(data, pyssage.distances.data_sq_euc_dist)
+    distances = pyssage.distances.data_distance_matrix(data, pyssage.distances.data_distance_squared_euclidean)
     for i in range(len(distances)):
         for j in range(len(distances)):
             print(format(distances[i, j], "8.5f"), end="   ")
@@ -146,5 +146,21 @@ def test_data_sq_euc_dist():
             assert round(distances[i, j], 5) == answer[i][j]
 
 
-def test_data_manhattan_dist():
+def test_data_distance_manhattan():
+    assert False
+
+
+def test_data_distance_canberra():
+    assert False
+
+
+def test_data_distance_hamming():
+    assert False
+
+
+def test_data_distance_jaccard():
+    assert False
+
+
+def test_data_distance_cosine():
     assert False
