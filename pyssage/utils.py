@@ -61,7 +61,21 @@ def check_for_square_matrix(distances: numpy.ndarray) -> int:
 
 
 def create_output_table(output_text: list, table_data: list, col_headers: tuple, col_formats: tuple,
-                        out_dec: int = OUT_DEC, sbc: int = 3):
+                        out_dec: int = OUT_DEC, sbc: int = 3) -> None:
+    """
+    Create a well-formatted set of strings representing an output table, including headers and computationally
+    determined spacing of columns. The table is added to a list provided as input so can be inserted into a
+    broader set of output strings.
+
+    :param output_text: a list where the output will be appended; it can be empty or contain strings, but must
+                        already have been instantiated
+    :param table_data: a list of lists containing the data to appear in the table; each sublist represents a row
+                       of the table and must contain the same number of columns
+    :param col_headers: a tuple containing strings representing headers for each column in the table
+    :param col_formats: a tuple containing basic string formatting codes, generally expected to be "f" of "d"
+    :param out_dec: the number of decimal places to output floating point numbers in the table
+    :param sbc: the number of spaces to use between each column in the table
+    """
     # determine maximum width for each column
     max_width = [len(h) for h in col_headers]
     for row in table_data:

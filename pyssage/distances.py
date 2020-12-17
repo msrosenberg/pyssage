@@ -431,22 +431,6 @@ def data_distance_matrix(data: numpy.ndarray, distance_measure=data_euc_dist) ->
 
 """
 
-{---Calculate the Manhattan Distance between two data rows---}
-function DatManhattanDist(var dist : double; r1,r2 : integer; Data : TpasMatrix;
-            IncCols : TpasBooleanArray) : boolean;
-var
-   col : integer;
-begin
-     dist := 0.0;
-     result := false;
-     for col := 1 to Data.ncols do
-         if IncCols[col-1] then
-            if Data.IsNum[r1,col] and Data.IsNum[r2,col] then begin
-               result := true;
-               dist := dist + abs(Data[r1,col] - Data[r2,col]);
-            end;
-end;
-
 {---Calculate the Canberra Distance between two data rows---}
 function DatCanberraDist(var dist : double; r1,r2 : integer; Data : TpasMatrix;
             IncCols : TpasBooleanArray) : boolean;
