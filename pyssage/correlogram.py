@@ -4,6 +4,7 @@ import numpy
 import scipy.stats
 from pyssage.connections import Connections
 from pyssage.utils import create_output_table, check_for_square_matrix
+import pyssage.mantel
 
 
 def check_variance_assumption(x: Optional[str]) -> None:
@@ -80,6 +81,12 @@ def gearys_c(y: numpy.ndarray, weights: Connections, alt_weights: Optional[numpy
     return weights.min_scale, weights.max_scale, weights.n_pairs(), 1, geary, sd, z, p
 
 
+def mantel_correl(y: numpy.ndarray, weights: Connections, alt_weights: Optional[numpy.ndarray] = None,
+                  variance: Optional[str] = "random"):
+    r, p_value, _, _, _, _, z = pyssage.mantel.mantel(y, weights.as_reverse_binary(), [])
+    return weights.min_scale, weights.max_scale, weights.n_pairs(), 0, r, z, p_value
+
+
 def correlogram(data: numpy.ndarray, dist_class_connections: list, metric: morans_i,
                 variance: Optional[str] = "random"):
     if metric == morans_i:
@@ -87,6 +94,9 @@ def correlogram(data: numpy.ndarray, dist_class_connections: list, metric: moran
         exp_format = "f"
     elif metric == gearys_c:
         metric_title = "Geary's c"
+        exp_format = "d"
+    elif metric == mantel_correl:
+        metric_title = "Mantel"
         exp_format = "d"
     else:
         metric_title = ""
@@ -103,8 +113,12 @@ def correlogram(data: numpy.ndarray, dist_class_connections: list, metric: moran
     if variance is not None:
         output_text.append("Distribution assumption = {}".format(variance))
     output_text.append("")
-    col_headers = ("Min dist", "Max dist", "# pairs", "Expected", metric_title, "SD", "Z", "Prob")
-    col_formats = ("f", "f", "d", exp_format, "f", "f", "f", "f")
+    if metric == mantel_correl:
+        col_headers = ("Min dist", "Max dist", "# pairs", "Expected", metric_title, "Z", "Prob")
+        col_formats = ("f", "f", "d", exp_format, "f", "f", "f")
+    else:
+        col_headers = ("Min dist", "Max dist", "# pairs", "Expected", metric_title, "SD", "Z", "Prob")
+        col_formats = ("f", "f", "d", exp_format, "f", "f", "f", "f")
     create_output_table(output_text, output, col_headers, col_formats)
 
     return output, output_text
@@ -181,6 +195,9 @@ def windrose_correlogram(data: numpy.ndarray, distances: numpy.ndarray, angles: 
     elif metric == gearys_c:
         metric_title = "Geary's c"
         exp_format = "d"
+    elif metric == mantel_correl:
+        metric_title = "Mantel"
+        exp_format = "d"
     else:
         metric_title = ""
         exp_format = ""
@@ -211,8 +228,12 @@ def windrose_correlogram(data: numpy.ndarray, distances: numpy.ndarray, angles: 
                 all_output.append(tmp_out)
             else:
                 # using -1 for the probability as an indicator that nothing was calculated
-                tmp_out = [connection.min_scale, connection.max_scale, degrees(min_ang), degrees(max_ang),
-                           np, 0, 0, 0, 0, -1]
+                if metric == mantel_correl:
+                    tmp_out = [connection.min_scale, connection.max_scale, degrees(min_ang), degrees(max_ang),
+                               np, 0, 0, 0, -1]
+                else:
+                    tmp_out = [connection.min_scale, connection.max_scale, degrees(min_ang), degrees(max_ang),
+                               np, 0, 0, 0, 0, -1]
                 all_output.append(tmp_out)
 
     # create basic output text
@@ -228,9 +249,35 @@ def windrose_correlogram(data: numpy.ndarray, distances: numpy.ndarray, angles: 
         output_text.append("Distribution assumption = {}".format(variance))
 
     output_text.append("")
-    col_headers = ("Min dist", "Max dist", "Min angle", "Max angle", "# pairs", "Expected", metric_title, "SD",
-                   "Z", "Prob")
-    col_formats = ("f", "f", "f", "f", "d", exp_format, "f", "f", "f", "f")
+    if metric == mantel_correl:
+        col_headers = ("Min dist", "Max dist", "Min angle", "Max angle", "# pairs", "Expected", metric_title,
+                       "Z", "Prob")
+        col_formats = ("f", "f", "f", "f", "d", exp_format, "f", "f", "f")
+    else:
+        col_headers = ("Min dist", "Max dist", "Min angle", "Max angle", "# pairs", "Expected", metric_title, "SD",
+                       "Z", "Prob")
+        col_formats = ("f", "f", "f", "f", "d", exp_format, "f", "f", "f", "f")
     create_output_table(output_text, output, col_headers, col_formats)
 
     return output, output_text, all_output
+
+
+def bearing_analysis(data: numpy.ndarray, distances: numpy.ndarray, angles: numpy.ndarray, nbearings: int):
+    angle_width = pi / nbearings
+    output = []
+    for a in range(nbearings):
+        test_angle = a * angle_width
+        b_matrix = distances * numpy.square(numpy.cos(angles - test_angle))
+        r, p_value, _, _, _, _, _ = pyssage.mantel.mantel(data, b_matrix, [])
+        output.append([a*180/nbearings, r, p_value])
+
+    # create basic output text
+    output_text = list()
+    output_text.append("Bearing Analysis")
+    output_text.append("")
+    output_text.append("Tested {} vectors".format(nbearings))
+    output_text.append("")
+    col_headers = ("Bearing", "Correlation", "Prob")
+    col_formats = ("f", "f", "f")
+    create_output_table(output_text, output, col_headers, col_formats)
+    return output, output_text

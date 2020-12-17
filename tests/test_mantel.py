@@ -24,7 +24,7 @@ def test_mantel():
     coords = create_test_coords()
     distances = pyssage.distances.euc_dist_matrix(coords[:, 0], coords[:, 1])
     angles = pyssage.distances.euc_angle_matrix(coords[:, 0], coords[:, 1])
-    r, p_value, output_text, _, _, _ = pyssage.mantel.mantel(distances, angles, [])
+    r, p_value, output_text, _, _, _, _ = pyssage.mantel.mantel(distances, angles, [])
     for line in output_text:
         print(line)
     assert round(r, 5) == 0.29830
@@ -40,7 +40,7 @@ def test_mantel_with_permutation():
     coords = create_test_coords()
     distances = pyssage.distances.euc_dist_matrix(coords[:, 0], coords[:, 1])
     angles = pyssage.distances.euc_angle_matrix(coords[:, 0], coords[:, 1])
-    r, p_value, output_text, _, _, _ = pyssage.mantel.mantel(distances, angles, [], permutations=100)
+    r, p_value, output_text, _, _, _, _ = pyssage.mantel.mantel(distances, angles, [], permutations=100)
     for line in output_text:
         print(line)
 

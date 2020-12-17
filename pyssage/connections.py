@@ -60,7 +60,7 @@ class Connections:
 
         for an asymmetric matrix, each connection counts as 1/2, so result may not be an integer
         """
-        np = numpy.sum(self.as_binary())
+        np = int(numpy.sum(self.as_binary()))
         if np % 2 == 0:  # return as an integer if possible
             return np // 2
         else:
@@ -121,7 +121,7 @@ class Connections:
 
         in this form 0 = not connected and 1 = connected
         """
-        output = numpy.zeros((self._n, self._n), dtype=int)
+        output = numpy.zeros((self._n, self._n), dtype=float)
         for i in range(self._n):
             for j in self._connections[i]:
                 output[i, j] = 1
@@ -135,8 +135,9 @@ class Connections:
         a form of "distance" such that you want connected items to have the smaller "distance" than unconnected
         items
         """
-        output = numpy.ones((self._n, self._n), dtype=int)
+        output = numpy.ones((self._n, self._n), dtype=float)
         for i in range(self._n):
+            output[i, i] = 0  # force diagonal to all zeroes
             for j in self._connections[i]:
                 output[i, j] = 0
         return output
