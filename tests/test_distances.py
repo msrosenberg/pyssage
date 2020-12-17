@@ -164,3 +164,15 @@ def test_data_distance_jaccard():
 
 def test_data_distance_cosine():
     assert False
+
+
+def test_data_distance_czekanowski():
+    assert False
+
+
+def test_data_distance_correlation():
+    assert False
+
+
+def test_data_distance_squared_correlation():
+    assert False

@@ -454,6 +454,47 @@ def data_distance_cosine(x: numpy.ndarray, y: numpy.ndarray) -> float:
     return 1 - numpy.sum(x*y)/sqrt(numpy.sum(numpy.square(x)) * numpy.sum(numpy.square(y)))
 
 
+def data_distance_czekanowski(x: numpy.ndarray, y: numpy.ndarray) -> float:
+    """
+    returns the Czekanowski distance between two vectors
+
+    :param x: a one-dimensional numpy.ndarray
+    :param y: a one-dimensional numpy.ndarray
+    :return: a floating-point number representing the distance
+    """
+    return 1 - 2*numpy.sum(numpy.minimum(x, y))/numpy.sum(x + y)
+
+
+def data_distance_correlation(x: numpy.ndarray, y: numpy.ndarray) -> float:
+    """
+    returns the correlation distance between two vectors
+
+    :param x: a one-dimensional numpy.ndarray
+    :param y: a one-dimensional numpy.ndarray
+    :return: a floating-point number representing the distance
+    """
+    meanx = numpy.average(x)
+    meany = numpy.average(y)
+    num = numpy.sum((x - meanx)*(y - meany))
+    den = sqrt(numpy.sum(numpy.square(x - meanx)) * numpy.sum(numpy.square(y - meany)))
+    return 1 - num/den
+
+
+def data_distance_squared_correlation(x: numpy.ndarray, y: numpy.ndarray) -> float:
+    """
+    returns the squared correlation distance between two vectors
+
+    :param x: a one-dimensional numpy.ndarray
+    :param y: a one-dimensional numpy.ndarray
+    :return: a floating-point number representing the distance
+    """
+    meanx = numpy.average(x)
+    meany = numpy.average(y)
+    num = numpy.sum((x - meanx)*(y - meany))
+    den = numpy.sum(numpy.square(x - meanx)) * numpy.sum(numpy.square(y - meany))
+    return 1 - (num**2)/den
+
+
 def data_distance_matrix(data: numpy.ndarray, distance_measure=data_distance_euclidean) -> numpy.ndarray:
     """
     calculate a distance matrix from an input matrix, where multivariates distances are calculated between rows of
@@ -475,142 +516,3 @@ def data_distance_matrix(data: numpy.ndarray, distance_measure=data_distance_euc
             output[i, j] = dist
             output[j, i] = dist
     return output
-
-
-"""
-
-{---Calculate the Czekanowski Distance between two data rows---}
-function DatCzekanowskiDist(var dist : double; r1,r2 : integer; Data : TpasMatrix;
-            IncCols : TpasBooleanArray) : boolean;
-var
-   col : integer;
-   Sum1,Sum2 : double;
-begin
-     Sum1 := 0.0; Sum2 := 0.0;
-     result := false;
-     for col := 1 to Data.ncols do
-         if IncCols[col-1] then
-            if Data.IsNum[r1,col] and Data.IsNum[r2,col] then begin
-               result := true;
-               Sum1 := Sum1 + Min(Data[r1,col],Data[r2,col]);
-               Sum2 := Sum2 + Data[r1,col] + Data[r2,col];
-            end;
-     if result and (Sum2 > 0) then
-        dist := 1.0 - (2.0 * Sum1 / Sum2)
-     else result := false;
-end;
-
-{---Calculate the Minkowski Distance between two data rows---}
-function DatMinkowskiDist(var dist : double; r1,r2 : integer; Data : TpasMatrix;
-            IncCols : TpasBooleanArray; Lambda : double) : boolean;
-var
-   col : integer;
-begin
-     dist := 0.0;
-     result := false;
-     for col := 1 to Data.ncols do
-         if IncCols[col-1] then
-            if Data.IsNum[r1,col] and Data.IsNum[r2,col] then begin
-               result := true;
-               dist := dist + power(Data[r1,col] - Data[r2,col],Lambda);
-            end;
-     dist := power(dist,1.0 / Lambda);
-end;
-
-{---Calculate the Standardized Euclidian Distance between two data rows---}
-function DatStndEucDist(var dist : double; r1,r2 : integer; Data : TpasMatrix;
-            IncCols : TpasBooleanArray; Variances : TpasDoubleArray) : boolean;
-var
-   col : integer;
-begin
-     dist := 0.0;
-     result := false;
-     for col := 1 to Data.ncols do
-         if IncCols[col-1] then
-            if Data.IsNum[r1,col] and Data.IsNum[r2,col] and (Variances[col-1] > 0) then begin
-               result := true;
-               dist := dist + sqr(Data[r1,col] - Data[r2,col]) / Variances[col-1];
-            end;
-     dist := sqrt(dist);
-end;
-
-{---Calculate the Mahalanobis Distance between two data rows---}
-function DatMahalanobisDist(var dist : double; r1,r2 : integer; Data : TpasMatrix;
-            IncCols : TpasBooleanArray; SInv : TpasSymmetricMatrix) : boolean;
-var
-   col,c,r : integer;
-   SumX : double;
-   dif : array of double;
-begin
-     result := false;
-     // calculate differences among elements of the two rows
-     SetLength(dif,SInv.N);
-     c := 0;
-     for col := 1 to Data.ncols do
-         if IncCols[col-1] then begin
-            inc(c);
-            if Data.IsNum[r1,col] and Data.IsNum[r2,col] then begin
-               dif[c-1] := Data[r1,col] - Data[r2,col];
-               result := true;
-            end else dif[c-1] := 0.0;
-         end;
-     // multiply dif * SInv * dif     C=AB Crc = sum ArkBkc
-     if result then begin
-        dist := 0.0;
-        for c := 1 to SInv.N do begin
-            SumX := 0.0; // value for column c
-            for r := 1 to SInv.N do
-                SumX := SumX + dif[r-1] * SInv[r,c];
-            dist := dist + SumX * dif[c-1];
-        end;
-     end;
-     dif := nil;
-end;
-
-{---Calculate the Correlation Distance between two data rows---}
-function DatCorrDist(var dist : double; r1,r2 : integer; Data : TpasMatrix;
-            IncCols : TpasBooleanArray; Means : TpasDoubleArray) : boolean;
-var
-   col : integer;
-   Sum12,Sum11,Sum22 : double;
-begin
-     dist := 0.0;
-     Sum12 := 0.0; Sum11 := 0.0; Sum22 := 0.0;
-     result := false;
-     for col := 1 to Data.ncols do
-         if IncCols[col-1] then
-            if Data.IsNum[r1,col] and Data.IsNum[r2,col] then begin
-               result := true;
-               Sum12 := Sum12 + (Data[r1,col] - Means[col-1]) * (Data[r2,col] - Means[col-1]);
-               Sum11 := Sum11 + sqr(Data[r1,col] - Means[col-1]);
-               Sum22 := Sum22 + sqr(Data[r2,col] - Means[col-1]);
-            end;
-     if result and ((Sum11 > 0) and (Sum22 > 0)) then
-        dist := 1.0 - (Sum12 / (sqrt(Sum11 * Sum22)))
-     else result := false;
-end;
-
-{---Calculate the Squared Correlation Distance between two data rows---}
-function DatCorr2Dist(var dist : double; r1,r2 : integer; Data : TpasMatrix;
-            IncCols : TpasBooleanArray; Means : TpasDoubleArray) : boolean;
-var
-   col : integer;
-   Sum12,Sum11,Sum22 : double;
-begin
-     dist := 0.0;
-     Sum12 := 0.0; Sum11 := 0.0; Sum22 := 0.0;
-     result := false;
-     for col := 1 to Data.ncols do
-         if IncCols[col-1] then
-            if Data.IsNum[r1,col] and Data.IsNum[r2,col] then begin
-               result := true;
-               Sum12 := Sum12 + (Data[r1,col] - Means[col-1]) * (Data[r2,col] - Means[col-1]);
-               Sum11 := Sum11 + sqr(Data[r1,col] - Means[col-1]);
-               Sum22 := Sum22 + sqr(Data[r2,col] - Means[col-1]);
-            end;
-     if result and ((Sum11 > 0) and (Sum22 > 0)) then
-        dist := 1.0 - (sqr(Sum12) / (Sum11 * Sum22))
-     else result := false;
-end;
-
-"""
