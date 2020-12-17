@@ -2,7 +2,7 @@ from math import pi
 from typing import Tuple
 import numpy
 import pyssage.mantel
-from pyssage.utils import create_output_table
+from pyssage.utils import create_output_table, check_for_square_matrix
 
 
 def bearing_analysis(data: numpy.ndarray, distances: numpy.ndarray, angles: numpy.ndarray,
@@ -16,6 +16,10 @@ def bearing_analysis(data: numpy.ndarray, distances: numpy.ndarray, angles: nump
     :param nbearings: the number of bearings to test; the default is 36 (every 5 degrees)
     :return: a tuple containing a list of data values and a list of text output
     """
+    n = check_for_square_matrix(data)
+    if (n != check_for_square_matrix(distances)) or (n != check_for_square_matrix(angles)):
+        raise ValueError("input matrices must be the same size")
+
     angle_width = pi / nbearings
     output = []
     for a in range(nbearings):
