@@ -140,6 +140,7 @@ def test_mantel_correl():
     data_distances = pyssage.distances.data_distance_matrix(data, pyssage.distances.data_euc_dist)
     output, output_text = pyssage.correlogram.correlogram(data_distances, dc_con, pyssage.correlogram.mantel_correl,
                                                           variance=None)
+    pyssage.graph.draw_correlogram(numpy.array(output), "Mantel r", "Correlogram", is_mantel=True)
     for line in output_text:
         print(line)
 

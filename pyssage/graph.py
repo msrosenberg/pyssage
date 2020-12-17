@@ -184,13 +184,18 @@ def draw_distance_class_distribution(dist_matrix: numpy.ndarray, dist_class: num
     pyplot.show()
 
 
-def draw_correlogram(data: numpy.ndarray, metric_title: str = "", title: str = "", alpha: float = 0.05):
+def draw_correlogram(data: numpy.ndarray, metric_title: str = "", title: str = "", alpha: float = 0.05,
+                     is_mantel: bool = False):
     # column order is: min_scale, max_scale, # pairs, expected, observed, sd, z, prob
+    # sd is absent from Mantel correlograms
     min_col = 0
     max_col = 1
     exp_col = 3
     obs_col = 4
-    p_col = 7
+    if is_mantel:
+        p_col = 6
+    else:
+        p_col = 7
 
     # plot at midpoint of distance range
     scale = numpy.array([x[min_col] + (x[max_col] - x[min_col])/2 for x in data])
@@ -362,6 +367,7 @@ def draw_windrose_correlogram(data: numpy.ndarray, title: str = "", symmetric: b
     sig_height = 0.9
 
     # column order is: min_scale, max_scale, min_angle, max_angle, # pairs, expected, observed, sd, z, prob
+    # sd is absent from Mantel correlograms
     mindist_col = 0
     sang_col = 2
     eang_col = 3
