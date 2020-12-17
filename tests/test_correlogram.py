@@ -138,7 +138,8 @@ def test_mantel_correl():
     dist_classes = pyssage.distances.create_distance_classes(distances, "determine pair count", 15)
     dc_con = pyssage.connections.distance_classes_to_connections(dist_classes, distances)
     data_distances = pyssage.distances.data_distance_matrix(data, pyssage.distances.data_euc_dist)
-    output, output_text = pyssage.correlogram.correlogram(data_distances, dc_con, pyssage.correlogram.mantel_correl)
+    output, output_text = pyssage.correlogram.correlogram(data_distances, dc_con, pyssage.correlogram.mantel_correl,
+                                                          variance=None)
     for line in output_text:
         print(line)
 
@@ -500,7 +501,7 @@ def test_bearing():
     coords = create_test_coords()
     distances = pyssage.distances.euc_dist_matrix(coords[:, 0], coords[:, 1])
     angles = pyssage.distances.euc_angle_matrix(coords[:, 0], coords[:, 1])
-    output, output_text = pyssage.correlogram.bearing(data_distances, distances, angles, 36)
+    output, output_text = pyssage.correlogram.bearing_analysis(data_distances, distances, angles, 36)
     pyssage.graph.draw_bearing(numpy.array(output))
 
     for line in output_text:

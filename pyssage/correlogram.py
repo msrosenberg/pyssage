@@ -281,7 +281,7 @@ def windrose_correlogram(data: numpy.ndarray, distances: numpy.ndarray, angles: 
     return output, output_text, all_output
 
 
-def bearing(data: numpy.ndarray, distances: numpy.ndarray, angles: numpy.ndarray, nbearings: int):
+def bearing_analysis(data: numpy.ndarray, distances: numpy.ndarray, angles: numpy.ndarray, nbearings: int):
     angle_width = pi / nbearings
     output = []
     for a in range(nbearings):

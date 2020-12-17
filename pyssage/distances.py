@@ -364,7 +364,7 @@ def create_distance_classes(dist_matrix: numpy.ndarray, class_mode: str, mode_va
 
 def data_distance_matrix(data, distance):
     n = len(data)
-    output = numpy.zeros((n, n))
+    output = numpy.zeros((n, n), dtype=float)
     for i in range(n):
         for j in range(i):
             dist = distance(data[i, :], data[j, :])
