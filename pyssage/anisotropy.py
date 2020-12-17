@@ -1,10 +1,21 @@
 from math import pi
+from typing import Tuple
 import numpy
 import pyssage.mantel
 from pyssage.utils import create_output_table
 
 
-def bearing_analysis(data: numpy.ndarray, distances: numpy.ndarray, angles: numpy.ndarray, nbearings: int):
+def bearing_analysis(data: numpy.ndarray, distances: numpy.ndarray, angles: numpy.ndarray,
+                     nbearings: int = 36) -> Tuple[list, list]:
+    """
+    conduct a bearing analysis to test for anisotropic patterns in scattered data
+
+    :param data: an n x n matrix representing distances among data values
+    :param distances: an n x n matrix representing geographic distances among data points
+    :param angles: an n x n matrix representing geographic angles among data points
+    :param nbearings: the number of bearings to test; the default is 36 (every 5 degrees)
+    :return: a tuple containing a list of data values and a list of text output
+    """
     angle_width = pi / nbearings
     output = []
     for a in range(nbearings):
