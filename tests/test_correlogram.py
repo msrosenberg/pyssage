@@ -457,6 +457,24 @@ def test_windrose_correlogram():
     # pyssage.graph.draw_windrose_correlogram(numpy.array(all_output), title="Moran's I Windrose Correlogram")
 
 
+def test_mantel_windrose_correlogram():
+    data, _ = create_test_scattered()
+    coords = create_test_coords()
+    distances = pyssage.distances.euc_dist_matrix(coords[:, 0], coords[:, 1])
+    angles = pyssage.distances.euc_angle_matrix(coords[:, 0], coords[:, 1])
+    data_distances = pyssage.distances.data_distance_matrix(data, pyssage.distances.data_euc_dist)
+
+    output, output_text, all_output = pyssage.correlogram.windrose_correlogram(data_distances, distances, angles,
+                                                                               radius_c=3, radius_d=0, radius_e=0,
+                                                                               metric=pyssage.correlogram.mantel_correl)
+    pyssage.graph.draw_windrose_correlogram(numpy.array(all_output), title="Mantel Windrose Correlogram Pair Counts",
+                                            show_counts=True, is_mantel=True)
+    pyssage.graph.draw_windrose_correlogram(numpy.array(all_output), title="Mantel Windrose Correlogram",
+                                            is_mantel=True)
+    for line in output_text:
+        print(line)
+
+
 def test_bearing():
     # answer calculated from PASSaGE 2 and exported to 5 decimals, but only matches perfectly to 2 decimals
     answer = [[0.00000, 0.11071, 0.00000],

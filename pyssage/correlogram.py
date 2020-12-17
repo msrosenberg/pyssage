@@ -83,43 +83,8 @@ def gearys_c(y: numpy.ndarray, weights: Connections, alt_weights: Optional[numpy
 
 def mantel_correl(y: numpy.ndarray, weights: Connections, alt_weights: Optional[numpy.ndarray] = None,
                   variance: Optional[str] = "random"):
-    r, p_value, tmp_text, _, _, _, z, sd = pyssage.mantel.mantel(y, weights.as_reverse_binary(), [])
-
-    # return r, p_value, output_text, permuted_left_p, permuted_right_p, permuted_two_p, z_score, observed_std
-
-    # # check_variance_assumption(variance)
-    # n = len(y)
-    #
-    # # def mantel(input_matrix1, input_matrix2, partial, permutations: int = 0,
-    # #            tail: str = "both") -> Tuple[float, float, list, float, float, float]:
-    #
-    # mean_y = numpy.average(y)
-    # dev_y = y - mean_y  # deviations from mean
-    # w = weights.as_binary()
-    # if alt_weights is not None:  # multiply to create non-binary weights, if necessary
-    #     w = w * alt_weights
-    # sumyij = numpy.sum(numpy.outer(dev_y, dev_y) * w, dtype=numpy.float64)
-    # sumy2 = numpy.sum(numpy.square(dev_y), dtype=numpy.float64)  # sum of squared deviations from mean
-    # sumw = numpy.sum(w, dtype=numpy.float64)  # sum of weight matrix
-    # sumw2 = sumw**2
-    # moran = n * sumyij / (sumw * sumy2)
-    # expected = -1 / (n - 1)
-    # if variance is None:
-    #     sd, z, p = None, None, None
-    # else:
-    #     s1 = numpy.sum(numpy.square(w + numpy.transpose(w)), dtype=numpy.float64) / 2
-    #     s2 = numpy.sum(numpy.square(numpy.sum(w, axis=0) + numpy.sum(w, axis=1)), dtype=numpy.float64)
-    #     if variance == "normal":
-    #         v = ((n**2 * s1) - n*s2 + 3*sumw2) / ((n**2 - 1) * sumw2)
-    #     else:  # random
-    #         b2 = n * numpy.sum(numpy.power(dev_y, 4), dtype=numpy.float64) / (sumy2**2)
-    #         v = ((n*((n**2 - 3*n + 3)*s1 - n*s2 + 3*sumw2) - b2*((n**2 - n)*s1 - 2*n*s2 + 6*sumw2)) /
-    #              ((n - 1)*(n - 2)*(n - 3)*sumw2)) - 1/(n - 1)**2
-    #     sd = sqrt(v)  # convert to standard dev
-    #     z = abs(moran - expected) / sd
-    #     p = scipy.stats.norm.sf(z)*2  # two-tailed test
-
-    return weights.min_scale, weights.max_scale, weights.n_pairs(), 0, r, sd, z, p_value
+    r, p_value, _, _, _, _, z = pyssage.mantel.mantel(y, weights.as_reverse_binary(), [])
+    return weights.min_scale, weights.max_scale, weights.n_pairs(), 0, r, z, p_value
 
 
 def correlogram(data: numpy.ndarray, dist_class_connections: list, metric: morans_i,
@@ -148,8 +113,12 @@ def correlogram(data: numpy.ndarray, dist_class_connections: list, metric: moran
     if variance is not None:
         output_text.append("Distribution assumption = {}".format(variance))
     output_text.append("")
-    col_headers = ("Min dist", "Max dist", "# pairs", "Expected", metric_title, "SD", "Z", "Prob")
-    col_formats = ("f", "f", "d", exp_format, "f", "f", "f", "f")
+    if metric == mantel_correl:
+        col_headers = ("Min dist", "Max dist", "# pairs", "Expected", metric_title, "Z", "Prob")
+        col_formats = ("f", "f", "d", exp_format, "f", "f", "f")
+    else:
+        col_headers = ("Min dist", "Max dist", "# pairs", "Expected", metric_title, "SD", "Z", "Prob")
+        col_formats = ("f", "f", "d", exp_format, "f", "f", "f", "f")
     create_output_table(output_text, output, col_headers, col_formats)
 
     return output, output_text
@@ -226,6 +195,9 @@ def windrose_correlogram(data: numpy.ndarray, distances: numpy.ndarray, angles: 
     elif metric == gearys_c:
         metric_title = "Geary's c"
         exp_format = "d"
+    elif metric == mantel_correl:
+        metric_title = "Mantel"
+        exp_format = "d"
     else:
         metric_title = ""
         exp_format = ""
@@ -256,8 +228,12 @@ def windrose_correlogram(data: numpy.ndarray, distances: numpy.ndarray, angles: 
                 all_output.append(tmp_out)
             else:
                 # using -1 for the probability as an indicator that nothing was calculated
-                tmp_out = [connection.min_scale, connection.max_scale, degrees(min_ang), degrees(max_ang),
-                           np, 0, 0, 0, 0, -1]
+                if metric == mantel_correl:
+                    tmp_out = [connection.min_scale, connection.max_scale, degrees(min_ang), degrees(max_ang),
+                               np, 0, 0, 0, -1]
+                else:
+                    tmp_out = [connection.min_scale, connection.max_scale, degrees(min_ang), degrees(max_ang),
+                               np, 0, 0, 0, 0, -1]
                 all_output.append(tmp_out)
 
     # create basic output text
@@ -273,9 +249,14 @@ def windrose_correlogram(data: numpy.ndarray, distances: numpy.ndarray, angles: 
         output_text.append("Distribution assumption = {}".format(variance))
 
     output_text.append("")
-    col_headers = ("Min dist", "Max dist", "Min angle", "Max angle", "# pairs", "Expected", metric_title, "SD",
-                   "Z", "Prob")
-    col_formats = ("f", "f", "f", "f", "d", exp_format, "f", "f", "f", "f")
+    if metric == mantel_correl:
+        col_headers = ("Min dist", "Max dist", "Min angle", "Max angle", "# pairs", "Expected", metric_title,
+                       "Z", "Prob")
+        col_formats = ("f", "f", "f", "f", "d", exp_format, "f", "f", "f")
+    else:
+        col_headers = ("Min dist", "Max dist", "Min angle", "Max angle", "# pairs", "Expected", metric_title, "SD",
+                       "Z", "Prob")
+        col_formats = ("f", "f", "f", "f", "d", exp_format, "f", "f", "f", "f")
     create_output_table(output_text, output, col_headers, col_formats)
 
     return output, output_text, all_output
@@ -287,7 +268,7 @@ def bearing_analysis(data: numpy.ndarray, distances: numpy.ndarray, angles: nump
     for a in range(nbearings):
         test_angle = a * angle_width
         b_matrix = distances * numpy.square(numpy.cos(angles - test_angle))
-        r, p_value, _, _, _, _, _, _ = pyssage.mantel.mantel(data, b_matrix, [])
+        r, p_value, _, _, _, _, _ = pyssage.mantel.mantel(data, b_matrix, [])
         output.append([a*180/nbearings, r, p_value])
 
     # create basic output text

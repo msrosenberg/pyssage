@@ -20,7 +20,7 @@ def check_tail(tail: str) -> None:
 
 
 def mantel(input_matrix1, input_matrix2, partial, permutations: int = 0,
-           tail: str = "both") -> Tuple[float, float, list, float, float, float, float, float]:
+           tail: str = "both") -> Tuple[float, float, list, float, float, float, float]:
     check_tail(tail)
     n = check_for_square_matrix(input_matrix1)
     if n != check_for_square_matrix(input_matrix2):
@@ -136,7 +136,7 @@ def mantel(input_matrix1, input_matrix2, partial, permutations: int = 0,
     else:
         permuted_left_p, permuted_right_p, permuted_two_p = 1, 1, 1
 
-    return r, p_value, output_text, permuted_left_p, permuted_right_p, permuted_two_p, z_score, observed_std
+    return r, p_value, output_text, permuted_left_p, permuted_right_p, permuted_two_p, z_score
 
 
 def mantel_moments(x: numpy.ndarray, y: numpy.ndarray) -> Tuple[float, float]:

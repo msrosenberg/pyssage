@@ -356,7 +356,7 @@ def draw_bearing_correlogram(data: numpy.ndarray, title: str = "", symmetric: bo
 
 
 def draw_windrose_correlogram(data: numpy.ndarray, title: str = "", symmetric: bool = True, alpha: float = 0.05,
-                              show_counts: bool = False):
+                              show_counts: bool = False, is_mantel: bool = False):
     # pre-determined spacing between sectors in each annulus
     spacer = (14 * pi / 180, 10 * pi / 180, 8 * pi / 180, 6 * pi / 180, 4 * pi / 180, 3 * pi / 180, 2 * pi / 180)
     sig_height = 0.9
@@ -368,7 +368,10 @@ def draw_windrose_correlogram(data: numpy.ndarray, title: str = "", symmetric: b
     np_col = 4
     exp_col = 5
     obs_col = 6
-    p_col = 9
+    if is_mantel:
+        p_col = 8
+    else:
+        p_col = 9
     annuli = set(data[:, mindist_col])
     annuli = sorted(annuli)
     n_annuli = len(annuli)
