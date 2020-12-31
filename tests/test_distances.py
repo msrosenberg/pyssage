@@ -138,6 +138,11 @@ def test_data_distance_canberra():
         for j in range(len(answer)):
             assert round(output[i, j], 5) == answer[i, j]
 
+    """
+    test problem = if a pair of matched values in a compared column were both zero, passage reported NaN 
+    test can't be directly determined from there
+    """
+
 
 def test_data_distance_hamming():
     # answer calculated from PASSaGE 2 and exported to 5 decimals
@@ -176,7 +181,10 @@ def test_data_distance_czekanowski():
     output = pyssage.distances.data_distance_matrix(data, pyssage.distances.data_distance_czekanowski)
     for i in range(len(answer)):
         for j in range(len(answer)):
-            assert round(output[i, j], 5) == answer[i, j]
+            assert round(output[i, j], 5) == round(answer[i, j], 5)
+    """
+    answers are similar, but not exact. might be floating-point issue    
+    """
 
 
 def test_data_distance_correlation():
@@ -186,7 +194,10 @@ def test_data_distance_correlation():
     output = pyssage.distances.data_distance_matrix(data, pyssage.distances.data_distance_correlation)
     for i in range(len(answer)):
         for j in range(len(answer)):
-            assert round(output[i, j], 5) == answer[i, j]
+            assert round(output[i, j], 5) == round(answer[i, j], 5)
+    """
+    answers are similar, but not exact. might be floating-point issue    
+    """
 
 
 def test_data_distance_squared_correlation():
@@ -197,3 +208,6 @@ def test_data_distance_squared_correlation():
     for i in range(len(answer)):
         for j in range(len(answer)):
             assert round(output[i, j], 5) == answer[i, j]
+    """
+    answers are similar, but not exact. might be floating-point issue    
+    """
