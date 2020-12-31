@@ -22,6 +22,12 @@ class FigOutput:
 
 
 def check_valid_graph_format(x: str) -> bool:
+    """
+    checks that the entered graph format is valid
+
+    valid entries are automatically determined as they may depend on back-end, but generally should include
+    svg, png, and pdf, among others
+    """
     valid_formats = pyplot.gcf().canvas.get_supported_filetypes()
     if x in valid_formats:
         return True
@@ -32,7 +38,12 @@ def check_valid_graph_format(x: str) -> bool:
         raise ValueError(error_msg)
 
 
-def start_figure(figoutput: Optional[FigOutput], polar: bool = False):
+def start_figure(figoutput: Optional[FigOutput] = None, polar: bool = False):
+    """
+    common function for starting graphs and figures
+
+    sets the size and dpi of the figure and creates the axes
+    """
     if figoutput is None:
         figoutput = FigOutput()
     fig = pyplot.figure(figsize=figoutput.figsize, dpi=figoutput.dpi)
@@ -44,6 +55,11 @@ def start_figure(figoutput: Optional[FigOutput], polar: bool = False):
 
 
 def finalize_figure(fig, axs, figoutput: FigOutput, title: str = "") -> None:
+    """
+    common function fo ending graphs and figures
+
+    sets the title, saves to file (if appropriate), and displays on screen (if appropriate)
+    """
     if title != "":
         axs.set_title(title)
     if figoutput.figname != "":

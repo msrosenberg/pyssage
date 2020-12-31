@@ -110,52 +110,90 @@ def test_data_distance_euclidean():
 
 
 def test_data_distance_euclidean_squared():
-    data = [[1, 2, 3, 4, 5],
-            [1, 3, 5, 7, 9],
-            [1, 4, 7, 10, 13]]
-    answer = [[0, 30, 120],
-              [30, 0, 30],
-              [120, 30, 0]]
-
-    data = numpy.array(data)
-    distances = pyssage.distances.data_distance_matrix(data, pyssage.distances.data_distance_squared_euclidean)
-    for i in range(len(distances)):
-        for j in range(len(distances)):
-            print(format(distances[i, j], "8.5f"), end="   ")
-        print()
-
+    # answer calculated from PASSaGE 2 and exported to 5 decimals
+    answer = load_answer("answers/data_sqeuc_dists_answer.txt")
+    data, _ = create_test_scattered()
+    output = pyssage.distances.data_distance_matrix(data, pyssage.distances.data_distance_squared_euclidean)
     for i in range(len(answer)):
         for j in range(len(answer)):
-            assert round(distances[i, j], 5) == answer[i][j]
+            assert round(output[i, j], 5) == answer[i, j]
 
 
 def test_data_distance_manhattan():
-    assert False
+    # answer calculated from PASSaGE 2 and exported to 5 decimals
+    answer = load_answer("answers/data_manhattan_dists_answer.txt")
+    data, _ = create_test_scattered()
+    output = pyssage.distances.data_distance_matrix(data, pyssage.distances.data_distance_manhattan)
+    for i in range(len(answer)):
+        for j in range(len(answer)):
+            assert round(output[i, j], 5) == answer[i, j]
 
 
 def test_data_distance_canberra():
-    assert False
+    # answer calculated from PASSaGE 2 and exported to 5 decimals
+    answer = load_answer("answers/data_canberra_dists_answer.txt")
+    data, _ = create_test_scattered()
+    output = pyssage.distances.data_distance_matrix(data, pyssage.distances.data_distance_canberra)
+    for i in range(len(answer)):
+        for j in range(len(answer)):
+            assert round(output[i, j], 5) == answer[i, j]
 
 
 def test_data_distance_hamming():
-    assert False
+    # answer calculated from PASSaGE 2 and exported to 5 decimals
+    answer = load_answer("answers/data_hamming_dists_answer.txt")
+    data, _ = create_test_scattered()
+    output = pyssage.distances.data_distance_matrix(data, pyssage.distances.data_distance_hamming)
+    for i in range(len(answer)):
+        for j in range(len(answer)):
+            assert round(output[i, j], 5) == answer[i, j]
 
 
 def test_data_distance_jaccard():
-    assert False
+    # answer calculated from PASSaGE 2 and exported to 5 decimals
+    answer = load_answer("answers/data_jaccard_dists_answer.txt")
+    data, _ = create_test_scattered()
+    output = pyssage.distances.data_distance_matrix(data, pyssage.distances.data_distance_jaccard)
+    for i in range(len(answer)):
+        for j in range(len(answer)):
+            assert round(output[i, j], 5) == answer[i, j]
 
 
 def test_data_distance_cosine():
-    assert False
+    # answer calculated from PASSaGE 2 and exported to 5 decimals
+    answer = load_answer("answers/data_cosine_dists_answer.txt")
+    data, _ = create_test_scattered()
+    output = pyssage.distances.data_distance_matrix(data, pyssage.distances.data_distance_cosine)
+    for i in range(len(answer)):
+        for j in range(len(answer)):
+            assert round(output[i, j], 5) == answer[i, j]
 
 
 def test_data_distance_czekanowski():
-    assert False
+    # answer calculated from PASSaGE 2 and exported to 5 decimals
+    answer = load_answer("answers/data_czekanowski_dists_answer.txt")
+    data, _ = create_test_scattered()
+    output = pyssage.distances.data_distance_matrix(data, pyssage.distances.data_distance_czekanowski)
+    for i in range(len(answer)):
+        for j in range(len(answer)):
+            assert round(output[i, j], 5) == answer[i, j]
 
 
 def test_data_distance_correlation():
-    assert False
+    # answer calculated from PASSaGE 2 and exported to 5 decimals
+    answer = load_answer("answers/data_correlation_dists_answer.txt")
+    data, _ = create_test_scattered()
+    output = pyssage.distances.data_distance_matrix(data, pyssage.distances.data_distance_correlation)
+    for i in range(len(answer)):
+        for j in range(len(answer)):
+            assert round(output[i, j], 5) == answer[i, j]
 
 
 def test_data_distance_squared_correlation():
-    assert False
+    # answer calculated from PASSaGE 2 and exported to 5 decimals
+    answer = load_answer("answers/data_sqcorrelation_dists_answer.txt")
+    data, _ = create_test_scattered()
+    output = pyssage.distances.data_distance_matrix(data, pyssage.distances.data_distance_squared_correlation)
+    for i in range(len(answer)):
+        for j in range(len(answer)):
+            assert round(output[i, j], 5) == answer[i, j]
