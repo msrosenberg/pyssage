@@ -32,6 +32,17 @@ def check_valid_graph_format(x: str) -> bool:
         raise ValueError(error_msg)
 
 
+def start_figure(figoutput: Optional[FigOutput], polar: bool = False):
+    if figoutput is None:
+        figoutput = FigOutput()
+    fig = pyplot.figure(figsize=figoutput.figsize, dpi=figoutput.dpi)
+    if polar:
+        axs = fig.add_subplot(projection="polar")
+    else:
+        axs = fig.add_subplot()
+    return fig, axs
+
+
 def finalize_figure(fig, axs, figoutput: FigOutput, title: str = "") -> None:
     if title != "":
         axs.set_title(title)
@@ -44,9 +55,7 @@ def finalize_figure(fig, axs, figoutput: FigOutput, title: str = "") -> None:
 
 def draw_transect(transect: numpy.array, unit_scale: Number = 1, title: str = "",
                   figoutput: Optional[FigOutput] = None) -> None:
-    if figoutput is None:
-        figoutput = FigOutput()
-    fig, axs = pyplot.subplots(figsize=figoutput.figsize, dpi=figoutput.dpi)
+    fig, axs = start_figure(figoutput)
     x = [i*unit_scale for i in range(len(transect))]
     axs.plot(x, transect)
     axs.set_xlabel("Position")
@@ -56,7 +65,7 @@ def draw_transect(transect: numpy.array, unit_scale: Number = 1, title: str = ""
 
 def draw_quadvar_result(quadvar: numpy.ndarray, rand_ci: Optional[numpy.ndarray] = None, title: str = "",
                         varlabel: str = "", randlabel: str = "", figoutput: Optional[FigOutput] = None) -> None:
-    fig, axs = pyplot.subplots(figsize=figoutput.figsize, dpi=figoutput.dpi)
+    fig, axs = start_figure(figoutput)
     axs.plot(quadvar[:, 0], quadvar[:, 1], label=varlabel)
     if rand_ci is not None:
         axs.plot(quadvar[:, 0], rand_ci, label=randlabel)
@@ -92,7 +101,7 @@ def draw_quadvar_result(quadvar: numpy.ndarray, rand_ci: Optional[numpy.ndarray]
 
 def draw_tessellation(tessellation, xcoords: numpy.ndarray, ycoords: numpy.ndarray, title: str = "",
                       figoutput: Optional[FigOutput] = None) -> None:
-    fig, axs = pyplot.subplots(figsize=figoutput.figsize, dpi=figoutput.dpi)
+    fig, axs = start_figure(figoutput)
     minx = min(xcoords)
     maxx = max(xcoords)
     miny = min(ycoords)
@@ -142,7 +151,7 @@ def add_connections_to_plot(axs, connections, xcoords: numpy.ndarray, ycoords: n
 
 def draw_connections(connections, xcoords: numpy.ndarray, ycoords: numpy.ndarray, title: str = "",
                      figoutput: Optional[FigOutput] = None):
-    fig, axs = pyplot.subplots(figsize=figoutput.figsize, dpi=figoutput.dpi)
+    fig, axs = start_figure(figoutput)
     minx = min(xcoords)
     maxx = max(xcoords)
     miny = min(ycoords)
@@ -156,7 +165,7 @@ def draw_connections(connections, xcoords: numpy.ndarray, ycoords: numpy.ndarray
 
 def draw_shortest_path(connections, xcoords: numpy.ndarray, ycoords: numpy.ndarray, trace_dict: dict,
                        startp: int, endp: int, title: str = "", figoutput: Optional[FigOutput] = None):
-    fig, axs = pyplot.subplots(figsize=figoutput.figsize, dpi=figoutput.dpi)
+    fig, axs = start_figure(figoutput)
     minx = min(xcoords)
     maxx = max(xcoords)
     miny = min(ycoords)
@@ -180,7 +189,7 @@ def draw_shortest_path(connections, xcoords: numpy.ndarray, ycoords: numpy.ndarr
 
 def draw_distance_class_distribution(dist_matrix: numpy.ndarray, dist_class: numpy.ndarray, title: str = "",
                                      figoutput: Optional[FigOutput] = None):
-    fig, axs = pyplot.subplots(figsize=figoutput.figsize, dpi=figoutput.dpi)
+    fig, axs = start_figure(figoutput)
     distances = pyssage.utils.flatten_half(dist_matrix)
     distances.sort()
     total = len(distances)
@@ -211,7 +220,7 @@ def draw_distance_class_distribution(dist_matrix: numpy.ndarray, dist_class: num
 
 def draw_correlogram(data: numpy.ndarray, metric_title: str = "", title: str = "", alpha: float = 0.05,
                      is_mantel: bool = False, figoutput: Optional[FigOutput] = None):
-    fig, axs = pyplot.subplots(figsize=figoutput.figsize, dpi=figoutput.dpi)
+    fig, axs = start_figure(figoutput)
 
     # column order is: min_scale, max_scale, # pairs, expected, observed, sd, z, prob
     # sd is absent from Mantel correlograms
@@ -259,7 +268,7 @@ def draw_correlogram(data: numpy.ndarray, metric_title: str = "", title: str = "
 
 def draw_bearing_correlogram_old(data: numpy.ndarray, title: str = "", symmetric: bool = True, alpha: float = 0.05,
                                  figoutput: Optional[FigOutput] = None):
-    fig = pyplot.figure(figsize=figoutput.figsize, dpi=figoutput.dpi)
+    fig, axs = start_figure(figoutput, polar=True)
 
     # column order is: min_scale, max_scale, bearing, # pairs, expected, observed, sd, z, prob
     mindist_col = 0
@@ -306,7 +315,6 @@ def draw_bearing_correlogram_old(data: numpy.ndarray, title: str = "", symmetric
         for i in range(len(r)):
             drop_lines.append([(theta[i] + pi, base_circle[i]), (theta[i] + pi, r[i])])
 
-    axs = fig.add_subplot(projection="polar")
     drop_collection = collections.LineCollection(drop_lines, colors="silver", zorder=1)
     axs.add_collection(drop_collection)
 
@@ -324,7 +332,7 @@ def draw_bearing_correlogram_old(data: numpy.ndarray, title: str = "", symmetric
 
 def draw_bearing_correlogram(data: numpy.ndarray, title: str = "", symmetric: bool = True, alpha: float = 0.05,
                              figoutput: Optional[FigOutput] = None):
-    fig = pyplot.figure(figsize=figoutput.figsize, dpi=figoutput.dpi)
+    fig, axs = start_figure(figoutput, polar=True)
 
     # column order is: min_scale, max_scale, bearing, # pairs, expected, observed, sd, z, prob
     mindist_col = 0
@@ -367,8 +375,6 @@ def draw_bearing_correlogram(data: numpy.ndarray, title: str = "", symmetric: bo
     drop_lines = [[(theta[i], base_circle[i]), (theta[i], r[i])] for i in range(len(r))]
     print(p_colors)
 
-    axs = fig.add_subplot(projection="polar")
-
     drop_collection = collections.LineCollection(drop_lines, colors="silver", zorder=1)
     axs.add_collection(drop_collection)
     axs.scatter(theta, r, facecolor=p_colors, edgecolor=edges, zorder=3, s=pnt_sizes)
@@ -386,7 +392,7 @@ def draw_bearing_correlogram(data: numpy.ndarray, title: str = "", symmetric: bo
 def draw_windrose_correlogram(data: numpy.ndarray, title: str = "", symmetric: bool = True, alpha: float = 0.05,
                               show_counts: bool = False, is_mantel: bool = False,
                               figoutput: Optional[FigOutput] = None):
-    fig = pyplot.figure(figsize=figoutput.figsize, dpi=figoutput.dpi)
+    fig, axs = start_figure(figoutput, polar=True)
 
     # pre-determined spacing between sectors in each annulus
     spacer = (14 * pi / 180, 10 * pi / 180, 8 * pi / 180, 6 * pi / 180, 4 * pi / 180, 3 * pi / 180, 2 * pi / 180)
@@ -418,7 +424,6 @@ def draw_windrose_correlogram(data: numpy.ndarray, title: str = "", symmetric: b
         normalize = colors.Normalize(vmin=-1, vmax=1)
     s_colors = pyplot.cm.bwr_r(normalize(data[:, obs_col]))
 
-    axs = fig.add_subplot(projection="polar")
     for annulus in range(n_annuli):
         mask = [annuli[annulus] == row[mindist_col] for row in data]
         annulus_data = data[mask, :]
@@ -528,7 +533,7 @@ def draw_windrose_correlogram(data: numpy.ndarray, title: str = "", symmetric: b
 
 
 def draw_bearing(data: numpy.ndarray, alpha: float = 0.05, title: str = "", figoutput: Optional[FigOutput] = None):
-    fig, axs = pyplot.subplots(figsize=figoutput.figsize, dpi=figoutput.dpi)
+    fig, axs = start_figure(figoutput)
 
     # # column order is: min_scale, max_scale, # pairs, expected, observed, sd, z, prob
     # min_col = 0
