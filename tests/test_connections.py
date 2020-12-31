@@ -10,8 +10,9 @@ def test_delaunay_tessellation():
 
     coords = create_test_coords()
     tessellation, connections = pyssage.connections.delaunay_tessellation(coords[:, 0], coords[:, 1])
-    pyssage.graph.draw_tessellation(tessellation, coords[:, 0], coords[:, 1], "Tessellation Test")
-    pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1], title="Delaunay Connections Test")
+    pyssage.graph.draw_tessellation(tessellation, coords[:, 0], coords[:, 1], "Tessellation Test", figshow=True)
+    pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1], title="Delaunay Connections Test",
+                                   figshow=True)
     for i in range(len(answer)):
         for j in range(len(answer)):
             assert connections[i, j] == answer[i, j]
@@ -24,7 +25,8 @@ def test_relative_neighborhood_network():
     coords = create_test_coords()
     distances = pyssage.distances.sph_dist_matrix(coords[:, 0], coords[:, 1])
     connections = pyssage.connections.relative_neighborhood_network(distances)
-    pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1], title="Relative Neighborhood Network Test")
+    pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1], title="Relative Neighborhood Network Test",
+                                   figshow=True)
     for i in range(len(answer)):
         for j in range(len(answer)):
             assert connections[i, j] == answer[i, j]
@@ -37,7 +39,8 @@ def test_gabriel_network():
     coords = create_test_coords()
     distances = pyssage.distances.sph_dist_matrix(coords[:, 0], coords[:, 1])
     connections = pyssage.connections.gabriel_network(distances)
-    pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1], title="Gabriel Graph/Network Test")
+    pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1], title="Gabriel Graph/Network Test",
+                                   figshow=True)
     for i in range(len(answer)):
         for j in range(len(answer)):
             assert connections[i, j] == answer[i, j]
@@ -50,7 +53,8 @@ def test_minimum_spanning_tree():
     coords = create_test_coords()
     distances = pyssage.distances.sph_dist_matrix(coords[:, 0], coords[:, 1])
     connections = pyssage.connections.minimum_spanning_tree(distances)
-    pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1], title="Minimum-Spanning Tree Test")
+    pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1], title="Minimum-Spanning Tree Test",
+                                   figshow=True)
     for i in range(len(answer)):
         for j in range(len(answer)):
             assert connections[i, j] == answer[i, j]
@@ -64,7 +68,7 @@ def test_connect_distance_range():
     distances = pyssage.distances.euc_dist_matrix(coords[:, 0], coords[:, 1])
     connections = pyssage.connections.connect_distance_range(distances, mindist=7, maxdist=12)
     pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1],
-                                   title="Distance-based Connections (7-12) Test")
+                                   title="Distance-based Connections (7-12) Test", figshow=True)
     for i in range(len(answer)):
         for j in range(len(answer)):
             assert connections[i, j] == answer[i, j]
@@ -74,7 +78,8 @@ def test_least_diagonal_network():
     coords = create_test_coords()
     distances = pyssage.distances.sph_dist_matrix(coords[:, 0], coords[:, 1])
     connections = pyssage.connections.least_diagonal_network(coords[:, 0], coords[:, 1], distances)
-    pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1], title="Least Diagonal Network Test")
+    pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1], title="Least Diagonal Network Test",
+                                   figshow=True)
 
     """
     if tested versus PASSaGE the test fails. I believe the PASSaGE code for this algorithm might have been 
@@ -109,12 +114,12 @@ def test_nearest_neighbor_connections():
     distances = pyssage.distances.sph_dist_matrix(coords[:, 0], coords[:, 1])
     connections = pyssage.connections.nearest_neighbor_connections(distances, 1)
     pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1],
-                                   title="Nearest Neighbor (k=1) Symmetric Test")
+                                   title="Nearest Neighbor (k=1) Symmetric Test", figshow=True)
 
     connections = pyssage.connections.nearest_neighbor_connections(distances, 2)
     pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1],
-                                   title="Nearest Neighbor (k=2) Symmetric Test")
+                                   title="Nearest Neighbor (k=2) Symmetric Test", figshow=True)
 
     connections = pyssage.connections.nearest_neighbor_connections(distances, 2, symmetric=False)
     pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1],
-                                   title="Nearest Neighbor (k=2) Asymmetric Test")
+                                   title="Nearest Neighbor (k=2) Asymmetric Test", figshow=True)

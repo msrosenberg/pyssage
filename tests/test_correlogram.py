@@ -41,7 +41,7 @@ def test_morans_i():
     dist_classes = pyssage.distances.create_distance_classes(distances, "determine pair count", 15)
     dc_con = pyssage.connections.distance_classes_to_connections(dist_classes, distances)
     output, output_text = pyssage.correlogram.correlogram(data[:, 0], dc_con, pyssage.correlogram.morans_i)
-    pyssage.graph.draw_correlogram(numpy.array(output), "Moran's I", "Correlogram")
+    pyssage.graph.draw_correlogram(numpy.array(output), "Moran's I", "Correlogram", figshow=True)
     for line in output_text:
         print(line)
 
@@ -98,7 +98,7 @@ def test_gearys_c():
     dist_classes = pyssage.distances.create_distance_classes(distances, "determine pair count", 15)
     dc_con = pyssage.connections.distance_classes_to_connections(dist_classes, distances)
     output, output_text = pyssage.correlogram.correlogram(data[:, 0], dc_con, pyssage.correlogram.gearys_c)
-    pyssage.graph.draw_correlogram(numpy.array(output), "Geary's c", "Correlogram")
+    pyssage.graph.draw_correlogram(numpy.array(output), "Geary's c", "Correlogram", figshow=True)
     for line in output_text:
         print(line)
 
@@ -142,7 +142,7 @@ def test_mantel_correl():
     data_distances = pyssage.distances.data_distance_matrix(data, pyssage.distances.data_distance_euclidean)
     output, output_text = pyssage.correlogram.correlogram(data_distances, dc_con, pyssage.correlogram.mantel_correl,
                                                           variance=None)
-    pyssage.graph.draw_correlogram(numpy.array(output), "Mantel r", "Correlogram", is_mantel=True)
+    pyssage.graph.draw_correlogram(numpy.array(output), "Mantel r", "Correlogram", is_mantel=True, figshow=True)
     for line in output_text:
         print(line)
 
@@ -428,7 +428,7 @@ def test_bearing_correlogram():
     dc_con = pyssage.connections.distance_classes_to_connections(dist_classes, distances)
     output, output_text = pyssage.correlogram.bearing_correlogram(data[:, 22], dc_con, angles)
     # pyssage.graph.draw_bearing_correlogram_old(numpy.array(output), "Moran's I Bearing Correlogram")
-    pyssage.graph.draw_bearing_correlogram(numpy.array(output), "Moran's I Bearing Correlogram")
+    pyssage.graph.draw_bearing_correlogram(numpy.array(output), "Moran's I Bearing Correlogram", figshow=True)
     for line in output_text:
         print(line)
 
@@ -445,8 +445,9 @@ def test_windrose_correlogram():
     output, output_text, all_output = pyssage.correlogram.windrose_correlogram(data[:, 22], distances, angles,
                                                                                radius_c=3, radius_d=0, radius_e=0)
     pyssage.graph.draw_windrose_correlogram(numpy.array(all_output), title="Moran's I Windrose Correlogram Pair Counts",
-                                            show_counts=True)
-    pyssage.graph.draw_windrose_correlogram(numpy.array(all_output), title="Moran's I Windrose Correlogram")
+                                            show_counts=True, figshow=True)
+    pyssage.graph.draw_windrose_correlogram(numpy.array(all_output), title="Moran's I Windrose Correlogram",
+                                            figshow=True)
     for line in output_text:
         print(line)
 
@@ -471,8 +472,8 @@ def test_mantel_windrose_correlogram():
                                                                                radius_c=3, radius_d=0, radius_e=0,
                                                                                metric=pyssage.correlogram.mantel_correl)
     pyssage.graph.draw_windrose_correlogram(numpy.array(all_output), title="Mantel Windrose Correlogram Pair Counts",
-                                            show_counts=True, is_mantel=True)
+                                            show_counts=True, is_mantel=True, figshow=True)
     pyssage.graph.draw_windrose_correlogram(numpy.array(all_output), title="Mantel Windrose Correlogram",
-                                            is_mantel=True)
+                                            is_mantel=True, figshow=True)
     for line in output_text:
         print(line)

@@ -1,5 +1,6 @@
 from typing import Optional
-from math import pi, radians
+# from math import pi, radians
+from math import pi
 from pyssage.classes import Number
 import pyssage.connections
 import pyssage.distances
@@ -11,20 +12,48 @@ from matplotlib import collections, colors
 import numpy
 
 
-def draw_transect(transect: numpy.array, unit_scale: Number = 1, title: str = "") -> None:
+DEFAULT_FIGSIZE = (8, 6)
+DEFAULT_DPI = 100
+DEFAULT_FIGFORMAT = "png"
+
+
+def check_valid_graph_format(x: str) -> bool:
+    valid_formats = pyplot.gcf().canvas.get_supported_filetypes()
+    if x in valid_formats:
+        return True
+    else:
+        error_msg = "Invalid Figure Format. Valid formats include:\n"
+        for f in valid_formats:
+            error_msg += "{:4}    {}\n".format(f, valid_formats[f])
+        raise ValueError(error_msg)
+
+
+def finalize_figure(fig, figname: str, figformat: str, dpi: int, figshow: bool) -> None:
+    if figname != "":
+        if check_valid_graph_format(figformat):
+            fig.savefig(figname, format=figformat, dpi=dpi)
+    if figshow:
+        pyplot.show()
+
+
+def draw_transect(transect: numpy.array, unit_scale: Number = 1, title: str = "", figsize: tuple = DEFAULT_FIGSIZE,
+                  dpi: int = DEFAULT_DPI, figname: str = "", figformat: str = DEFAULT_FIGFORMAT,
+                  figshow: bool = False) -> None:
+    fig, axs = pyplot.subplots(figsize=figsize, dpi=dpi)
     x = [i*unit_scale for i in range(len(transect))]
-    fig, axs = pyplot.subplots()
     axs.plot(x, transect)
     axs.set_xlabel("Position")
     axs.set_ylabel("Value")
     if title != "":
         axs.set_title(title)
-    pyplot.show()
+    finalize_figure(fig, figname, figformat, dpi, figshow)
 
 
 def draw_quadvar_result(quadvar: numpy.ndarray, rand_ci: Optional[numpy.ndarray] = None, title: str = "",
-                        varlabel: str = "", randlabel: str = "") -> None:
-    fig, axs = pyplot.subplots()
+                        varlabel: str = "", randlabel: str = "", figsize: tuple = DEFAULT_FIGSIZE,
+                        dpi: int = DEFAULT_DPI, figname: str = "", figformat: str = DEFAULT_FIGFORMAT,
+                        figshow: bool = False) -> None:
+    fig, axs = pyplot.subplots(figsize=figsize, dpi=dpi)
     axs.plot(quadvar[:, 0], quadvar[:, 1], label=varlabel)
     if rand_ci is not None:
         axs.plot(quadvar[:, 0], rand_ci, label=randlabel)
@@ -33,7 +62,7 @@ def draw_quadvar_result(quadvar: numpy.ndarray, rand_ci: Optional[numpy.ndarray]
     axs.set_ylabel("Variance")
     if title != "":
         axs.set_title(title)
-    pyplot.show()
+    finalize_figure(fig, figname, figformat, dpi, figshow)
 
 
 # def draw_triangles(triangles: list, coords, title: str = "") -> None:
@@ -60,8 +89,10 @@ def draw_quadvar_result(quadvar: numpy.ndarray, rand_ci: Optional[numpy.ndarray]
 #     pyplot.show()
 
 
-def draw_tessellation(tessellation, xcoords: numpy.ndarray, ycoords: numpy.ndarray, title: str = "") -> None:
-    fig, axs = pyplot.subplots()
+def draw_tessellation(tessellation, xcoords: numpy.ndarray, ycoords: numpy.ndarray, title: str = "",
+                      figsize: tuple = DEFAULT_FIGSIZE, dpi: int = DEFAULT_DPI, figname: str = "",
+                      figformat: str = DEFAULT_FIGFORMAT, figshow: bool = False) -> None:
+    fig, axs = pyplot.subplots(figsize=figsize, dpi=dpi)
     minx = min(xcoords)
     maxx = max(xcoords)
     miny = min(ycoords)
@@ -76,7 +107,7 @@ def draw_tessellation(tessellation, xcoords: numpy.ndarray, ycoords: numpy.ndarr
     axs.set_ylim(miny-1, maxy+1)
     if title != "":
         axs.set_title(title)
-    pyplot.show()
+    finalize_figure(fig, figname, figformat, dpi, figshow)
 
 
 def check_connection_format(con_frmt: str) -> None:
@@ -111,28 +142,32 @@ def add_connections_to_plot(axs, connections, xcoords: numpy.ndarray, ycoords: n
                                  arrowprops=dict(arrowstyle=arrow, edgecolor="C0"), zorder=1)
 
 
-def draw_connections(connections, xcoords: numpy.ndarray, ycoords: numpy.ndarray, title: str = ""):
+def draw_connections(connections, xcoords: numpy.ndarray, ycoords: numpy.ndarray, title: str = "",
+                     figsize: tuple = DEFAULT_FIGSIZE, dpi: int = DEFAULT_DPI, figname: str = "",
+                     figformat: str = DEFAULT_FIGFORMAT, figshow: bool = False):
+    fig, axs = pyplot.subplots(figsize=figsize, dpi=dpi)
     minx = min(xcoords)
     maxx = max(xcoords)
     miny = min(ycoords)
     maxy = max(ycoords)
-    fig, axs = pyplot.subplots()
     add_connections_to_plot(axs, connections, xcoords, ycoords)
     pyplot.scatter(xcoords, ycoords, color="black", zorder=2)
     axs.set_xlim(minx-1, maxx+1)
     axs.set_ylim(miny-1, maxy+1)
     if title != "":
         axs.set_title(title)
-    pyplot.show()
+    finalize_figure(fig, figname, figformat, dpi, figshow)
 
 
 def draw_shortest_path(connections, xcoords: numpy.ndarray, ycoords: numpy.ndarray, trace_dict: dict,
-                       startp: int, endp: int, title: str = ""):
+                       startp: int, endp: int, title: str = "", figsize: tuple = DEFAULT_FIGSIZE,
+                       dpi: int = DEFAULT_DPI, figname: str = "", figformat: str = DEFAULT_FIGFORMAT,
+                       figshow: bool = False):
+    fig, axs = pyplot.subplots(figsize=figsize, dpi=dpi)
     minx = min(xcoords)
     maxx = max(xcoords)
     miny = min(ycoords)
     maxy = max(ycoords)
-    fig, axs = pyplot.subplots()
     add_connections_to_plot(axs, connections, xcoords, ycoords)
 
     trace_path = pyssage.distances.trace_path(startp, endp, trace_dict)
@@ -149,11 +184,13 @@ def draw_shortest_path(connections, xcoords: numpy.ndarray, ycoords: numpy.ndarr
     axs.set_ylim(miny-1, maxy+1)
     if title != "":
         axs.set_title(title)
-    pyplot.show()
+    finalize_figure(fig, figname, figformat, dpi, figshow)
 
 
-def draw_distance_class_distribution(dist_matrix: numpy.ndarray, dist_class: numpy.ndarray, title: str = ""):
-    fig, axs = pyplot.subplots()
+def draw_distance_class_distribution(dist_matrix: numpy.ndarray, dist_class: numpy.ndarray, title: str = "",
+                                     figsize: tuple = DEFAULT_FIGSIZE, dpi: int = DEFAULT_DPI, figname: str = "",
+                                     figformat: str = DEFAULT_FIGFORMAT, figshow: bool = False):
+    fig, axs = pyplot.subplots(figsize=figsize, dpi=dpi)
     distances = pyssage.utils.flatten_half(dist_matrix)
     distances.sort()
     total = len(distances)
@@ -181,11 +218,14 @@ def draw_distance_class_distribution(dist_matrix: numpy.ndarray, dist_class: num
     axs.set_ylabel("Cumulative Count")
     if title != "":
         axs.set_title(title)
-    pyplot.show()
+    finalize_figure(fig, figname, figformat, dpi, figshow)
 
 
 def draw_correlogram(data: numpy.ndarray, metric_title: str = "", title: str = "", alpha: float = 0.05,
-                     is_mantel: bool = False):
+                     is_mantel: bool = False, figsize: tuple = DEFAULT_FIGSIZE, dpi: int = DEFAULT_DPI,
+                     figname: str = "", figformat: str = DEFAULT_FIGFORMAT, figshow: bool = False):
+    fig, axs = pyplot.subplots(figsize=figsize, dpi=dpi)
+
     # column order is: min_scale, max_scale, # pairs, expected, observed, sd, z, prob
     # sd is absent from Mantel correlograms
     min_col = 0
@@ -200,7 +240,6 @@ def draw_correlogram(data: numpy.ndarray, metric_title: str = "", title: str = "
     # plot at midpoint of distance range
     scale = numpy.array([x[min_col] + (x[max_col] - x[min_col])/2 for x in data])
 
-    fig, axs = pyplot.subplots()
     # draw expected values
     y = [data[0, exp_col], data[0, exp_col]]
     x = [0, scale[len(scale)-1]]
@@ -230,10 +269,14 @@ def draw_correlogram(data: numpy.ndarray, metric_title: str = "", title: str = "
     axs.set_ylabel(metric_title)
     if title != "":
         axs.set_title(title)
-    pyplot.show()
+    finalize_figure(fig, figname, figformat, dpi, figshow)
 
 
-def draw_bearing_correlogram_old(data: numpy.ndarray, title: str = "", symmetric: bool = True, alpha: float = 0.05):
+def draw_bearing_correlogram_old(data: numpy.ndarray, title: str = "", symmetric: bool = True, alpha: float = 0.05,
+                                 figsize: tuple = DEFAULT_FIGSIZE, dpi: int = DEFAULT_DPI, figname: str = "",
+                                 figformat: str = DEFAULT_FIGFORMAT, figshow: bool = False):
+    fig = pyplot.figure(figsize=figsize, dpi=dpi)
+
     # column order is: min_scale, max_scale, bearing, # pairs, expected, observed, sd, z, prob
     mindist_col = 0
     b_col = 2
@@ -279,9 +322,7 @@ def draw_bearing_correlogram_old(data: numpy.ndarray, title: str = "", symmetric
         for i in range(len(r)):
             drop_lines.append([(theta[i] + pi, base_circle[i]), (theta[i] + pi, r[i])])
 
-    fig = pyplot.figure()
     axs = fig.add_subplot(projection="polar")
-
     drop_collection = collections.LineCollection(drop_lines, colors="silver", zorder=1)
     axs.add_collection(drop_collection)
 
@@ -296,10 +337,14 @@ def draw_bearing_correlogram_old(data: numpy.ndarray, title: str = "", symmetric
 
     if title != "":
         axs.set_title(title)
-    pyplot.show()
+    finalize_figure(fig, figname, figformat, dpi, figshow)
 
 
-def draw_bearing_correlogram(data: numpy.ndarray, title: str = "", symmetric: bool = True, alpha: float = 0.05):
+def draw_bearing_correlogram(data: numpy.ndarray, title: str = "", symmetric: bool = True, alpha: float = 0.05,
+                             figsize: tuple = DEFAULT_FIGSIZE, dpi: int = DEFAULT_DPI, figname: str = "",
+                             figformat: str = DEFAULT_FIGFORMAT, figshow: bool = False):
+    fig = pyplot.figure(figsize=figsize, dpi=dpi)
+
     # column order is: min_scale, max_scale, bearing, # pairs, expected, observed, sd, z, prob
     mindist_col = 0
     b_col = 2
@@ -341,7 +386,6 @@ def draw_bearing_correlogram(data: numpy.ndarray, title: str = "", symmetric: bo
     drop_lines = [[(theta[i], base_circle[i]), (theta[i], r[i])] for i in range(len(r))]
     print(p_colors)
 
-    fig = pyplot.figure()
     axs = fig.add_subplot(projection="polar")
 
     drop_collection = collections.LineCollection(drop_lines, colors="silver", zorder=1)
@@ -357,11 +401,15 @@ def draw_bearing_correlogram(data: numpy.ndarray, title: str = "", symmetric: bo
     if title != "":
         axs.set_title(title)
     pyplot.colorbar(pyplot.cm.ScalarMappable(norm=normalize, cmap=pyplot.cm.bwr_r), ax=axs)
-    pyplot.show()
+    finalize_figure(fig, figname, figformat, dpi, figshow)
 
 
 def draw_windrose_correlogram(data: numpy.ndarray, title: str = "", symmetric: bool = True, alpha: float = 0.05,
-                              show_counts: bool = False, is_mantel: bool = False):
+                              show_counts: bool = False, is_mantel: bool = False, figsize: tuple = DEFAULT_FIGSIZE,
+                              dpi: int = DEFAULT_DPI, figname: str = "", figformat: str = DEFAULT_FIGFORMAT,
+                              figshow: bool = False):
+    fig = pyplot.figure(figsize=figsize, dpi=dpi)
+
     # pre-determined spacing between sectors in each annulus
     spacer = (14 * pi / 180, 10 * pi / 180, 8 * pi / 180, 6 * pi / 180, 4 * pi / 180, 3 * pi / 180, 2 * pi / 180)
     sig_height = 0.9
@@ -392,7 +440,6 @@ def draw_windrose_correlogram(data: numpy.ndarray, title: str = "", symmetric: b
         normalize = colors.Normalize(vmin=-1, vmax=1)
     s_colors = pyplot.cm.bwr_r(normalize(data[:, obs_col]))
 
-    fig = pyplot.figure()
     axs = fig.add_subplot(projection="polar")
     for annulus in range(n_annuli):
         mask = [annuli[annulus] == row[mindist_col] for row in data]
@@ -501,10 +548,13 @@ def draw_windrose_correlogram(data: numpy.ndarray, title: str = "", symmetric: b
         axs.set_title(title)
     if not show_counts:
         pyplot.colorbar(pyplot.cm.ScalarMappable(norm=normalize, cmap=pyplot.cm.bwr_r), ax=axs)
-    pyplot.show()
+    finalize_figure(fig, figname, figformat, dpi, figshow)
 
 
-def draw_bearing(data: numpy.ndarray, alpha: float = 0.05):
+def draw_bearing(data: numpy.ndarray, alpha: float = 0.05, figsize: tuple = DEFAULT_FIGSIZE, dpi: int = DEFAULT_DPI,
+                 figname: str = "", figformat: str = DEFAULT_FIGFORMAT, figshow: bool = False):
+    fig, axs = pyplot.subplots(figsize=figsize, dpi=dpi)
+
     # # column order is: min_scale, max_scale, # pairs, expected, observed, sd, z, prob
     # min_col = 0
     # max_col = 1
@@ -515,7 +565,6 @@ def draw_bearing(data: numpy.ndarray, alpha: float = 0.05):
     # # plot at midpoint of distance range
     # scale = numpy.array([x[min_col] + (x[max_col] - x[min_col])/2 for x in data])
     #
-    fig, axs = pyplot.subplots()
     n = len(data)
 
     # draw expected value
@@ -541,4 +590,4 @@ def draw_bearing(data: numpy.ndarray, alpha: float = 0.05):
 
     axs.set_xlabel("Bearing")
     axs.set_ylabel("Mantel Correlation")
-    pyplot.show()
+    finalize_figure(fig, figname, figformat, dpi, figshow)
