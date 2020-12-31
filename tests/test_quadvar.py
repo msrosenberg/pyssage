@@ -507,7 +507,7 @@ def test_ttlqv():
               0)
 
     result = pyssage.quadvar.ttlqv(create_test_transect())
-    pyssage.graph.draw_quadvar_result(result, title="TTLQV Test", figshow=True)
+    pyssage.graph.draw_quadvar_result(result, title="TTLQV Test", figoutput=pyssage.graph.FigOutput(figshow=True))
     for i in range(500):
         assert round(result[i, 1], 5) == answer[i]
 
@@ -1016,7 +1016,7 @@ def test_ttlqv_wrap():
               0.4098)
 
     result = pyssage.quadvar.ttlqv(create_test_transect(), wrap=True)
-    pyssage.graph.draw_quadvar_result(result, title="TTLQV Wrap Test", figshow=True)
+    pyssage.graph.draw_quadvar_result(result, title="TTLQV Wrap Test", figoutput=pyssage.graph.FigOutput(figshow=True))
     for i in range(500):
         assert round(result[i, 1], 5) == answer[i]
 
@@ -1358,7 +1358,7 @@ def test_3tlqv():
               0)
 
     result = pyssage.quadvar.three_tlqv(create_test_transect())
-    pyssage.graph.draw_quadvar_result(result, title="3TLQV Test", figshow=True)
+    pyssage.graph.draw_quadvar_result(result, title="3TLQV Test", figoutput=pyssage.graph.FigOutput(figshow=True))
     for i in range(333):
         assert round(result[i, 1], 5) == answer[i]
 
@@ -1867,7 +1867,7 @@ def test_pqv():
               0.1536)
 
     result = pyssage.quadvar.pqv(create_test_transect())
-    pyssage.graph.draw_quadvar_result(result, title="PQV Test", figshow=True)
+    pyssage.graph.draw_quadvar_result(result, title="PQV Test", figoutput=pyssage.graph.FigOutput(figshow=True))
     for i in range(500):
         assert round(result[i, 1], 5) == answer[i]
 
@@ -2209,7 +2209,7 @@ def test_tqv():
               0.09964)
 
     result = pyssage.quadvar.tqv(create_test_transect())
-    pyssage.graph.draw_quadvar_result(result, title="tQV Test", figshow=True)
+    pyssage.graph.draw_quadvar_result(result, title="tQV Test", figoutput=pyssage.graph.FigOutput(figshow=True))
     for i in range(333):
         assert round(result[i, 1], 5) == answer[i]
 
@@ -2717,7 +2717,7 @@ def test_2nlv():
               0)
 
     result = pyssage.quadvar.two_nlv(create_test_transect())
-    pyssage.graph.draw_quadvar_result(result, title="2NLV Test", figshow=True)
+    pyssage.graph.draw_quadvar_result(result, title="2NLV Test", figoutput=pyssage.graph.FigOutput(figshow=True))
     for i in range(499):
         assert round(result[i, 1], 5) == answer[i]
 
@@ -3059,7 +3059,7 @@ def test_3nlv():
               0)
 
     result = pyssage.quadvar.three_nlv(create_test_transect())
-    pyssage.graph.draw_quadvar_result(result, title="3NLV Test", figshow=True)
+    pyssage.graph.draw_quadvar_result(result, title="3NLV Test", figoutput=pyssage.graph.FigOutput(figshow=True))
     for i in range(333):
         assert round(result[i, 1], 5) == answer[i]
 
@@ -3071,7 +3071,7 @@ def test_ttlqv_random():
                                                                 max_block_size=100)
     pyssage.graph.draw_quadvar_result(summary[:, 0:2], summary[:, 2], title="TTLQV Test with Randomization",
                                       varlabel="Observed", randlabel="{:0.2%} confidence limit".format(0.95),
-                                      figshow=True)
+                                      figoutput=pyssage.graph.FigOutput(figshow=True))
 
 
 def test_threetlqv_random():
@@ -3081,7 +3081,7 @@ def test_threetlqv_random():
                                                                 max_block_size=100)
     pyssage.graph.draw_quadvar_result(summary[:, 0:2], summary[:, 2], title="3TLQV Test with Randomization",
                                       varlabel="Observed", randlabel="{:0.2%} confidence limit".format(0.95),
-                                      figshow=True)
+                                      figoutput=pyssage.graph.FigOutput(figshow=True))
 
 
 def test_pqv_random():
@@ -3091,7 +3091,7 @@ def test_pqv_random():
                                                                 max_block_size=50)
     pyssage.graph.draw_quadvar_result(summary[:, 0:2], summary[:, 2], title="PQV Test with Randomization",
                                       varlabel="Observed", randlabel="{:0.2%} confidence limit".format(0.95),
-                                      figshow=True)
+                                      figoutput=pyssage.graph.FigOutput(figshow=True))
 
 
 def test_tqv_random():
@@ -3101,7 +3101,7 @@ def test_tqv_random():
                                                                 max_block_size=50)
     pyssage.graph.draw_quadvar_result(summary[:, 0:2], summary[:, 2], title="TQV Test with Randomization",
                                       varlabel="Observed", randlabel="{:0.2%} confidence limit".format(0.95),
-                                      figshow=True)
+                                      figoutput=pyssage.graph.FigOutput(figshow=True))
 
 
 def test_2nlv_random():
@@ -3111,7 +3111,7 @@ def test_2nlv_random():
                                                                 max_block_size=100)
     pyssage.graph.draw_quadvar_result(summary[:, 0:2], summary[:, 2], title="2NLV Test with Randomization",
                                       varlabel="Observed", randlabel="{:0.2%} confidence limit".format(0.95),
-                                      figshow=True)
+                                      figoutput=pyssage.graph.FigOutput(figshow=True))
 
 
 def test_threet_nlv_random():
@@ -3121,7 +3121,7 @@ def test_threet_nlv_random():
                                                                 max_block_size=100)
     pyssage.graph.draw_quadvar_result(summary[:, 0:2], summary[:, 2], title="3NLV Test with Randomization",
                                       varlabel="Observed", randlabel="{:0.2%} confidence limit".format(0.95),
-                                      figshow=True)
+                                      figoutput=pyssage.graph.FigOutput(figshow=True))
 
     """
     Notes:
@@ -3136,7 +3136,7 @@ def test_4tlqv():
     # discovered small bug in PASSaGE 2 analysis, which caused a very minor shift in the values. can therefore not
     # use for testing purposes
     result = pyssage.quadvar.four_tlqv(create_test_surface())
-    pyssage.graph.draw_quadvar_result(result, title="4TLQV Test", figshow=True)
+    pyssage.graph.draw_quadvar_result(result, title="4TLQV Test", figoutput=pyssage.graph.FigOutput(figshow=True))
 
 
 def test_9tlqv():
@@ -3176,7 +3176,7 @@ def test_9tlqv():
               0.00001)
 
     result = pyssage.quadvar.nine_tlqv(create_test_surface())
-    pyssage.graph.draw_quadvar_result(result, title="9TLQV Test", figshow=True)
+    pyssage.graph.draw_quadvar_result(result, title="9TLQV Test", figoutput=pyssage.graph.FigOutput(figshow=True))
     for i in range(33):
         assert round(result[i, 1], 5) == answer[i]
 
@@ -3219,6 +3219,6 @@ def test_5qv():
               0.45744)
 
     result = pyssage.quadvar.five_qv(create_test_surface())
-    pyssage.graph.draw_quadvar_result(result, title="5QV Test", figshow=True)
+    pyssage.graph.draw_quadvar_result(result, title="5QV Test", figoutput=pyssage.graph.FigOutput(figshow=True))
     for i in range(33):
         assert round(result[i, 1], 5) == answer[i]

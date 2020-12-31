@@ -50,7 +50,7 @@ def test_bearing_analysis():
     distances = pyssage.distances.euc_dist_matrix(coords[:, 0], coords[:, 1])
     angles = pyssage.distances.euc_angle_matrix(coords[:, 0], coords[:, 1])
     output, output_text = pyssage.anisotropy.bearing_analysis(data_distances, distances, angles, 36)
-    pyssage.graph.draw_bearing(numpy.array(output), figshow=True)
+    pyssage.graph.draw_bearing(numpy.array(output), figoutput=pyssage.graph.FigOutput(figshow=True))
 
     for line in output_text:
         print(line)

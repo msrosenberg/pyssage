@@ -66,7 +66,8 @@ def test_shortest_path_distances():
     for i in range(len(answer)):
         for j in range(len(answer)):
             assert round(geodists[i, j], 5) == answer[i, j]
-    pyssage.graph.draw_shortest_path(connections, coords[:, 0], coords[:, 1], trace, 0, 300, figshow=True)
+    pyssage.graph.draw_shortest_path(connections, coords[:, 0], coords[:, 1], trace, 0, 300,
+                                     figoutput=pyssage.graph.FigOutput(figshow=True))
 
     # test a partially connected network
     connections = pyssage.connections.nearest_neighbor_connections(distances, 1)
@@ -78,23 +79,24 @@ def test_create_distance_classes():
     distances = pyssage.distances.sph_dist_matrix(coords[:, 0], coords[:, 1])
     dc = pyssage.distances.create_distance_classes(distances, "determine class width", 10)
     pyssage.graph.draw_distance_class_distribution(distances, dc, title="Ten Equal Width Distance Classes",
-                                                   figshow=True)
+                                                   figoutput=pyssage.graph.FigOutput(figshow=True))
     dc = pyssage.distances.create_distance_classes(distances, "determine pair count", 10)
     pyssage.graph.draw_distance_class_distribution(distances, dc, title="Ten Equal Count Distance Classes",
-                                                   figshow=True)
+                                                   figoutput=pyssage.graph.FigOutput(figshow=True))
     dc = pyssage.distances.create_distance_classes(distances, "set class width", 200)
-    pyssage.graph.draw_distance_class_distribution(distances, dc, title="Distance Class Width Set to 200", figshow=True)
+    pyssage.graph.draw_distance_class_distribution(distances, dc, title="Distance Class Width Set to 200",
+                                                   figoutput=pyssage.graph.FigOutput(figshow=True))
     dc = pyssage.distances.create_distance_classes(distances, "set pair count", 5000)
     pyssage.graph.draw_distance_class_distribution(distances, dc, title="Distance Class Pair Count Set to 5000",
-                                                   figshow=True)
+                                                   figoutput=pyssage.graph.FigOutput(figshow=True))
     dc = pyssage.distances.create_distance_classes(distances, "determine class width", 10, set_max_dist=2000)
     pyssage.graph.draw_distance_class_distribution(distances, dc,
                                                    title="Ten Equal Width Distance Classes (max dist 2000)",
-                                                   figshow=True)
+                                                   figoutput=pyssage.graph.FigOutput(figshow=True))
     dc = pyssage.distances.create_distance_classes(distances, "determine class width", 10, set_max_dist="0.5")
     pyssage.graph.draw_distance_class_distribution(distances, dc,
                                                    title="Ten Equal Width Distance Classes (max dist 50%)",
-                                                   figshow=True)
+                                                   figoutput=pyssage.graph.FigOutput(figshow=True))
 
 
 def test_data_distance_euclidean():
