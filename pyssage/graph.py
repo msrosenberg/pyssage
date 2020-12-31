@@ -32,7 +32,9 @@ def check_valid_graph_format(x: str) -> bool:
         raise ValueError(error_msg)
 
 
-def finalize_figure(fig, figoutput: FigOutput) -> None:
+def finalize_figure(fig, axs, figoutput: FigOutput, title: str = "") -> None:
+    if title != "":
+        axs.set_title(title)
     if figoutput.figname != "":
         if check_valid_graph_format(figoutput.figformat):
             fig.savefig(figoutput.figname, format=figoutput.figformat, dpi=figoutput.dpi)
@@ -49,22 +51,7 @@ def draw_transect(transect: numpy.array, unit_scale: Number = 1, title: str = ""
     axs.plot(x, transect)
     axs.set_xlabel("Position")
     axs.set_ylabel("Value")
-    if title != "":
-        axs.set_title(title)
-    finalize_figure(fig, figoutput)
-
-
-# def draw_transect(transect: numpy.array, unit_scale: Number = 1, title: str = "", figsize: tuple = DEFAULT_FIGSIZE,
-#                   dpi: int = DEFAULT_DPI, figname: str = "", figformat: str = DEFAULT_FIGFORMAT,
-#                   figshow: bool = False) -> None:
-#     fig, axs = pyplot.subplots(figsize=figsize, dpi=dpi)
-#     x = [i*unit_scale for i in range(len(transect))]
-#     axs.plot(x, transect)
-#     axs.set_xlabel("Position")
-#     axs.set_ylabel("Value")
-#     if title != "":
-#         axs.set_title(title)
-#     finalize_figure(fig, figname, figformat, dpi, figshow)
+    finalize_figure(fig, axs, figoutput, title)
 
 
 def draw_quadvar_result(quadvar: numpy.ndarray, rand_ci: Optional[numpy.ndarray] = None, title: str = "",
@@ -76,9 +63,7 @@ def draw_quadvar_result(quadvar: numpy.ndarray, rand_ci: Optional[numpy.ndarray]
         pyplot.legend(loc="upper right")
     axs.set_xlabel("Scale")
     axs.set_ylabel("Variance")
-    if title != "":
-        axs.set_title(title)
-    finalize_figure(fig, figoutput)
+    finalize_figure(fig, axs, figoutput, title)
 
 
 # def draw_triangles(triangles: list, coords, title: str = "") -> None:
@@ -120,9 +105,7 @@ def draw_tessellation(tessellation, xcoords: numpy.ndarray, ycoords: numpy.ndarr
     pyplot.scatter(xcoords, ycoords, color="black")
     axs.set_xlim(minx-1, maxx+1)
     axs.set_ylim(miny-1, maxy+1)
-    if title != "":
-        axs.set_title(title)
-    finalize_figure(fig, figoutput)
+    finalize_figure(fig, axs, figoutput, title)
 
 
 def check_connection_format(con_frmt: str) -> None:
@@ -168,9 +151,7 @@ def draw_connections(connections, xcoords: numpy.ndarray, ycoords: numpy.ndarray
     pyplot.scatter(xcoords, ycoords, color="black", zorder=2)
     axs.set_xlim(minx-1, maxx+1)
     axs.set_ylim(miny-1, maxy+1)
-    if title != "":
-        axs.set_title(title)
-    finalize_figure(fig, figoutput)
+    finalize_figure(fig, axs, figoutput, title)
 
 
 def draw_shortest_path(connections, xcoords: numpy.ndarray, ycoords: numpy.ndarray, trace_dict: dict,
@@ -194,9 +175,7 @@ def draw_shortest_path(connections, xcoords: numpy.ndarray, ycoords: numpy.ndarr
     pyplot.scatter(xcoords, ycoords, color="black", zorder=2)
     axs.set_xlim(minx-1, maxx+1)
     axs.set_ylim(miny-1, maxy+1)
-    if title != "":
-        axs.set_title(title)
-    finalize_figure(fig, figoutput)
+    finalize_figure(fig, axs, figoutput, title)
 
 
 def draw_distance_class_distribution(dist_matrix: numpy.ndarray, dist_class: numpy.ndarray, title: str = "",
@@ -227,9 +206,7 @@ def draw_distance_class_distribution(dist_matrix: numpy.ndarray, dist_class: num
 
     axs.set_xlabel("Distance")
     axs.set_ylabel("Cumulative Count")
-    if title != "":
-        axs.set_title(title)
-    finalize_figure(fig, figoutput)
+    finalize_figure(fig, axs, figoutput, title)
 
 
 def draw_correlogram(data: numpy.ndarray, metric_title: str = "", title: str = "", alpha: float = 0.05,
@@ -277,9 +254,7 @@ def draw_correlogram(data: numpy.ndarray, metric_title: str = "", title: str = "
 
     axs.set_xlabel("Scale")
     axs.set_ylabel(metric_title)
-    if title != "":
-        axs.set_title(title)
-    finalize_figure(fig, figoutput)
+    finalize_figure(fig, axs, figoutput, title)
 
 
 def draw_bearing_correlogram_old(data: numpy.ndarray, title: str = "", symmetric: bool = True, alpha: float = 0.05,
@@ -344,9 +319,7 @@ def draw_bearing_correlogram_old(data: numpy.ndarray, title: str = "", symmetric
     if not symmetric:
         axs.set_xlim(0, pi)
 
-    if title != "":
-        axs.set_title(title)
-    finalize_figure(fig, figoutput)
+    finalize_figure(fig, axs, figoutput, title)
 
 
 def draw_bearing_correlogram(data: numpy.ndarray, title: str = "", symmetric: bool = True, alpha: float = 0.05,
@@ -406,10 +379,8 @@ def draw_bearing_correlogram(data: numpy.ndarray, title: str = "", symmetric: bo
     if not symmetric:
         axs.set_xlim(0, pi)
 
-    if title != "":
-        axs.set_title(title)
     pyplot.colorbar(pyplot.cm.ScalarMappable(norm=normalize, cmap=pyplot.cm.bwr_r), ax=axs)
-    finalize_figure(fig, figoutput)
+    finalize_figure(fig, axs, figoutput, title)
 
 
 def draw_windrose_correlogram(data: numpy.ndarray, title: str = "", symmetric: bool = True, alpha: float = 0.05,
@@ -551,14 +522,12 @@ def draw_windrose_correlogram(data: numpy.ndarray, title: str = "", symmetric: b
     if not symmetric:
         axs.set_xlim(0, pi)
     pyplot.axis("off")
-    if title != "":
-        axs.set_title(title)
     if not show_counts:
         pyplot.colorbar(pyplot.cm.ScalarMappable(norm=normalize, cmap=pyplot.cm.bwr_r), ax=axs)
-    finalize_figure(fig, figoutput)
+    finalize_figure(fig, axs, figoutput, title)
 
 
-def draw_bearing(data: numpy.ndarray, alpha: float = 0.05, figoutput: Optional[FigOutput] = None):
+def draw_bearing(data: numpy.ndarray, alpha: float = 0.05, title: str = "", figoutput: Optional[FigOutput] = None):
     fig, axs = pyplot.subplots(figsize=figoutput.figsize, dpi=figoutput.dpi)
 
     # # column order is: min_scale, max_scale, # pairs, expected, observed, sd, z, prob
@@ -596,4 +565,4 @@ def draw_bearing(data: numpy.ndarray, alpha: float = 0.05, figoutput: Optional[F
 
     axs.set_xlabel("Bearing")
     axs.set_ylabel("Mantel Correlation")
-    finalize_figure(fig, figoutput)
+    finalize_figure(fig, axs, figoutput, title)
