@@ -3,7 +3,7 @@ import pyssage.connections
 import pyssage.distances
 import pyssage.graph
 from tests.test_common import create_test_coords, load_answer, create_test_scattered
-import numpy
+# import numpy
 
 
 def test_euc_dist_matrix():
@@ -139,7 +139,7 @@ def test_data_distance_canberra():
             assert round(output[i, j], 5) == answer[i, j]
 
     """
-    test problem = if a pair of matched values in a compared column were both zero, passage reported NaN 
+    test problem: if a pair of matched values in a compared column were both zero, passage reported NaN 
     test can't be directly determined from there
     """
 
