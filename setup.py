@@ -13,7 +13,8 @@ setuptools.setup(
     description="python version of some of the analyses from PASSaGE 2",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/....",
+    url="https://github.com/msrosenberg/pyssage",
+    license="GPLv3",
     packages=setuptools.find_packages(),
     # classifiers=[
     #     "Programming Language :: Python :: 3",
