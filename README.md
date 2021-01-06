@@ -11,12 +11,20 @@ So far the following analyses have been implemented:
 
 ### Quadrat-Variance
 
+#### One-dimensional
+
 * TTLQV: Two-Term Local Quadrat Variance Analysis (Hill 1973)
 * 3TLQV: Three-Term Local Quadrat Variance Analysis (Hill 1973)
 * PQV: Paired Quadrat Variance Analysis
 * tQV: Triplet Quadrat Variance Analysis (Dale 1999)
 * 2NLV: Two-term New Local Variance Analysis (Galiano 1982)
 * 3NLV: Three-term New Local Variance Analysis (Galiano 1982)
+
+#### Two-dimensional
+
+* 4TLQV: Four-Term Local Quadrat Variance Analysis (Dale 1990, 1999)
+* 9TLQV: Nine-Term Local Quadrat Variance Analysis (Dale 1990, 1999)
+* 5QV: Pentuplet Quadrat Variance (Fortin and Dale 2005)
 
 ### Distance Calculations
 * Euclidean distances/angles from 1, 2, and 3-dimensional points
@@ -66,6 +74,9 @@ So far the following analyses have been implemented:
 
 * Cliff, A.D., and J.K. Ord (1981) *Spatial Processes*. London: Pion.
 
+* Dale, M.R T. (1990) Two-dimensional analysis of spatial pattern in vegetation for site comparison. 
+  *Canadian Journal of Botany* 68:149-158.
+
 * Dale, M.R T. (1999) *Spatial Pattern Analysis in Plant Ecology.* Cambridge: Cambridge University Press.
 
 * Delaunay, B. (1928) Sur la sphère vide. Pp. 695-700 in Proceedings of the International Mathematical Congress 
@@ -76,6 +87,8 @@ So far the following analyses have been implemented:
 
 * Falsetti, A.B., and R.R. Sokal (1993) Genetic structure of human populations in the British Isles. *Annals of 
   Human Biology* 20:215-229.
+
+* Fortin, M.-J., and M.R.T. Dale (2005) *Spatial Analysis*. Cambridge: Cambridge University Press.
 
 * Fraser, A.R., and P. van den Driessche (1972) Triangles, density and pattern in point populations. Pp. 277-286 in 
   *Proceedings of the 3rd Conference of the Advisory Group of Forest Statisticians*. Jouy-en-Josas, France: 
