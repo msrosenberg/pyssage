@@ -5,6 +5,8 @@ PySSaGE is a collection of python versions of analyses originally part of the *P
 
 A more throrough explanation of how to use the code is forthcoming.
 
+---
+
 ## Analyses
 
 So far the following analyses have been implemented:
@@ -67,6 +69,7 @@ So far the following analyses have been implemented:
 ### Miscellaneous
 * Mantel tests (Mantel 1967; Mantel and Valand 1970)
 
+---
 
 ## References
 
