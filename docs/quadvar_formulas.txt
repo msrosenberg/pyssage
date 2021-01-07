@@ -1,0 +1,17 @@
+This file contains raw latex representations of formulas that might appear in the manual. They are being stored
+separately here as they may be required to be "translated" prior to use in formal pages and it save on effort if
+they need to be recreated or edited.
+
+
+TTLQV
+
+V_2\left ( b \right )=\frac{\displaystyle\sum_{i=1}^{n_x + 1 - 2b}\left ( \displaystyle\sum_{j=i}^{i+b-1} d_j - \displaystyle\sum_{j=i+b}^{i+2b-1} d_j \right )^2}{2b\left ( n_x +1 -2b \right )}
+
+
+---
+
+3TLQV
+
+
+
+
