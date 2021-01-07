@@ -3,7 +3,8 @@ import numpy
 from pyssage.classes import Number
 # from datetime import datetime
 
-__all__ = ["ttlqv", "three_tlqv", "pqv", "tqv", "two_nlv", "three_nlv", "four_tlqv", "five_qv", "nine_tlqv"]
+__all__ = ["ttlqv", "three_tlqv", "pqv", "tqv", "two_nlv", "three_nlv", "four_tlqv", "five_qv", "nine_tlqv",
+           "quadrat_variance_randomization"]
 
 
 def check_block_size(max_block_size: int, n: int, x: int) -> int:

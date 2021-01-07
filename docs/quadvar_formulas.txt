@@ -1,0 +1,60 @@
+This file contains raw latex representations of formulas that might appear in the manual. They are being stored
+separately here as they may be required to be "translated" prior to use in formal pages and it save on effort if
+they need to be recreated or edited.
+
+
+TTLQV
+
+V_2\left ( b \right )=\frac{\displaystyle\sum_{i=1}^{n_x + 1 - 2b}\left ( \displaystyle\sum_{j=i}^{i+b-1} d_j -
+\displaystyle\sum_{j=i+b}^{i+2b-1} d_j \right )^2}{2b\left ( n_x +1 -2b \right )}
+
+
+---
+
+3TLQV
+
+
+V_3\left ( b \right )=\frac{\displaystyle\sum_{i=1}^{n_x + 1 - 3b}\left ( \displaystyle\sum_{j=i}^{i+b-1} d_j -
+2\displaystyle\sum_{j=i+b}^{i+2b-1} d_j + \displaystyle\sum_{j=i+2b}^{i+3b-1} d_j \right )^2}{8b
+\left ( n_x +1 - 3b \right )}
+
+
+---
+
+PQV
+
+V_P\left ( b \right )=\frac{\displaystyle\sum_{i=1}^{n_x - b}\left (d_i - d_{i+b}  \right )^2}
+{2\left ( n_x  - b \right )}
+
+
+---
+
+tQV
+
+V_t\left ( b \right )=\frac{\displaystyle\sum_{i=1}^{n_x - 2b}\left (d_i - 2d_{i+b} + d_{i+2b} \right )^2}{4
+\left ( n_x  - 2b \right )}
+
+
+---
+
+2NLV
+
+V_{N2}\left ( b \right )=\frac{\displaystyle\sum_{i=1}^{n_x - 2b} \left | \left ( \displaystyle\sum_{j=i}^{i+b-1}
+d_j - \displaystyle\sum_{j=i+b}^{i+2b-1} d_j \right )^2 - \left ( \displaystyle\sum_{j=i+1}^{i+b} d_j -
+\displaystyle\sum_{j=i+b+1}^{i+2b} d_j \right )^2 \right | }{2b\left ( n_x - 2b \right )}
+
+
+---
+
+3NLV
+
+V_{N3}\left ( b \right )=\frac{\displaystyle\sum_{i=1}^{n_x - 3b} \left | \left ( \displaystyle\sum_{j=i}^{i+b-1}
+d_j - 2\displaystyle\sum_{j=i+b}^{i+2b-1} d_j + \displaystyle\sum_{j=i+2b}^{i+3b-1} d_j \right )^2 - \left (
+\displaystyle\sum_{j=i+1}^{i+b} d_j - 2\displaystyle\sum_{j=i+b+1}^{i+2b} d_j + \displaystyle\sum_{j=i+2b+1}^{i+3b}
+d_j \right )^2 \right| }{8b\left ( n_x - 3b \right )}
+
+
+---
+
+
+
