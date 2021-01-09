@@ -57,4 +57,55 @@ d_j \right )^2 \right| }{8b\left ( n_x - 3b \right )}
 ---
 
 
+5qv
+
+V_5 \left (b \right) = \frac{\displaystyle\sum_{i=b+1}^{n_x - b} \displaystyle\sum_{j=b+1}^{n_y - b}
+\left(d_{i-b, j}+d_{i+b, j}+d_{i,j-b}+d_{i,j+b}-4d_{i,j} \right )^2}{20\left(n_x - 2b \right )\left(n_y -2b \right )}
+
+
+---
+
+4TLQV
+
+\mathbf{UL}\left( b \right ) = \displaystyle\sum_{k=i}^{i+b-1} \displaystyle\sum_{l=j}^{j+b-1} d_{k,l}
+
+\mathbf{UR}\left( b \right ) = \displaystyle\sum_{k=i+b}^{i+2b-1} \displaystyle\sum_{l=j}^{j+b-1} d_{k,l}
+
+\mathbf{LL}\left( b \right ) = \displaystyle\sum_{k=i}^{i+b-1} \displaystyle\sum_{l=j+b}^{j+2b-1} d_{k,l}
+
+\mathbf{LR}\left( b \right ) = \displaystyle\sum_{k=i+b}^{i+2b-1} \displaystyle\sum_{l=j+b}^{j+2b-1} d_{k,l}
+
+V_{\mathbf{UL}}\left( b \right ) = \frac{\displaystyle\sum_{i=1}^{n_x + 1 -2b} \displaystyle\sum_{j=1}^{n_y+1-2b}
+\left(\mathbf{UR}\left( b \right ) + \mathbf{LL}\left( b \right ) + \mathbf{LR}\left( b \right ) -
+3\mathbf{UL}\left( b \right ) \right )^2}{8b^3\left(n_x + 1 - 2b \right )\left(n_y + 1 -2b \right )}
+
+V_{\mathbf{UR}}\left( b \right ) = \frac{\displaystyle\sum_{i=1}^{n_x + 1 -2b} \displaystyle\sum_{j=1}^{n_y+1-2b}
+\left(\mathbf{UL}\left( b \right ) + \mathbf{LL}\left( b \right ) + \mathbf{LR}\left( b \right ) -
+3\mathbf{UR}\left( b \right ) \right )^2}{8b^3\left(n_x + 1 - 2b \right )\left(n_y + 1 -2b \right )}
+
+V_{\mathbf{LR}}\left( b \right ) = \frac{\displaystyle\sum_{i=1}^{n_x + 1 -2b} \displaystyle\sum_{j=1}^{n_y+1-2b}
+\left(\mathbf{UL}\left( b \right ) + \mathbf{LL}\left( b \right ) + \mathbf{UR}\left( b \right ) -
+3\mathbf{LR}\left( b \right ) \right )^2}{8b^3\left(n_x + 1 - 2b \right )\left(n_y + 1 -2b \right )}
+
+V_{\mathbf{LL}}\left( b \right ) = \frac{\displaystyle\sum_{i=1}^{n_x + 1 -2b} \displaystyle\sum_{j=1}^{n_y+1-2b}
+\left(\mathbf{UL}\left( b \right ) + \mathbf{LR}\left( b \right ) + \mathbf{UR}\left( b \right ) -
+3\mathbf{LL}\left( b \right ) \right )^2}{8b^3\left(n_x + 1 - 2b \right )\left(n_y + 1 -2b \right )}
+
+V_{4}\left(b \right ) = \frac{V_{\mathbf{LL}}\left(b \right ) + V_{\mathbf{LR}}\left(b \right ) +
+V_{\mathbf{UL}}\left(b \right ) + V_{\mathbf{UR}}\left(b \right )}{4}
+
+
+---
+
+9TLQV
+
+
+V_9\left(b \right ) = \displaystyle\sum_{i=1}^{n_x + 1 - 3b} \displaystyle\sum_{j=1}^{n_y + 1 - 3b}
+\frac{\left(\displaystyle\sum_{k=i}^{i+b-1} \displaystyle\sum_{l=j}^{j+3b-1}d_{k,l} +
+\displaystyle\sum_{k=i+2b}^{i+3b-1} \displaystyle\sum_{l=j}^{j+3b-1}d_{k,l} +
+\displaystyle\sum_{k=i+b}^{i+2b-1} \displaystyle\sum_{l=j}^{j+b-1}d_{k,l} +
+\displaystyle\sum_{k=i+b}^{i+2b-1} \displaystyle\sum_{l=j+2b}^{j+3b-1}d_{k,l} -
+8\displaystyle\sum_{k=i+b}^{i+2b-1} \displaystyle\sum_{l=j+b}^{j+2b-1}d_{k,l} \right )^2}
+{72b^3\left(n_x + 1 -3b \right )\left(n_y + 1 -3b \right )}
+
 
