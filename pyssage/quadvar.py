@@ -6,6 +6,8 @@ from pyssage.classes import Number
 __all__ = ["ttlqv", "three_tlqv", "pqv", "tqv", "two_nlv", "three_nlv", "four_tlqv", "five_qv", "nine_tlqv",
            "quadrat_variance_randomization"]
 
+_2D_FUNCS_ = ("four_tlqv", "five_qv", "nine_tlqv")
+
 
 def check_block_size(max_block_size: int, n: int, x: int) -> int:
     """
@@ -174,7 +176,7 @@ def tqv(transect: numpy.ndarray, min_block_size: int = 1, max_block_size: int = 
     """
     n = len(transect)
     output = []
-    max_block_size = check_block_size(max_block_size, n, 3)
+    max_block_size = check_block_size(max_block_size, n, 2)
     if wrap:
         _transect = numpy.append(transect, transect)
     else:
@@ -255,7 +257,7 @@ def three_nlv(transect: numpy.ndarray, min_block_size: int = 1, max_block_size: 
 
     :param transect: a single dimensional numpy array containing the transect data
     :param min_block_size: the smallest block size of the analysis (default = 1)
-    :param max_block_size: the largest block size of the analysis (default = 0, indicating 50% of the transect length)
+    :param max_block_size: the largest block size of the analysis (default = 0, indicating 33% of the transect length)
     :param block_step: the incremental size increase of each block size (default = 1)
     :param wrap: treat the transect as a circle where the ends meet (default = False)
     :param unit_scale: represents the unit scale of a single block (default = 1). Can be used to rescale the units of
@@ -298,11 +300,11 @@ def three_nlv(transect: numpy.ndarray, min_block_size: int = 1, max_block_size: 
     return numpy.array(output)
 
 
-def quadrat_variance_randomization(qv_function, nreps: int, transect: numpy.ndarray, min_block_size: int = 1,
+def quadrat_variance_randomization(qv_function, nreps: int, data: numpy.ndarray, min_block_size: int = 1,
                                    max_block_size: int = 0, block_step: int = 1, wrap: bool = False,
                                    unit_scale: Number = 1, alpha: float = 0.05) -> Tuple[numpy.ndarray, numpy.ndarray]:
     """
-    Uses multiple permutations of transect to create a confidence limit for the various quadrat variance tests.
+    Uses multiple permutations of the input datato create a confidence limit for the various quadrat variance tests.
 
     This function can work with any of the quadrat variance methods. The specific method to be used in specified by
     the first parameter which is the function to use
@@ -310,11 +312,11 @@ def quadrat_variance_randomization(qv_function, nreps: int, transect: numpy.ndar
     :param qv_function: the quadrat variance function to use as the basis of the tests
     :param nreps: the number of replicates to perform. By definition the observed data will be treated as the first
                   replicate
-    :param transect: a single dimensional numpy array containing the transect data
+    :param data: a one or two-dimensional numpy array containing the transect/surface data
     :param min_block_size: the smallest block size of the analysis (default = 1)
-    :param max_block_size: the largest block size of the analysis (default = 0, indicating 50% of the transect length)
+    :param max_block_size: the largest block size of the analysis (default = 0, indicating the maximum possible size)
     :param block_step: the incremental size increase of each block size (default = 1)
-    :param wrap: treat the transect as a circle where the ends meet (default = False)
+    :param wrap: treat the transect as a circle where the ends meet (default = False) (1D analysis only)
     :param unit_scale: represents the unit scale of a single block (default = 1). Can be used to rescale the units of
            the output, e.g., if the blocks are measured in centimeters, you could use a scale of 0.01 to have the
            output expressed in meters.
@@ -325,15 +327,24 @@ def quadrat_variance_randomization(qv_function, nreps: int, transect: numpy.ndar
              size, the second the observed quadrat variance, and the remaining columns the results from each permuted
              data set.
     """
-    base_output = qv_function(transect, min_block_size, max_block_size, block_step, wrap, unit_scale)
+    if qv_function in _2D_FUNCS_:
+        base_output = qv_function(data, min_block_size, max_block_size, block_step, unit_scale)
+    else:
+        base_output = qv_function(data, min_block_size, max_block_size, block_step, wrap, unit_scale)
     all_output = numpy.empty((len(base_output), nreps+1))
     summary_output = numpy.empty((len(base_output), 3))
     all_output[:, 0:2] = base_output[:, 0:2]
     summary_output[:, 0:2] = base_output[:, 0:2]
-    rand_transect = numpy.copy(transect)
+    shape = data.shape
+    rand_data = numpy.copy(data)
     for rep in range(nreps-1):
-        numpy.random.shuffle(rand_transect)
-        rand_output = qv_function(rand_transect, min_block_size, max_block_size, block_step, wrap, unit_scale)
+        rand_data = rand_data.flatten()
+        numpy.random.shuffle(rand_data)
+        rand_data = rand_data.reshape(shape)
+        if qv_function in _2D_FUNCS_:
+            rand_output = qv_function(rand_data, min_block_size, max_block_size, block_step, unit_scale)
+        else:
+            rand_output = qv_function(rand_data, min_block_size, max_block_size, block_step, wrap, unit_scale)
         all_output[:, rep+2] = rand_output[:, 1]
     alpha_index = round(nreps * (1-alpha)) - 1
     for r in range(len(all_output)):
@@ -412,7 +423,7 @@ def nine_tlqv(surface: numpy.ndarray, min_block_size: int = 1, max_block_size: i
 
     :param surface: a two-dimensional numpy array containing the surface data
     :param min_block_size: the smallest block size of the analysis (default = 1)
-    :param max_block_size: the largest block size of the analysis (default = 0, indicating 50% of the transect length)
+    :param max_block_size: the largest block size of the analysis (default = 0, indicating 33% of the transect length)
     :param block_step: the incremental size increase of each block size (default = 1)
     :param unit_scale: represents the unit scale of a single block (default = 1). Can be used to rescale the units of
            the output, e.g., if the blocks are measured in centimeters, you could use a scale of 0.01 to have the
