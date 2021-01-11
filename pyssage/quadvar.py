@@ -1,4 +1,5 @@
 from typing import Tuple
+from collections import namedtuple
 import numpy
 from pyssage.classes import Number
 # from datetime import datetime
@@ -351,7 +352,8 @@ def quadrat_variance_randomization(qv_function, nreps: int, data: numpy.ndarray,
         tmp = all_output[r, 1:]  # pull out row, excluding first column
         tmp = numpy.sort(tmp)
         summary_output[r, 2] = tmp[alpha_index]
-    return summary_output, all_output
+    output = namedtuple("output", ["summary_output", "all_output"])
+    return output(summary_output, all_output)
 
 
 def check_2d_block_size(max_block_size: int, n: int, x: int) -> int:
