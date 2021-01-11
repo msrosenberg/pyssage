@@ -10,8 +10,8 @@ from pyssage.utils import flatten_half, euclidean_angle
 _EARTH_RADIUS = 6371.0087714  # default radius of the Earth for spherical calculations
 
 
-def euc_dist_matrix(x: numpy.ndarray, y: Optional[numpy.ndarray] = None,
-                    z: Optional[numpy.ndarray] = None) -> numpy.ndarray:
+def euclidean_distance_matrix(x: numpy.ndarray, y: Optional[numpy.ndarray] = None,
+                              z: Optional[numpy.ndarray] = None) -> numpy.ndarray:
     """
     Calculate a Euclidean distance matrix from coordinates in one, two, or three dimensions
 
@@ -48,7 +48,7 @@ def euc_dist_matrix(x: numpy.ndarray, y: Optional[numpy.ndarray] = None,
     return output
 
 
-def sph_dist(lat1: float, lat2: float, lon1: float, lon2: float, earth_radius: float = _EARTH_RADIUS) -> float:
+def spherical_distance(lat1: float, lat2: float, lon1: float, lon2: float, earth_radius: float = _EARTH_RADIUS) -> float:
     """
     Returns the geodesic distance along the globe in km, for two points represented by longitudes and latitudes
 
@@ -79,7 +79,7 @@ def sph_dist(lat1: float, lat2: float, lon1: float, lon2: float, earth_radius: f
         return acos(angle)*earth_radius
 
 
-def sph_dist_matrix(lon: numpy.ndarray, lat: numpy.ndarray, earth_radius: float = _EARTH_RADIUS) -> numpy.ndarray:
+def spherical_distance_matrix(lon: numpy.ndarray, lat: numpy.ndarray, earth_radius: float = _EARTH_RADIUS) -> numpy.ndarray:
     """
     construct an n x n matrix containing spherical distances from latitudes and longitudes
 
@@ -95,13 +95,13 @@ def sph_dist_matrix(lon: numpy.ndarray, lat: numpy.ndarray, earth_radius: float 
     output = numpy.zeros((n, n))
     for i in range(n):
         for j in range(i):
-            dist = sph_dist(lat[i], lat[j], lon[i], lon[j], earth_radius)
+            dist = spherical_distance(lat[i], lat[j], lon[i], lon[j], earth_radius)
             output[i, j] = dist
             output[j, i] = dist
     return output
 
 
-def sph_angle(lat1: float, lat2: float, lon1: float, lon2: float, mode: str = "midpoint") -> float:
+def spherical_angle(lat1: float, lat2: float, lon1: float, lon2: float, mode: str = "midpoint") -> float:
     """
     calculate the spherical angle between a pair of points
 
@@ -152,7 +152,7 @@ def sph_angle(lat1: float, lat2: float, lon1: float, lon2: float, mode: str = "m
     return bearing
 
 
-def sph_angle_matrix(lon: numpy.ndarray, lat: numpy.ndarray, mode: str = "midpoint") -> numpy.ndarray:
+def spherical_angle_matrix(lon: numpy.ndarray, lat: numpy.ndarray, mode: str = "midpoint") -> numpy.ndarray:
     """
     construct an n by n matrix containing the angles (in radians) describing the spherical bearing between pairs of
     latitudes and longitudes
@@ -173,12 +173,12 @@ def sph_angle_matrix(lon: numpy.ndarray, lat: numpy.ndarray, mode: str = "midpoi
     for i in range(n):
         for j in range(n):
             if i != j:
-                angle = sph_angle(lat[i], lat[j], lon[i], lon[j], mode)
+                angle = spherical_angle(lat[i], lat[j], lon[i], lon[j], mode)
                 output[i, j] = angle
     return output
 
 
-def euc_angle_matrix(x: numpy.ndarray, y: numpy.ndarray, do360: bool = False) -> numpy.ndarray:
+def euclidean_angle_matrix(x: numpy.ndarray, y: numpy.ndarray, do360: bool = False) -> numpy.ndarray:
     """
     construct an n by n matrix containing the angles (in radians) describing the bearing between pairs of points
 

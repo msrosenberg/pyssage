@@ -22,8 +22,8 @@ def test_mantel():
     although not asserted (as not part of function output), manual inspection of Z and t are also identical
     """
     coords = create_test_coords()
-    distances = pyssage.distances.euc_dist_matrix(coords[:, 0], coords[:, 1])
-    angles = pyssage.distances.euc_angle_matrix(coords[:, 0], coords[:, 1])
+    distances = pyssage.distances.euclidean_distance_matrix(coords[:, 0], coords[:, 1])
+    angles = pyssage.distances.euclidean_angle_matrix(coords[:, 0], coords[:, 1])
     r, p_value, output_text, _, _, _, _ = pyssage.mantel.mantel(distances, angles, [])
     for line in output_text:
         print(line)
@@ -38,8 +38,8 @@ def test_mantel_with_permutation():
 
     """
     coords = create_test_coords()
-    distances = pyssage.distances.euc_dist_matrix(coords[:, 0], coords[:, 1])
-    angles = pyssage.distances.euc_angle_matrix(coords[:, 0], coords[:, 1])
+    distances = pyssage.distances.euclidean_distance_matrix(coords[:, 0], coords[:, 1])
+    angles = pyssage.distances.euclidean_angle_matrix(coords[:, 0], coords[:, 1])
     r, p_value, output_text, _, _, _, _ = pyssage.mantel.mantel(distances, angles, [], permutations=100)
     for line in output_text:
         print(line)

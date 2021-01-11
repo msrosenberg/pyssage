@@ -24,7 +24,7 @@ def test_relative_neighborhood_network():
     answer = load_answer("answers/rel_neighbor_answer.txt")
 
     coords = create_test_coords()
-    distances = pyssage.distances.sph_dist_matrix(coords[:, 0], coords[:, 1])
+    distances = pyssage.distances.spherical_distance_matrix(coords[:, 0], coords[:, 1])
     connections = pyssage.connections.relative_neighborhood_network(distances)
     pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1], title="Relative Neighborhood Network Test",
                                    figoutput=pyssage.graph.FigOutput(figshow=True))
@@ -38,7 +38,7 @@ def test_gabriel_network():
     answer = load_answer("answers/gabriel_answer.txt")
 
     coords = create_test_coords()
-    distances = pyssage.distances.sph_dist_matrix(coords[:, 0], coords[:, 1])
+    distances = pyssage.distances.spherical_distance_matrix(coords[:, 0], coords[:, 1])
     connections = pyssage.connections.gabriel_network(distances)
     pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1], title="Gabriel Graph/Network Test",
                                    figoutput=pyssage.graph.FigOutput(figshow=True))
@@ -52,7 +52,7 @@ def test_minimum_spanning_tree():
     answer = load_answer("answers/minspan_answer.txt")
 
     coords = create_test_coords()
-    distances = pyssage.distances.sph_dist_matrix(coords[:, 0], coords[:, 1])
+    distances = pyssage.distances.spherical_distance_matrix(coords[:, 0], coords[:, 1])
     connections = pyssage.connections.minimum_spanning_tree(distances)
     pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1], title="Minimum-Spanning Tree Test",
                                    figoutput=pyssage.graph.FigOutput(figshow=True))
@@ -66,7 +66,7 @@ def test_connect_distance_range():
     answer = load_answer("answers/distance_based_connect_7-12_answer.txt")
 
     coords = create_test_coords()
-    distances = pyssage.distances.euc_dist_matrix(coords[:, 0], coords[:, 1])
+    distances = pyssage.distances.euclidean_distance_matrix(coords[:, 0], coords[:, 1])
     connections = pyssage.connections.connect_distance_range(distances, mindist=7, maxdist=12)
     pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1],
                                    title="Distance-based Connections (7-12) Test",
@@ -78,7 +78,7 @@ def test_connect_distance_range():
 
 def test_least_diagonal_network():
     coords = create_test_coords()
-    distances = pyssage.distances.sph_dist_matrix(coords[:, 0], coords[:, 1])
+    distances = pyssage.distances.spherical_distance_matrix(coords[:, 0], coords[:, 1])
     connections = pyssage.connections.least_diagonal_network(coords[:, 0], coords[:, 1], distances)
     pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1], title="Least Diagonal Network Test",
                                    figoutput=pyssage.graph.FigOutput(figshow=True))
@@ -113,7 +113,7 @@ def test_nearest_neighbor_connections():
     asymmetric connections
     """
     coords = create_test_coords()
-    distances = pyssage.distances.sph_dist_matrix(coords[:, 0], coords[:, 1])
+    distances = pyssage.distances.spherical_distance_matrix(coords[:, 0], coords[:, 1])
     connections = pyssage.connections.nearest_neighbor_connections(distances, 1)
     pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1],
                                    title="Nearest Neighbor (k=1) Symmetric Test",
