@@ -48,7 +48,8 @@ def euclidean_distance_matrix(x: numpy.ndarray, y: Optional[numpy.ndarray] = Non
     return output
 
 
-def spherical_distance(lat1: float, lat2: float, lon1: float, lon2: float, earth_radius: float = _EARTH_RADIUS) -> float:
+def spherical_distance(lat1: float, lat2: float, lon1: float, lon2: float,
+                       earth_radius: float = _EARTH_RADIUS) -> float:
     """
     Returns the geodesic distance along the globe in km, for two points represented by longitudes and latitudes
 
@@ -79,7 +80,8 @@ def spherical_distance(lat1: float, lat2: float, lon1: float, lon2: float, earth
         return acos(angle)*earth_radius
 
 
-def spherical_distance_matrix(lon: numpy.ndarray, lat: numpy.ndarray, earth_radius: float = _EARTH_RADIUS) -> numpy.ndarray:
+def spherical_distance_matrix(lon: numpy.ndarray, lat: numpy.ndarray,
+                              earth_radius: float = _EARTH_RADIUS) -> numpy.ndarray:
     """
     construct an n x n matrix containing spherical distances from latitudes and longitudes
 
