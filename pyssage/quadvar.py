@@ -6,7 +6,7 @@ from pyssage.classes import Number
 __all__ = ["ttlqv", "three_tlqv", "pqv", "tqv", "two_nlv", "three_nlv", "four_tlqv", "five_qv", "nine_tlqv",
            "quadrat_variance_randomization"]
 
-_2D_FUNCS_ = ("four_tlqv", "five_qv", "nine_tlqv")
+_2D_FUNCS = ("four_tlqv", "five_qv", "nine_tlqv")
 
 
 def check_block_size(max_block_size: int, n: int, x: int) -> int:
@@ -327,7 +327,7 @@ def quadrat_variance_randomization(qv_function, nreps: int, data: numpy.ndarray,
              size, the second the observed quadrat variance, and the remaining columns the results from each permuted
              data set.
     """
-    if qv_function in _2D_FUNCS_:
+    if qv_function in _2D_FUNCS:
         base_output = qv_function(data, min_block_size, max_block_size, block_step, unit_scale)
     else:
         base_output = qv_function(data, min_block_size, max_block_size, block_step, wrap, unit_scale)
@@ -341,7 +341,7 @@ def quadrat_variance_randomization(qv_function, nreps: int, data: numpy.ndarray,
         rand_data = rand_data.flatten()
         numpy.random.shuffle(rand_data)
         rand_data = rand_data.reshape(shape)
-        if qv_function in _2D_FUNCS_:
+        if qv_function in _2D_FUNCS:
             rand_output = qv_function(rand_data, min_block_size, max_block_size, block_step, unit_scale)
         else:
             rand_output = qv_function(rand_data, min_block_size, max_block_size, block_step, wrap, unit_scale)
