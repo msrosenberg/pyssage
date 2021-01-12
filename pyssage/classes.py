@@ -1,5 +1,7 @@
 from typing import Union, Optional
 from math import sqrt
+import numpy
+
 
 Number = Union[int, float]
 
@@ -208,3 +210,177 @@ class VoronoiTessellation:
         return len(self.polygons)
 
 
+class Connections:
+    """
+    A Connections object is a special container meant to keep track of connections or edges among pairs of points
+
+    Connnections objects can be either inherrently symmetric (default) or asymmetric. This needs to be set at the
+    time of construction, along with the number of points that are potentially connected to each other.
+
+    The default space is no points are connected. Connections can be added using the store() method. Once added, a
+    connection cannot be removed. You can check the status of a particular connection between points i and j by
+    using them as a tuple key, Connections[i, j] where the result is a boolean about their connection status.
+
+    The connections can be exported into a variety of formats using the as_xxxxx() methods, where xxxxx indicates
+    the desired form.
+    """
+    def __init__(self, n: int, symmetric: bool = True):
+        self._symmetric = symmetric
+        self._n = n
+        self._connections = {i: set() for i in range(n)}
+        self.min_scale = None
+        self.max_scale = None
+        self.distances = None
+        self.angles = None
+
+    def __len__(self):
+        """
+        the size of a Connections object is the number of points, not the number of connected pairs
+        """
+        return self._n
+
+    def __getitem__(self, item):
+        """
+        given a tuple key (i, j), where i and j are both integers, returns a boolean indicating whether
+        point i is connected to point j
+        """
+        i, j = item[0], item[1]
+        if j in self._connections[i]:
+            return True
+        else:
+            return False
+
+    def __repr__(self):
+        return str(self.as_point_dict())
+
+    def mid_scale(self) -> float:
+        return self.min_scale + (self.max_scale - self.min_scale)/2
+
+    def n_pairs(self):
+        """
+        return the number of connected pairs of points
+
+        for an asymmetric matrix, each connection counts as 1/2, so result may not be an integer
+        """
+        np = int(numpy.sum(self.as_binary()))
+        if np % 2 == 0:  # return as an integer if possible
+            return np // 2
+        else:
+            return np / 2
+
+    def is_symmetric(self) -> bool:
+        """
+        designates whether the connections have been created as inherently symmetric
+        """
+        return self._symmetric
+
+    def connected_from(self, i) -> set:
+        """
+        return the set of points that are connected from point i
+
+        connected_from() and connected_to() will be identical if the connections are inherently symmetric
+        """
+        return self._connections[i]
+
+    def connected_to(self, j) -> set:
+        """
+        return the set of points that are connected to point j
+
+        connected_from() and connected_to() will be identical if the connections are inherently symmetric
+        """
+        if self.is_symmetric():
+            return self._connections[j]
+        else:
+            result = set()
+            for i in range(self._n):
+                if j in self._connections[i]:
+                    result.add(i)
+            return result
+
+    def store(self, i: int, j: int) -> None:
+        """
+        store a connection from point i to point j. if the connections are inherently symmetric, also store j to i
+        """
+        self._connections[i].add(j)
+        if self._symmetric:
+            self._connections[j].add(i)
+
+    def as_boolean(self) -> numpy.ndarray:
+        """
+        return a expression of the connections as an n x n boolean matrix (numpy.ndarray)
+
+        in this form True = connected and False = not connected
+        """
+        output = numpy.zeros((self._n, self._n), dtype=bool)
+        for i in range(self._n):
+            for j in self._connections[i]:
+                output[i, j] = True
+        return output
+
+    def as_binary(self) -> numpy.ndarray:
+        """
+        return a expression of the connections as an n x n binary (0/1) matrix (numpy.ndarray)
+
+        in this form 0 = not connected and 1 = connected
+        """
+        output = numpy.zeros((self._n, self._n), dtype=float)
+        for i in range(self._n):
+            for j in self._connections[i]:
+                output[i, j] = 1
+        return output
+
+    def as_reverse_binary(self) -> numpy.ndarray:
+        """
+        return a expression of the connections as an n x n reverse binary (1/0) matrix (numpy.ndarray)
+
+        in this form 1 = not connected and 0 = connected (this is useful when you need to use the connections as
+        a form of "distance" such that you want connected items to have the smaller "distance" than unconnected
+        items
+        """
+        output = numpy.ones((self._n, self._n), dtype=float)
+        for i in range(self._n):
+            output[i, i] = 0  # force diagonal to all zeroes
+            for j in self._connections[i]:
+                output[i, j] = 0
+        return output
+
+    def as_pair_list(self) -> list:
+        """
+        return a expression of the connections as a list of point pairs
+
+        The primary list contains a series of sublists where each sublist contains the indices of two points
+        that should be connected (e.g., [0, 2]).
+
+        If the connections are asymmetric, the logic is from the first point to the second point. If the connection
+        goes both ways, both [i, j] and [j, i] will be in the list.
+
+        If the connections are symmetric, only one instance of the pair will be included (i.e, you will not see
+        both [i, j] and [j ,i] in the list)
+        """
+        output = []
+        for i in range(self._n):
+            for j in self._connections[i]:
+                if self.is_symmetric() and (i < j):  # if symmetric, do not output reverses
+                    output.append([i, j])
+                else:
+                    output.append([i, j])
+        return output
+
+    def as_point_dict(self) -> dict:
+        """
+        return a expression of the connections a dictionary
+
+        The dictionary will contain a key for every point, represented as the index of the point (0 to n-1)
+        The value associated with each key is a set containing the points that the key is connected to. For example
+        2: {0, 1, 3}
+
+        would indicate that point 2 is connected to points 0, 1, and 3
+
+        symmetry is not assumed, so the reverse connection would have to be found in the corresponding set, e.g.,
+        0: {2}
+        would show that point 0 is also connected to point 2
+        """
+        output = {}
+        for i in range(self._n):
+            output[i] = self._connections[i].copy()
+        return output
