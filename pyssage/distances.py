@@ -298,14 +298,14 @@ def create_distance_classes(dist_matrix: numpy.ndarray, class_mode: str, mode_va
     4. determine pair count: the user sets the number of classes they desire; the function determines class boundaries
        so each class has the same number of distances. actual distance counts may vary due to ties
 
-    the output is a two column ndarray matrix, representing lower and upper bounds of each class
+    the output is a two column numpy ndarray, representing lower and upper bounds of each class
     the lower bound is inclusive, the upper bound is exclusive. the algorithm will automatically increase the limit
     of the largest class by a tiny fraction, if necessary, to guarantee all distances are included in a class
 
     :param dist_matrix: an n x n matrix containing distances among the n points
     :param class_mode: a string specifying the mode used to create the distance classes. Valid values are
                        "set class width", "set pair count", "determine class width", "determine pair count"
-    :param mode_value: an additional value whose specific meaning changes depending on the class_mode
+    :param mode_value: an additional number whose specific meaning changes depending on the class_mode
     :param set_max_dist: an optional parameter one case use to set the maximum bound for class creation. Normally
                          classes are created up-to-and-including the largest observed distance in this matrix. Setting a
                          value for this parameter will restrict class creation up to (and including) that value. To
@@ -314,7 +314,7 @@ def create_distance_classes(dist_matrix: numpy.ndarray, class_mode: str, mode_va
                          include distances below the value. As an example, if one is requesting 10 classes of equal
                          width, those ten classes will be created as 1/10th of this set maximum value, rather than the
                          observed. Default = None (include all distances)
-    :return: a two-column matrix where each row containts the lower and upper bounds (first and second columns,
+    :return: a two-column matrix where each row contains the lower and upper bounds (first and second columns,
              respectively) of each class. The lower bound is inclusive of the class, the upper bound is exclusive
     """
     maxadj = 1.0000001

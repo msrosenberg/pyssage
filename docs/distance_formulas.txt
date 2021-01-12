@@ -89,6 +89,37 @@ d_{x,y}=\frac{\displaystyle\sum_{i=1}^n \left|\begin{matrix}
 \end{matrix}\right. }
 
 
+----
+
+spherical distance
+
+d_{i,j}=\cos^{-1}\left(\sin\left(y_i \right )\sin\left(y_j \right )+\cos\left(y_i \right )
+\cos\left(y_j \right )\cos\left|x_i - x_j \right| \right )R_E
+
+
+----
+
+spherical angle
+
+initial
+
+\theta_{i,j}=\frac{\pi}{2} - \tan^{-1}\left(\frac{\sin{\left(x_2 - x_1 \right)\cos\left(y_2 \right )}}
+{\cos\left(y_1 \right )\sin\left(y_2 \right) - \sin\left(y_1 \right ) \cos\left(y_2 \right )
+\cos \left(x_2 - x_1 \right )  } \right )
+
+midpoint
+
+x_{\textrm{mid}} = x_i + \tan^{-1}\left(\frac{\cos\left(y_j \right )\sin\left(x_j - x_i \right )}
+{\cos\left(y_i \right )+\cos\left(y_j \right )\cos\left(x_j - x_i \right )} \right )
+
+y_{\textrm{mid}} = \tan^{-1}\left(\frac{\sin\left(y_i \right )\sin\left(y_j \right )}
+{\sqrt{\left(\cos\left(y_i \right )+\cos\left(y_j \right )\cos\left(x_j - x_i  \right )\right)^2 +
+\left(\cos\left(y_j \right )\sin\left(x_j - x_i \right ) \right )^2}} \right )
+
+
+
+
+
 
 
 
