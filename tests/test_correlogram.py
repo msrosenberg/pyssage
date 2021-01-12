@@ -37,7 +37,7 @@ def test_morans_i():
 
     data, _ = create_test_scattered()
     coords = create_test_coords()
-    distances = pyssage.distances.euc_dist_matrix(coords[:, 0], coords[:, 1])
+    distances = pyssage.distances.euclidean_distance_matrix(coords[:, 0], coords[:, 1])
     dist_classes = pyssage.distances.create_distance_classes(distances, "determine pair count", 15)
     dc_con = pyssage.connections.distance_classes_to_connections(dist_classes, distances)
     output, output_text = pyssage.correlogram.correlogram(data[:, 0], dc_con, pyssage.correlogram.morans_i)
@@ -95,7 +95,7 @@ def test_gearys_c():
 
     data, _ = create_test_scattered()
     coords = create_test_coords()
-    distances = pyssage.distances.euc_dist_matrix(coords[:, 0], coords[:, 1])
+    distances = pyssage.distances.euclidean_distance_matrix(coords[:, 0], coords[:, 1])
     dist_classes = pyssage.distances.create_distance_classes(distances, "determine pair count", 15)
     dc_con = pyssage.connections.distance_classes_to_connections(dist_classes, distances)
     output, output_text = pyssage.correlogram.correlogram(data[:, 0], dc_con, pyssage.correlogram.gearys_c)
@@ -138,7 +138,7 @@ def test_mantel_correl():
     # Some manual tests do seem to indiciate this is working correctly
     data, _ = create_test_scattered()
     coords = create_test_coords()
-    distances = pyssage.distances.euc_dist_matrix(coords[:, 0], coords[:, 1])
+    distances = pyssage.distances.euclidean_distance_matrix(coords[:, 0], coords[:, 1])
     dist_classes = pyssage.distances.create_distance_classes(distances, "determine pair count", 15)
     dc_con = pyssage.connections.distance_classes_to_connections(dist_classes, distances)
     data_distances = pyssage.distances.data_distance_matrix(data, pyssage.distances.data_distance_euclidean)
@@ -425,8 +425,8 @@ def test_bearing_correlogram():
 
     data, _ = create_test_scattered()
     coords = create_test_coords()
-    distances = pyssage.distances.euc_dist_matrix(coords[:, 0], coords[:, 1])
-    angles = pyssage.distances.euc_angle_matrix(coords[:, 0], coords[:, 1])
+    distances = pyssage.distances.euclidean_distance_matrix(coords[:, 0], coords[:, 1])
+    angles = pyssage.distances.euclidean_angle_matrix(coords[:, 0], coords[:, 1])
     dist_classes = pyssage.distances.create_distance_classes(distances, "determine pair count", 15)
     dc_con = pyssage.connections.distance_classes_to_connections(dist_classes, distances)
     output, output_text = pyssage.correlogram.bearing_correlogram(data[:, 22], dc_con, angles)
@@ -444,8 +444,8 @@ def test_bearing_correlogram():
 def test_windrose_correlogram():
     data, _ = create_test_scattered()
     coords = create_test_coords()
-    distances = pyssage.distances.euc_dist_matrix(coords[:, 0], coords[:, 1])
-    angles = pyssage.distances.euc_angle_matrix(coords[:, 0], coords[:, 1])
+    distances = pyssage.distances.euclidean_distance_matrix(coords[:, 0], coords[:, 1])
+    angles = pyssage.distances.euclidean_angle_matrix(coords[:, 0], coords[:, 1])
     output, output_text, all_output = pyssage.correlogram.windrose_correlogram(data[:, 22], distances, angles,
                                                                                radius_c=3, radius_d=0, radius_e=0)
     pyssage.graph.draw_windrose_correlogram(numpy.array(all_output), title="Moran's I Windrose Correlogram Pair Counts",
@@ -468,8 +468,8 @@ def test_windrose_correlogram():
 def test_mantel_windrose_correlogram():
     data, _ = create_test_scattered()
     coords = create_test_coords()
-    distances = pyssage.distances.euc_dist_matrix(coords[:, 0], coords[:, 1])
-    angles = pyssage.distances.euc_angle_matrix(coords[:, 0], coords[:, 1])
+    distances = pyssage.distances.euclidean_distance_matrix(coords[:, 0], coords[:, 1])
+    angles = pyssage.distances.euclidean_angle_matrix(coords[:, 0], coords[:, 1])
     data_distances = pyssage.distances.data_distance_matrix(data, pyssage.distances.data_distance_euclidean)
 
     output, output_text, all_output = pyssage.correlogram.windrose_correlogram(data_distances, distances, angles,

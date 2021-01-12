@@ -1,0 +1,125 @@
+This file contains raw latex representations of formulas that might appear in the manual. They are being stored
+separately here as they may be required to be "translated" prior to use in formal pages and it save on effort if
+they need to be recreated or edited.
+
+---
+
+Euclidean Distance (data)
+
+d_{x,y}=\sqrt{ \displaystyle\sum_{i=1}^n\left (x_i - y_i \right )^2}
+
+
+----
+
+Squared Euclidean Distance
+
+d_{x,y}= \displaystyle\sum_{i=1}^n\left (x_i - y_i \right )^2
+
+
+----
+
+Manhattan Distance
+
+d_{x,y}= \displaystyle\sum_{i=1}^n \left | x_i - y_i  \right |
+
+
+---
+
+Canberra Distance
+
+d_{x,y}= \displaystyle\sum_{i=1}^n \frac{\left | x_i - y_i  \right |}{ x_i + y_i }
+
+
+
+----
+
+Czekanowski
+
+d_{x,y}=1- \frac{2\displaystyle\sum_{i=1}^n \min \left(x_i , y_i   \right )}
+{\displaystyle\sum_{i=1}^n \left( x_i + y_i \right)}
+
+
+----
+
+Cosine
+
+d_{x,y}=1- \frac{\displaystyle\sum_{i=1}^n x_i  y_i }
+{\sqrt{\displaystyle\sum_{i=1}^n x_i^2 \displaystyle\sum_{i=1}^n y_i^2}}
+
+
+----
+
+Correlation
+
+
+d_{x,y}=1- \frac{\displaystyle\sum_{i=1}^n\left(  x_i - \overline{x}\right )
+\left ( y_i  - \overline{y}\right )}{\sqrt{\displaystyle\sum_{i=1}^n
+\left(x_i - \overline{x}\right)^2 \displaystyle\sum_{i=1}^n \left(y_i - \overline{y}\right)^2}}
+
+
+---
+
+Squared correlation
+
+
+d_{x,y}=1- \frac{\left [ \displaystyle\sum_{i=1}^n\left(  x_i - \overline{x}\right )
+\left ( y_i  - \overline{y}\right ) \right]^2}{\displaystyle\sum_{i=1}^n
+\left(x_i - \overline{x}\right)^2 \displaystyle\sum_{i=1}^n \left(y_i - \overline{y}\right)^2}
+
+
+----
+
+Hamming
+
+d_{x,y}=\frac{\displaystyle\sum_{i=1}^n \left|\begin{matrix}
+1 & \textrm{if } x_i \neq y_i \\
+0 & \textrm{if } x_i = y_i
+\end{matrix}\right. }{n}
+
+---
+
+Jaccard
+
+d_{x,y}=\frac{\displaystyle\sum_{i=1}^n \left|\begin{matrix}
+1 & \textrm{if } \left(x_i \neq y_i \right) \wedge\left[\left(x_i \neq 0 \right)\vee \left(y_i \neq 0 \right)\right ] \\
+0 & \textrm{otherwise}
+\end{matrix}\right. }{\displaystyle\sum_{i=1}^n \left|\begin{matrix}
+1 & \textrm{if } \left(x_i \neq 0 \right)\vee \left(y_i \neq 0 \right) \\
+0 & \textrm{otherwise}
+\end{matrix}\right. }
+
+
+----
+
+spherical distance
+
+d_{i,j}=\cos^{-1}\left(\sin\left(y_i \right )\sin\left(y_j \right )+\cos\left(y_i \right )
+\cos\left(y_j \right )\cos\left|x_i - x_j \right| \right )R_E
+
+
+----
+
+spherical angle
+
+initial
+
+\theta_{i,j}=\frac{\pi}{2} - \tan^{-1}\left(\frac{\sin{\left(x_2 - x_1 \right)\cos\left(y_2 \right )}}
+{\cos\left(y_1 \right )\sin\left(y_2 \right) - \sin\left(y_1 \right ) \cos\left(y_2 \right )
+\cos \left(x_2 - x_1 \right )  } \right )
+
+midpoint
+
+x_{\textrm{mid}} = x_i + \tan^{-1}\left(\frac{\cos\left(y_j \right )\sin\left(x_j - x_i \right )}
+{\cos\left(y_i \right )+\cos\left(y_j \right )\cos\left(x_j - x_i \right )} \right )
+
+y_{\textrm{mid}} = \tan^{-1}\left(\frac{\sin\left(y_i \right )\sin\left(y_j \right )}
+{\sqrt{\left(\cos\left(y_i \right )+\cos\left(y_j \right )\cos\left(x_j - x_i  \right )\right)^2 +
+\left(\cos\left(y_j \right )\sin\left(x_j - x_i \right ) \right )^2}} \right )
+
+
+
+
+
+
+
+

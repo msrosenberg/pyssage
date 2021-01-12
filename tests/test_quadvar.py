@@ -3222,3 +3222,33 @@ def test_5qv():
     pyssage.graph.draw_quadvar_result(result, title="5QV Test", figoutput=pyssage.graph.FigOutput(figshow=True))
     for i in range(33):
         assert round(result[i, 1], 5) == answer[i]
+
+
+def test_4tlqv_random():
+    # fixed answer not possible due to stochastic nature of test. instead tests algorithm does not crash and
+    # produces a visual result for general insepction
+    summary, _ = pyssage.quadvar.quadrat_variance_randomization(pyssage.quadvar.four_tlqv, 100, create_test_surface(),
+                                                                max_block_size=50)
+    pyssage.graph.draw_quadvar_result(summary[:, 0:2], summary[:, 2], title="4TLQV Test with Randomization",
+                                      varlabel="Observed", randlabel="{:0.2%} confidence limit".format(0.95),
+                                      figoutput=pyssage.graph.FigOutput(figshow=True))
+
+
+def test_9tlqv_random():
+    # fixed answer not possible due to stochastic nature of test. instead tests algorithm does not crash and
+    # produces a visual result for general insepction
+    summary, _ = pyssage.quadvar.quadrat_variance_randomization(pyssage.quadvar.nine_tlqv, 100, create_test_surface(),
+                                                                max_block_size=33)
+    pyssage.graph.draw_quadvar_result(summary[:, 0:2], summary[:, 2], title="9TLQV Test with Randomization",
+                                      varlabel="Observed", randlabel="{:0.2%} confidence limit".format(0.95),
+                                      figoutput=pyssage.graph.FigOutput(figshow=True))
+
+
+def test_5qv_random():
+    # fixed answer not possible due to stochastic nature of test. instead tests algorithm does not crash and
+    # produces a visual result for general insepction
+    summary, _ = pyssage.quadvar.quadrat_variance_randomization(pyssage.quadvar.five_qv, 100, create_test_surface(),
+                                                                max_block_size=50)
+    pyssage.graph.draw_quadvar_result(summary[:, 0:2], summary[:, 2], title="5QV Test with Randomization",
+                                      varlabel="Observed", randlabel="{:0.2%} confidence limit".format(0.95),
+                                      figoutput=pyssage.graph.FigOutput(figshow=True))

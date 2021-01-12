@@ -1,5 +1,6 @@
 from typing import Optional, Tuple, Union
 from math import sqrt, sin, cos, acos, pi, atan2, radians
+from collections import namedtuple
 import numpy
 from pyssage.classes import Number
 from pyssage.connections import Connections
@@ -10,8 +11,8 @@ from pyssage.utils import flatten_half, euclidean_angle
 _EARTH_RADIUS = 6371.0087714  # default radius of the Earth for spherical calculations
 
 
-def euc_dist_matrix(x: numpy.ndarray, y: Optional[numpy.ndarray] = None,
-                    z: Optional[numpy.ndarray] = None) -> numpy.ndarray:
+def euclidean_distance_matrix(x: numpy.ndarray, y: Optional[numpy.ndarray] = None,
+                              z: Optional[numpy.ndarray] = None) -> numpy.ndarray:
     """
     Calculate a Euclidean distance matrix from coordinates in one, two, or three dimensions
 
@@ -48,7 +49,8 @@ def euc_dist_matrix(x: numpy.ndarray, y: Optional[numpy.ndarray] = None,
     return output
 
 
-def sph_dist(lat1: float, lat2: float, lon1: float, lon2: float, earth_radius: float = _EARTH_RADIUS) -> float:
+def spherical_distance(lat1: float, lat2: float, lon1: float, lon2: float,
+                       earth_radius: float = _EARTH_RADIUS) -> float:
     """
     Returns the geodesic distance along the globe in km, for two points represented by longitudes and latitudes
 
@@ -79,7 +81,8 @@ def sph_dist(lat1: float, lat2: float, lon1: float, lon2: float, earth_radius: f
         return acos(angle)*earth_radius
 
 
-def sph_dist_matrix(lon: numpy.ndarray, lat: numpy.ndarray, earth_radius: float = _EARTH_RADIUS) -> numpy.ndarray:
+def spherical_distance_matrix(lon: numpy.ndarray, lat: numpy.ndarray,
+                              earth_radius: float = _EARTH_RADIUS) -> numpy.ndarray:
     """
     construct an n x n matrix containing spherical distances from latitudes and longitudes
 
@@ -95,13 +98,13 @@ def sph_dist_matrix(lon: numpy.ndarray, lat: numpy.ndarray, earth_radius: float 
     output = numpy.zeros((n, n))
     for i in range(n):
         for j in range(i):
-            dist = sph_dist(lat[i], lat[j], lon[i], lon[j], earth_radius)
+            dist = spherical_distance(lat[i], lat[j], lon[i], lon[j], earth_radius)
             output[i, j] = dist
             output[j, i] = dist
     return output
 
 
-def sph_angle(lat1: float, lat2: float, lon1: float, lon2: float, mode: str = "midpoint") -> float:
+def spherical_angle(lat1: float, lat2: float, lon1: float, lon2: float, mode: str = "midpoint") -> float:
     """
     calculate the spherical angle between a pair of points
 
@@ -152,7 +155,7 @@ def sph_angle(lat1: float, lat2: float, lon1: float, lon2: float, mode: str = "m
     return bearing
 
 
-def sph_angle_matrix(lon: numpy.ndarray, lat: numpy.ndarray, mode: str = "midpoint") -> numpy.ndarray:
+def spherical_angle_matrix(lon: numpy.ndarray, lat: numpy.ndarray, mode: str = "midpoint") -> numpy.ndarray:
     """
     construct an n by n matrix containing the angles (in radians) describing the spherical bearing between pairs of
     latitudes and longitudes
@@ -173,12 +176,12 @@ def sph_angle_matrix(lon: numpy.ndarray, lat: numpy.ndarray, mode: str = "midpoi
     for i in range(n):
         for j in range(n):
             if i != j:
-                angle = sph_angle(lat[i], lat[j], lon[i], lon[j], mode)
+                angle = spherical_angle(lat[i], lat[j], lon[i], lon[j], mode)
                 output[i, j] = angle
     return output
 
 
-def euc_angle_matrix(x: numpy.ndarray, y: numpy.ndarray, do360: bool = False) -> numpy.ndarray:
+def euclidean_angle_matrix(x: numpy.ndarray, y: numpy.ndarray, do360: bool = False) -> numpy.ndarray:
     """
     construct an n by n matrix containing the angles (in radians) describing the bearing between pairs of points
 
@@ -216,8 +219,6 @@ def shortest_path_distances(distances: numpy.ndarray, connections: Connections) 
     """
     create a shortest-path/geodesic distance matrix from a set of inter-point distances and a connection/network
     scheme
-
-    the connections must be given in the boolean matrix format
 
     This uses the Floyd-Warshall algorithm
     See Corman, T.H., Leiserson, C.E., and Rivest, R.L., 'Introduction to Algorithms', section 26.2, p. 558-562.
@@ -259,7 +260,8 @@ def shortest_path_distances(distances: numpy.ndarray, connections: Connections) 
                 if (trace_mat[i, j] == j) and not connections[i, j]:
                     trace_mat.pop((i, j))  # remove path from trace matrix
                     output[i, j] = float("inf")  # change distance to infinity
-    return output, trace_mat
+    output_tuple = namedtuple("output_tuple", ["output_dists", "trace_matrix"])
+    return output_tuple(output, trace_mat)
 
 
 def trace_path(i: int, j: int, trace_matrix: dict) -> list:
@@ -296,14 +298,14 @@ def create_distance_classes(dist_matrix: numpy.ndarray, class_mode: str, mode_va
     4. determine pair count: the user sets the number of classes they desire; the function determines class boundaries
        so each class has the same number of distances. actual distance counts may vary due to ties
 
-    the output is a two column ndarray matrix, representing lower and upper bounds of each class
+    the output is a two column numpy ndarray, representing lower and upper bounds of each class
     the lower bound is inclusive, the upper bound is exclusive. the algorithm will automatically increase the limit
     of the largest class by a tiny fraction, if necessary, to guarantee all distances are included in a class
 
     :param dist_matrix: an n x n matrix containing distances among the n points
     :param class_mode: a string specifying the mode used to create the distance classes. Valid values are
                        "set class width", "set pair count", "determine class width", "determine pair count"
-    :param mode_value: an additional value whose specific meaning changes depending on the class_mode
+    :param mode_value: an additional number whose specific meaning changes depending on the class_mode
     :param set_max_dist: an optional parameter one case use to set the maximum bound for class creation. Normally
                          classes are created up-to-and-including the largest observed distance in this matrix. Setting a
                          value for this parameter will restrict class creation up to (and including) that value. To
@@ -312,7 +314,7 @@ def create_distance_classes(dist_matrix: numpy.ndarray, class_mode: str, mode_va
                          include distances below the value. As an example, if one is requesting 10 classes of equal
                          width, those ten classes will be created as 1/10th of this set maximum value, rather than the
                          observed. Default = None (include all distances)
-    :return: a two-column matrix where each row containts the lower and upper bounds (first and second columns,
+    :return: a two-column matrix where each row contains the lower and upper bounds (first and second columns,
              respectively) of each class. The lower bound is inclusive of the class, the upper bound is exclusive
     """
     maxadj = 1.0000001

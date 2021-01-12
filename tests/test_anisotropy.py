@@ -47,8 +47,8 @@ def test_bearing_analysis():
     data, _ = create_test_scattered()
     data_distances = pyssage.distances.data_distance_matrix(data, pyssage.distances.data_distance_euclidean)
     coords = create_test_coords()
-    distances = pyssage.distances.euc_dist_matrix(coords[:, 0], coords[:, 1])
-    angles = pyssage.distances.euc_angle_matrix(coords[:, 0], coords[:, 1])
+    distances = pyssage.distances.euclidean_distance_matrix(coords[:, 0], coords[:, 1])
+    angles = pyssage.distances.euclidean_angle_matrix(coords[:, 0], coords[:, 1])
     output, output_text = pyssage.anisotropy.bearing_analysis(data_distances, distances, angles, 36)
     pyssage.graph.draw_bearing(numpy.array(output), figoutput=pyssage.graph.FigOutput(figshow=True))
 
