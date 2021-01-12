@@ -1,5 +1,6 @@
 from typing import Optional, Tuple, Union
 from math import sqrt, sin, cos, acos, pi, atan2, radians
+from collections import namedtuple
 import numpy
 from pyssage.classes import Number
 from pyssage.connections import Connections
@@ -219,8 +220,6 @@ def shortest_path_distances(distances: numpy.ndarray, connections: Connections) 
     create a shortest-path/geodesic distance matrix from a set of inter-point distances and a connection/network
     scheme
 
-    the connections must be given in the boolean matrix format
-
     This uses the Floyd-Warshall algorithm
     See Corman, T.H., Leiserson, C.E., and Rivest, R.L., 'Introduction to Algorithms', section 26.2, p. 558-562.
 
@@ -261,7 +260,8 @@ def shortest_path_distances(distances: numpy.ndarray, connections: Connections) 
                 if (trace_mat[i, j] == j) and not connections[i, j]:
                     trace_mat.pop((i, j))  # remove path from trace matrix
                     output[i, j] = float("inf")  # change distance to infinity
-    return output, trace_mat
+    output_tuple = namedtuple("output_tuple", ["output_dists", "trace_matrix"])
+    return output_tuple(output, trace_mat)
 
 
 def trace_path(i: int, j: int, trace_matrix: dict) -> list:
