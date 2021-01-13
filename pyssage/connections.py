@@ -1,5 +1,6 @@
 from typing import Tuple
 from math import sqrt
+from collections import namedtuple
 import numpy
 from pyssage.classes import Point, Triangle, VoronoiEdge, VoronoiTessellation, VoronoiPolygon, Connections
 from pyssage.utils import euclidean_angle, check_for_square_matrix
@@ -120,7 +121,8 @@ def delaunay_tessellation(x: numpy.ndarray, y: numpy.ndarray) -> Tuple[VoronoiTe
     connections = delaunay_connections(triangles, points)
     tessellation = calculate_tessellation(triangles, points)
 
-    return tessellation, connections
+    output_tuple = namedtuple("output_tuple", ["tessellation", "connections"])
+    return output_tuple(tessellation, connections)
 
 
 def calculate_tessellation(triangle_list: list, point_list: list) -> VoronoiTessellation:
