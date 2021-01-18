@@ -228,8 +228,8 @@ class Connections:
         self._symmetric = symmetric
         self._n = n
         self._connections = {i: set() for i in range(n)}
-        self.min_scale = None
-        self.max_scale = None
+        self.min_scale = 0
+        self.max_scale = 0
         self.distances = None
         self.angles = None
 
