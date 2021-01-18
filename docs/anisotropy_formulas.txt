@@ -1,0 +1,5 @@
+
+bearing formula
+
+G_{ij}=D_{ij}\cos^2\left(\theta-\alpha_{ij} \right )
+

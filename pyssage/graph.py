@@ -10,9 +10,13 @@ from matplotlib import collections, colors
 # import matplotlib.patches as mpatches
 import numpy
 
+__all__ = ["FigOutput", "draw_transect", "draw_bearing", "draw_bearing_correlogram", "draw_connections",
+           "draw_correlogram", "draw_distance_class_distribution", "draw_quadvar_result", "draw_shortest_path",
+           "draw_tessellation", "draw_windrose_correlogram"]
+
 
 class FigOutput:
-    def __init__(self, figsize: tuple = (8, 6), dpi: int = 100, figshow: bool = False, figname: str = "",
+    def __init__(self, figsize: tuple = (8, 6), dpi: int = 100, figshow: bool = True, figname: str = "",
                  figformat: str = "png"):
         self.figsize = figsize
         self.dpi = dpi

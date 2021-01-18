@@ -1,5 +1,6 @@
 from math import pi
 from typing import Tuple
+from collections import namedtuple
 import numpy
 import pyssage.mantel
 from pyssage.utils import create_output_table, check_for_square_matrix
@@ -42,4 +43,5 @@ def bearing_analysis(data: numpy.ndarray, distances: numpy.ndarray, angles: nump
     col_headers = ("Bearing", "Correlation", "Prob")
     col_formats = ("f", "f", "f")
     create_output_table(output_text, output, col_headers, col_formats)
-    return output, output_text
+    bearing_output = namedtuple("bearing_output", ["output_values", "output_text"])
+    return bearing_output(output, output_text)
