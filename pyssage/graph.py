@@ -1,6 +1,6 @@
 from typing import Optional
 from math import pi
-from pyssage.classes import Number
+from pyssage.classes import Number, VoronoiTessellation
 import pyssage.connections
 import pyssage.distances
 import pyssage.utils
@@ -83,12 +83,12 @@ def draw_transect(transect: numpy.array, unit_scale: Number = 1, title: str = ""
     finalize_figure(fig, axs, figoutput, title)
 
 
-def draw_quadvar_result(quadvar: numpy.ndarray, rand_ci: Optional[numpy.ndarray] = None, title: str = "",
+def draw_quadvar_result(quadvar: numpy.ndarray, inc_random: bool = False, title: str = "",
                         varlabel: str = "", randlabel: str = "", figoutput: Optional[FigOutput] = None) -> None:
     fig, axs = start_figure(figoutput)
     axs.plot(quadvar[:, 0], quadvar[:, 1], label=varlabel)
-    if rand_ci is not None:
-        axs.plot(quadvar[:, 0], rand_ci, label=randlabel)
+    if inc_random:
+        axs.plot(quadvar[:, 0], quadvar[:, 2], label=randlabel)
         pyplot.legend(loc="upper right")
     axs.set_xlabel("Scale")
     axs.set_ylabel("Variance")
@@ -119,8 +119,8 @@ def draw_quadvar_result(quadvar: numpy.ndarray, rand_ci: Optional[numpy.ndarray]
 #     pyplot.show()
 
 
-def draw_tessellation(tessellation, xcoords: numpy.ndarray, ycoords: numpy.ndarray, title: str = "",
-                      figoutput: Optional[FigOutput] = None) -> None:
+def draw_tessellation(tessellation: VoronoiTessellation, xcoords: numpy.ndarray, ycoords: numpy.ndarray,
+                      title: str = "", figoutput: Optional[FigOutput] = None) -> None:
     fig, axs = start_figure(figoutput)
     minx = min(xcoords)
     maxx = max(xcoords)
