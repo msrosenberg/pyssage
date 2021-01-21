@@ -239,19 +239,21 @@ def draw_distance_class_distribution(dist_matrix: numpy.ndarray, dist_class: num
 
 
 def draw_correlogram(data: numpy.ndarray, metric_title: str = "", title: str = "", alpha: float = 0.05,
-                     is_mantel: bool = False, figoutput: Optional[FigOutput] = None):
+                     figoutput: Optional[FigOutput] = None):
     fig, axs = start_figure(figoutput)
 
     # column order is: min_scale, max_scale, # pairs, expected, observed, sd, z, prob
     # sd is absent from Mantel correlograms
+    nrows, ncols = data.shape
     min_col = 0
     max_col = 1
     exp_col = 3
     obs_col = 4
-    if is_mantel:
-        p_col = 6
-    else:
-        p_col = 7
+    p_col = ncols - 1
+    # if is_mantel:
+    #     p_col = 6
+    # else:
+    #     p_col = 7
 
     # plot at midpoint of distance range
     scale = numpy.array([x[min_col] + (x[max_col] - x[min_col])/2 for x in data])
@@ -410,8 +412,7 @@ def draw_bearing_correlogram(data: numpy.ndarray, title: str = "", symmetric: bo
 
 
 def draw_windrose_correlogram(data: numpy.ndarray, title: str = "", symmetric: bool = True, alpha: float = 0.05,
-                              show_counts: bool = False, is_mantel: bool = False,
-                              figoutput: Optional[FigOutput] = None):
+                              show_counts: bool = False, figoutput: Optional[FigOutput] = None):
     fig, axs = start_figure(figoutput, polar=True)
 
     # pre-determined spacing between sectors in each annulus
@@ -420,16 +421,18 @@ def draw_windrose_correlogram(data: numpy.ndarray, title: str = "", symmetric: b
 
     # column order is: min_scale, max_scale, min_angle, max_angle, # pairs, expected, observed, sd, z, prob
     # sd is absent from Mantel correlograms
+    nrows, ncols = data.shape
     mindist_col = 0
     sang_col = 2
     eang_col = 3
     np_col = 4
     exp_col = 5
     obs_col = 6
-    if is_mantel:
-        p_col = 8
-    else:
-        p_col = 9
+    p_col = ncols - 1
+    # if is_mantel:
+    #     p_col = 8
+    # else:
+    #     p_col = 9
     annuli = set(data[:, mindist_col])
     annuli = sorted(annuli)
     n_annuli = len(annuli)

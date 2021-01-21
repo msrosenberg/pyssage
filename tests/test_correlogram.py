@@ -144,7 +144,7 @@ def test_mantel_correl():
     data_distances = pyssage.distances.data_distance_matrix(data, pyssage.distances.data_distance_euclidean)
     output, output_text = pyssage.correlogram.correlogram(data_distances, dc_con, pyssage.correlogram.mantel_correl,
                                                           variance=None)
-    pyssage.graph.draw_correlogram(numpy.array(output), "Mantel r", "Correlogram", is_mantel=True,
+    pyssage.graph.draw_correlogram(numpy.array(output), "Mantel r", "Correlogram",
                                    figoutput=pyssage.graph.FigOutput(figshow=True))
     for line in output_text:
         print(line)
@@ -476,9 +476,8 @@ def test_mantel_windrose_correlogram():
                                                                                radius_c=3, radius_d=0, radius_e=0,
                                                                                metric=pyssage.correlogram.mantel_correl)
     pyssage.graph.draw_windrose_correlogram(numpy.array(all_output), title="Mantel Windrose Correlogram Pair Counts",
-                                            show_counts=True, is_mantel=True,
-                                            figoutput=pyssage.graph.FigOutput(figshow=True))
+                                            show_counts=True, figoutput=pyssage.graph.FigOutput(figshow=True))
     pyssage.graph.draw_windrose_correlogram(numpy.array(all_output), title="Mantel Windrose Correlogram",
-                                            is_mantel=True, figoutput=pyssage.graph.FigOutput(figshow=True))
+                                            figoutput=pyssage.graph.FigOutput(figshow=True))
     for line in output_text:
         print(line)
