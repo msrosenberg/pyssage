@@ -244,7 +244,7 @@ def draw_correlogram(data: numpy.ndarray, metric_title: str = "", title: str = "
 
     # column order is: min_scale, max_scale, # pairs, expected, observed, sd, z, prob
     # sd is absent from Mantel correlograms
-    nrows, ncols = data.shape
+    _, ncols = data.shape
     min_col = 0
     max_col = 1
     exp_col = 3
@@ -421,7 +421,7 @@ def draw_windrose_correlogram(data: numpy.ndarray, title: str = "", symmetric: b
 
     # column order is: min_scale, max_scale, min_angle, max_angle, # pairs, expected, observed, sd, z, prob
     # sd is absent from Mantel correlograms
-    nrows, ncols = data.shape
+    _, ncols = data.shape
     mindist_col = 0
     sang_col = 2
     eang_col = 3
@@ -557,18 +557,9 @@ def draw_windrose_correlogram(data: numpy.ndarray, title: str = "", symmetric: b
 
 def draw_bearing(data: numpy.ndarray, alpha: float = 0.05, title: str = "", figoutput: Optional[FigOutput] = None):
     fig, axs = start_figure(figoutput)
-
-    # # column order is: min_scale, max_scale, # pairs, expected, observed, sd, z, prob
-    # min_col = 0
-    # max_col = 1
-    # exp_col = 3
-    # obs_col = 4
-    # p_col = 7
-    #
-    # # plot at midpoint of distance range
-    # scale = numpy.array([x[min_col] + (x[max_col] - x[min_col])/2 for x in data])
-    #
     n = len(data)
+    _, ncols = data.shape
+    p_col = ncols - 1
 
     # draw expected value
     y = [0, 0]
@@ -580,7 +571,7 @@ def draw_bearing(data: numpy.ndarray, alpha: float = 0.05, title: str = "", figo
     axs.plot(data[:, 0], data[:, 1], zorder=2)
 
     # mark significant bearings
-    sig_mask = [p <= alpha for p in data[:, 2]]
+    sig_mask = [p <= alpha for p in data[:, p_col]]
     x = data[sig_mask, 0]
     y = data[sig_mask, 1]
     pyplot.scatter(x, y, color="black", edgecolors="black", zorder=3, s=25)
