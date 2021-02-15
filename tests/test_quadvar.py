@@ -3069,7 +3069,7 @@ def test_ttlqv_random():
     # produces a visual result for general insepction
     summary, _ = pyssage.quadvar.quadrat_variance_randomization(pyssage.quadvar.ttlqv, 100, create_test_transect(),
                                                                 max_block_size=100)
-    pyssage.graph.draw_quadvar_result(summary[:, 0:2], summary[:, 2], title="TTLQV Test with Randomization",
+    pyssage.graph.draw_quadvar_result(summary, inc_random=True, title="TTLQV Test with Randomization",
                                       varlabel="Observed", randlabel="{:0.2%} confidence limit".format(0.95),
                                       figoutput=pyssage.graph.FigOutput(figshow=True))
 
@@ -3079,7 +3079,7 @@ def test_threetlqv_random():
     # produces a visual result for general insepction
     summary, _ = pyssage.quadvar.quadrat_variance_randomization(pyssage.quadvar.three_tlqv, 100, create_test_transect(),
                                                                 max_block_size=100)
-    pyssage.graph.draw_quadvar_result(summary[:, 0:2], summary[:, 2], title="3TLQV Test with Randomization",
+    pyssage.graph.draw_quadvar_result(summary, inc_random=True, title="3TLQV Test with Randomization",
                                       varlabel="Observed", randlabel="{:0.2%} confidence limit".format(0.95),
                                       figoutput=pyssage.graph.FigOutput(figshow=True))
 
@@ -3089,7 +3089,7 @@ def test_pqv_random():
     # produces a visual result for general insepction
     summary, _ = pyssage.quadvar.quadrat_variance_randomization(pyssage.quadvar.pqv, 50, create_test_transect(),
                                                                 max_block_size=50)
-    pyssage.graph.draw_quadvar_result(summary[:, 0:2], summary[:, 2], title="PQV Test with Randomization",
+    pyssage.graph.draw_quadvar_result(summary, inc_random=True, title="PQV Test with Randomization",
                                       varlabel="Observed", randlabel="{:0.2%} confidence limit".format(0.95),
                                       figoutput=pyssage.graph.FigOutput(figshow=True))
 
@@ -3099,7 +3099,7 @@ def test_tqv_random():
     # produces a visual result for general insepction
     summary, _ = pyssage.quadvar.quadrat_variance_randomization(pyssage.quadvar.tqv, 50, create_test_transect(),
                                                                 max_block_size=50)
-    pyssage.graph.draw_quadvar_result(summary[:, 0:2], summary[:, 2], title="TQV Test with Randomization",
+    pyssage.graph.draw_quadvar_result(summary, inc_random=True, title="TQV Test with Randomization",
                                       varlabel="Observed", randlabel="{:0.2%} confidence limit".format(0.95),
                                       figoutput=pyssage.graph.FigOutput(figshow=True))
 
@@ -3109,7 +3109,7 @@ def test_2nlv_random():
     # produces a visual result for general insepction
     summary, _ = pyssage.quadvar.quadrat_variance_randomization(pyssage.quadvar.two_nlv, 100, create_test_transect(),
                                                                 max_block_size=100)
-    pyssage.graph.draw_quadvar_result(summary[:, 0:2], summary[:, 2], title="2NLV Test with Randomization",
+    pyssage.graph.draw_quadvar_result(summary, inc_random=True, title="2NLV Test with Randomization",
                                       varlabel="Observed", randlabel="{:0.2%} confidence limit".format(0.95),
                                       figoutput=pyssage.graph.FigOutput(figshow=True))
 
@@ -3119,7 +3119,7 @@ def test_threet_nlv_random():
     # produces a visual result for general insepction
     summary, _ = pyssage.quadvar.quadrat_variance_randomization(pyssage.quadvar.three_nlv, 100, create_test_transect(),
                                                                 max_block_size=100)
-    pyssage.graph.draw_quadvar_result(summary[:, 0:2], summary[:, 2], title="3NLV Test with Randomization",
+    pyssage.graph.draw_quadvar_result(summary, inc_random=True, title="3NLV Test with Randomization",
                                       varlabel="Observed", randlabel="{:0.2%} confidence limit".format(0.95),
                                       figoutput=pyssage.graph.FigOutput(figshow=True))
 

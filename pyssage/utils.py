@@ -3,17 +3,17 @@ from math import pi, atan2
 from pyssage.common import OUT_DEC
 
 
-def flatten_half(x: numpy.ndarray) -> numpy.ndarray:
+def flatten_half(square_matrix: numpy.ndarray) -> numpy.ndarray:
     """
     Given a square, symmmetric matrix, return the values from the lower triangle in a single column
 
-    :param x: the input matrix, should be an n x n numpy.ndarray
+    :param square_matrix: the input matrix, should be an n x n numpy.ndarray
     :return: a single column numpy.ndarray
     """
     output = []
-    for i in range(len(x)):
+    for i in range(len(square_matrix)):
         for j in range(i):
-            output.append(x[i, j])
+            output.append(square_matrix[i, j])
     return numpy.array(output)
 
 
@@ -45,19 +45,19 @@ def euclidean_angle(x1: float, y1: float, x2: float, y2: float, do360: bool = Fa
     return angle
 
 
-def check_for_square_matrix(distances: numpy.ndarray) -> int:
+def check_for_square_matrix(test_matrix: numpy.ndarray) -> int:
     """
     checks to see that a provided distance matrix is  two-dimensional numpy.ndarray and square
 
-    :param distances: an n x n matrix
+    :param test_matrix: an n x n matrix
     :return: returns the size (length of a size) of the matrix assuming it is two-dimensional and square
     """
-    if distances.ndim != 2:
+    if test_matrix.ndim != 2:
         raise ValueError("distance matrix must be two-dimensional")
-    elif distances.shape[0] != distances.shape[1]:
+    elif test_matrix.shape[0] != test_matrix.shape[1]:
         raise ValueError("distance matrix must be square")
     else:
-        return len(distances)
+        return len(test_matrix)
 
 
 def create_output_table(output_text: list, table_data: list, col_headers: tuple, col_formats: tuple,

@@ -1,5 +1,6 @@
 from math import pi
 from typing import Tuple
+from collections import namedtuple
 import numpy
 import pyssage.mantel
 from pyssage.utils import create_output_table, check_for_square_matrix
@@ -7,8 +8,8 @@ from pyssage.utils import create_output_table, check_for_square_matrix
 __all__ = ["bearing_analysis"]
 
 
-def bearing_analysis(data: numpy.ndarray, distances: numpy.ndarray, angles: numpy.ndarray,
-                     nbearings: int = 36) -> Tuple[list, list]:
+def bearing_analysis(data: numpy.ndarray, distances: numpy.ndarray, angles: numpy.ndarray, nbearings: int = 36,
+                     npermutations: int = 0) -> Tuple[list, list]:
     """
     Conduct a bearing analysis to test for anisotropic patterns in scattered data, method originally described in:
 
@@ -19,6 +20,7 @@ def bearing_analysis(data: numpy.ndarray, distances: numpy.ndarray, angles: nump
     :param distances: an n x n matrix representing geographic distances among data points
     :param angles: an n x n matrix representing geographic angles among data points
     :param nbearings: the number of bearings to test; the default is 36 (every 5 degrees)
+    :param npermutations: the number of random permutations used to test the correlations; the default is 0
     :return: a tuple containing a list of output values and a list of text output
     """
     n = check_for_square_matrix(data)
@@ -30,8 +32,11 @@ def bearing_analysis(data: numpy.ndarray, distances: numpy.ndarray, angles: nump
     for a in range(nbearings):
         test_angle = a * angle_width
         b_matrix = distances * numpy.square(numpy.cos(angles - test_angle))
-        r, p_value, _, _, _, _, _ = pyssage.mantel.mantel(data, b_matrix, [])
-        output.append([a*180/nbearings, r, p_value])
+        r, p_value, _, _, _, rand_p, _ = pyssage.mantel.mantel(data, b_matrix, [], npermutations)
+        if npermutations > 0:
+            output.append([a*180/nbearings, r, p_value, rand_p])
+        else:
+            output.append([a*180/nbearings, r, p_value])
 
     # create basic output text
     output_text = list()
@@ -39,7 +44,12 @@ def bearing_analysis(data: numpy.ndarray, distances: numpy.ndarray, angles: nump
     output_text.append("")
     output_text.append("Tested {} vectors".format(nbearings))
     output_text.append("")
-    col_headers = ("Bearing", "Correlation", "Prob")
-    col_formats = ("f", "f", "f")
+    if npermutations > 0:
+        col_headers = ("Bearing", "Correlation", "Prob", "RandProb")
+        col_formats = ("f", "f", "f", "f")
+    else:
+        col_headers = ("Bearing", "Correlation", "Prob")
+        col_formats = ("f", "f", "f")
     create_output_table(output_text, output, col_headers, col_formats)
-    return output, output_text
+    bearing_output = namedtuple("bearing_output", ["output_values", "output_text"])
+    return bearing_output(output, output_text)

@@ -2,7 +2,7 @@ from math import sqrt, pi, degrees
 from typing import Optional, Tuple
 import numpy
 import scipy.stats
-from pyssage.connections import Connections
+from pyssage.classes import Connections
 from pyssage.utils import create_output_table, check_for_square_matrix
 import pyssage.mantel
 

@@ -2,8 +2,7 @@ from typing import Optional, Tuple, Union
 from math import sqrt, sin, cos, acos, pi, atan2, radians
 from collections import namedtuple
 import numpy
-from pyssage.classes import Number
-from pyssage.connections import Connections
+from pyssage.classes import Number, Connections
 from pyssage.utils import flatten_half, euclidean_angle
 
 # __all__ = ["euc_dist_matrix"]

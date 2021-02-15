@@ -2,6 +2,7 @@ from pyssage.utils import check_for_square_matrix
 from pyssage.common import OUT_FRMT
 from math import sqrt
 from typing import Tuple
+from collections import namedtuple
 import numpy
 import scipy.stats
 
@@ -19,7 +20,7 @@ def check_tail(tail: str) -> None:
         raise ValueError("Requested probability tail is invalid. Options include \"left\", \"right\", or \"both\"")
 
 
-def mantel(input_matrix1, input_matrix2, partial, permutations: int = 0,
+def mantel(input_matrix1: numpy.ndarray, input_matrix2: numpy.ndarray, partial, permutations: int = 0,
            tail: str = "both") -> Tuple[float, float, list, float, float, float, float]:
     check_tail(tail)
     n = check_for_square_matrix(input_matrix1)
@@ -136,7 +137,9 @@ def mantel(input_matrix1, input_matrix2, partial, permutations: int = 0,
     else:
         permuted_left_p, permuted_right_p, permuted_two_p = 1, 1, 1
 
-    return r, p_value, output_text, permuted_left_p, permuted_right_p, permuted_two_p, z_score
+    mantel_output = namedtuple("mantel_output", ["r", "p_value", "output_text", "permuted_left_p", "permuted_right_p",
+                                                 "permuted_two_p", "z_score"])
+    return mantel_output(r, p_value, output_text, permuted_left_p, permuted_right_p, permuted_two_p, z_score)
 
 
 def mantel_moments(x: numpy.ndarray, y: numpy.ndarray) -> Tuple[float, float]:

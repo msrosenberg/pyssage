@@ -58,3 +58,17 @@ def test_bearing_analysis():
     for i, row in enumerate(answer):
         for j, ans in enumerate(row):
             assert round(output[i][j], 2) == round(ans, 2)
+
+
+def test_bearing_analysis_rand():
+    # permutation test prevents formal test answer; function used to look for stability
+    data, _ = create_test_scattered()
+    data_distances = pyssage.distances.data_distance_matrix(data, pyssage.distances.data_distance_euclidean)
+    coords = create_test_coords()
+    distances = pyssage.distances.euclidean_distance_matrix(coords[:, 0], coords[:, 1])
+    angles = pyssage.distances.euclidean_angle_matrix(coords[:, 0], coords[:, 1])
+    output, output_text = pyssage.anisotropy.bearing_analysis(data_distances, distances, angles, 36, 100)
+    pyssage.graph.draw_bearing(numpy.array(output), figoutput=pyssage.graph.FigOutput(figshow=True))
+
+    for line in output_text:
+        print(line)

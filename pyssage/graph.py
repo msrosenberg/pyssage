@@ -1,6 +1,6 @@
 from typing import Optional
 from math import pi
-from pyssage.classes import Number
+from pyssage.classes import Number, VoronoiTessellation
 import pyssage.connections
 import pyssage.distances
 import pyssage.utils
@@ -10,9 +10,13 @@ from matplotlib import collections, colors
 # import matplotlib.patches as mpatches
 import numpy
 
+__all__ = ["FigOutput", "draw_transect", "draw_bearing", "draw_bearing_correlogram", "draw_connections",
+           "draw_correlogram", "draw_distance_class_distribution", "draw_quadvar_result", "draw_shortest_path",
+           "draw_tessellation", "draw_windrose_correlogram"]
+
 
 class FigOutput:
-    def __init__(self, figsize: tuple = (8, 6), dpi: int = 100, figshow: bool = False, figname: str = "",
+    def __init__(self, figsize: tuple = (8, 6), dpi: int = 100, figshow: bool = True, figname: str = "",
                  figformat: str = "png"):
         self.figsize = figsize
         self.dpi = dpi
@@ -79,12 +83,12 @@ def draw_transect(transect: numpy.array, unit_scale: Number = 1, title: str = ""
     finalize_figure(fig, axs, figoutput, title)
 
 
-def draw_quadvar_result(quadvar: numpy.ndarray, rand_ci: Optional[numpy.ndarray] = None, title: str = "",
+def draw_quadvar_result(quadvar: numpy.ndarray, inc_random: bool = False, title: str = "",
                         varlabel: str = "", randlabel: str = "", figoutput: Optional[FigOutput] = None) -> None:
     fig, axs = start_figure(figoutput)
     axs.plot(quadvar[:, 0], quadvar[:, 1], label=varlabel)
-    if rand_ci is not None:
-        axs.plot(quadvar[:, 0], rand_ci, label=randlabel)
+    if inc_random:
+        axs.plot(quadvar[:, 0], quadvar[:, 2], label=randlabel)
         pyplot.legend(loc="upper right")
     axs.set_xlabel("Scale")
     axs.set_ylabel("Variance")
@@ -115,8 +119,8 @@ def draw_quadvar_result(quadvar: numpy.ndarray, rand_ci: Optional[numpy.ndarray]
 #     pyplot.show()
 
 
-def draw_tessellation(tessellation, xcoords: numpy.ndarray, ycoords: numpy.ndarray, title: str = "",
-                      figoutput: Optional[FigOutput] = None) -> None:
+def draw_tessellation(tessellation: VoronoiTessellation, xcoords: numpy.ndarray, ycoords: numpy.ndarray,
+                      title: str = "", figoutput: Optional[FigOutput] = None) -> None:
     fig, axs = start_figure(figoutput)
     minx = min(xcoords)
     maxx = max(xcoords)
@@ -235,19 +239,21 @@ def draw_distance_class_distribution(dist_matrix: numpy.ndarray, dist_class: num
 
 
 def draw_correlogram(data: numpy.ndarray, metric_title: str = "", title: str = "", alpha: float = 0.05,
-                     is_mantel: bool = False, figoutput: Optional[FigOutput] = None):
+                     figoutput: Optional[FigOutput] = None):
     fig, axs = start_figure(figoutput)
 
     # column order is: min_scale, max_scale, # pairs, expected, observed, sd, z, prob
     # sd is absent from Mantel correlograms
+    _, ncols = data.shape
     min_col = 0
     max_col = 1
     exp_col = 3
     obs_col = 4
-    if is_mantel:
-        p_col = 6
-    else:
-        p_col = 7
+    p_col = ncols - 1
+    # if is_mantel:
+    #     p_col = 6
+    # else:
+    #     p_col = 7
 
     # plot at midpoint of distance range
     scale = numpy.array([x[min_col] + (x[max_col] - x[min_col])/2 for x in data])
@@ -406,8 +412,7 @@ def draw_bearing_correlogram(data: numpy.ndarray, title: str = "", symmetric: bo
 
 
 def draw_windrose_correlogram(data: numpy.ndarray, title: str = "", symmetric: bool = True, alpha: float = 0.05,
-                              show_counts: bool = False, is_mantel: bool = False,
-                              figoutput: Optional[FigOutput] = None):
+                              show_counts: bool = False, figoutput: Optional[FigOutput] = None):
     fig, axs = start_figure(figoutput, polar=True)
 
     # pre-determined spacing between sectors in each annulus
@@ -416,16 +421,18 @@ def draw_windrose_correlogram(data: numpy.ndarray, title: str = "", symmetric: b
 
     # column order is: min_scale, max_scale, min_angle, max_angle, # pairs, expected, observed, sd, z, prob
     # sd is absent from Mantel correlograms
+    _, ncols = data.shape
     mindist_col = 0
     sang_col = 2
     eang_col = 3
     np_col = 4
     exp_col = 5
     obs_col = 6
-    if is_mantel:
-        p_col = 8
-    else:
-        p_col = 9
+    p_col = ncols - 1
+    # if is_mantel:
+    #     p_col = 8
+    # else:
+    #     p_col = 9
     annuli = set(data[:, mindist_col])
     annuli = sorted(annuli)
     n_annuli = len(annuli)
@@ -550,18 +557,9 @@ def draw_windrose_correlogram(data: numpy.ndarray, title: str = "", symmetric: b
 
 def draw_bearing(data: numpy.ndarray, alpha: float = 0.05, title: str = "", figoutput: Optional[FigOutput] = None):
     fig, axs = start_figure(figoutput)
-
-    # # column order is: min_scale, max_scale, # pairs, expected, observed, sd, z, prob
-    # min_col = 0
-    # max_col = 1
-    # exp_col = 3
-    # obs_col = 4
-    # p_col = 7
-    #
-    # # plot at midpoint of distance range
-    # scale = numpy.array([x[min_col] + (x[max_col] - x[min_col])/2 for x in data])
-    #
     n = len(data)
+    _, ncols = data.shape
+    p_col = ncols - 1
 
     # draw expected value
     y = [0, 0]
@@ -573,7 +571,7 @@ def draw_bearing(data: numpy.ndarray, alpha: float = 0.05, title: str = "", figo
     axs.plot(data[:, 0], data[:, 1], zorder=2)
 
     # mark significant bearings
-    sig_mask = [p <= alpha for p in data[:, 2]]
+    sig_mask = [p <= alpha for p in data[:, p_col]]
     x = data[sig_mask, 0]
     y = data[sig_mask, 1]
     pyplot.scatter(x, y, color="black", edgecolors="black", zorder=3, s=25)
