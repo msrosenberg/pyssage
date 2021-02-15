@@ -555,35 +555,46 @@ def draw_windrose_correlogram(data: numpy.ndarray, title: str = "", symmetric: b
     finalize_figure(fig, axs, figoutput, title)
 
 
-def draw_bearing(data: numpy.ndarray, alpha: float = 0.05, title: str = "", figoutput: Optional[FigOutput] = None):
-    fig, axs = start_figure(figoutput)
+def draw_bearing(data: numpy.ndarray, alpha: float = 0.05, title: str = "", draw_polar: bool = False,
+                 figoutput: Optional[FigOutput] = None):
+    fig, axs = start_figure(figoutput, draw_polar)
     n = len(data)
     _, ncols = data.shape
     p_col = ncols - 1
 
-    # draw expected value
-    y = [0, 0]
-    x = [data[0, 0], data[n-1, 0]]
-    line = Line2D(x, y, color="silver", zorder=1)
-    axs.add_line(line)
+    if not draw_polar:
+        # draw expected value
+        y = [0, 0]
+        x = [data[0, 0], data[n-1, 0]]
+        line = Line2D(x, y, color="silver", zorder=1)
+        axs.add_line(line)
 
-    # draw base line
-    axs.plot(data[:, 0], data[:, 1], zorder=2)
+        # draw base line
+        axs.plot(data[:, 0], data[:, 1], zorder=2)
+        axs.set_xlabel("Bearing")
+        axs.set_ylabel("Mantel Correlation")
 
     # mark significant bearings
     sig_mask = [p <= alpha for p in data[:, p_col]]
-    x = data[sig_mask, 0]
-    y = data[sig_mask, 1]
+
+    if draw_polar:
+        x = numpy.radians(numpy.append(data[sig_mask, 0], data[sig_mask, 0]+180))
+        y = numpy.abs(numpy.append(data[sig_mask, 1], data[sig_mask, 1]))
+    else:
+        x = data[sig_mask, 0]
+        y = data[sig_mask, 1]
     pyplot.scatter(x, y, color="black", edgecolors="black", zorder=3, s=25)
 
     # mark non-significant scales
     ns_mask = numpy.invert(sig_mask)
-    x = data[ns_mask, 0]
-    y = data[ns_mask, 1]
+    if draw_polar:
+        x = numpy.radians(numpy.append(data[ns_mask, 0], data[ns_mask, 0]+180))
+        y = numpy.abs(numpy.append(data[ns_mask, 1], data[ns_mask, 1]))
+    else:
+        x = data[ns_mask, 0]
+        y = data[ns_mask, 1]
     pyplot.scatter(x, y, color="white", edgecolors="black", zorder=3, s=15)
 
-    axs.set_xlabel("Bearing")
-    axs.set_ylabel("Mantel Correlation")
     finalize_figure(fig, axs, figoutput, title)
 
 
@@ -592,12 +603,19 @@ def draw_angular_correlation(data: numpy.ndarray, title: str = "", draw_polar: b
     fig, axs = start_figure(figoutput, polar=draw_polar)
     if draw_polar:
         pos_mask = [r >= 0 for r in data[:, 1]]
-        pyplot.scatter(numpy.radians(data[pos_mask, 0]), numpy.abs(data[pos_mask, 1]), color="red", edgecolors="black")
+        pyplot.scatter(numpy.radians(data[pos_mask, 0]), numpy.abs(data[pos_mask, 1]), color="red", edgecolors="black",
+                       zorder=3)
         neg_mask = numpy.invert(pos_mask)
-        pyplot.scatter(numpy.radians(data[neg_mask, 0]), numpy.abs(data[neg_mask, 1]), color="blue", edgecolors="black")
+        pyplot.scatter(numpy.radians(data[neg_mask, 0]), numpy.abs(data[neg_mask, 1]), color="blue", edgecolors="black",
+                       zorder=3)
         axs.set_ylim(0, 1)
     else:
-        pyplot.scatter(data[:, 0],data[:, 1])
+        # draw expected value
+        y = [0, 0]
+        x = [data[0, 0], data[len(data) - 1, 0]]
+        line = Line2D(x, y, color="silver", zorder=1)
+        axs.add_line(line)
+        pyplot.scatter(data[:, 0],data[:, 1], zorder=2)
         axs.set_xlabel("Bearing")
         axs.set_ylabel("Correlation")
         axs.set_ylim(-1, 1)
