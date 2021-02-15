@@ -474,8 +474,10 @@ def data_distance_correlation(x: numpy.ndarray, y: numpy.ndarray) -> float:
     :param y: a one-dimensional numpy.ndarray
     :return: a floating-point number representing the distance
     """
-    meanx = numpy.average(x)
-    meany = numpy.average(y)
+    # meanx = numpy.average(x)
+    # meany = numpy.average(y)
+    meanx = numpy.mean(x)
+    meany = numpy.mean(y)
     num = numpy.sum((x - meanx)*(y - meany))
     den = sqrt(numpy.sum(numpy.square(x - meanx)) * numpy.sum(numpy.square(y - meany)))
     return 1 - num/den
@@ -489,8 +491,10 @@ def data_distance_squared_correlation(x: numpy.ndarray, y: numpy.ndarray) -> flo
     :param y: a one-dimensional numpy.ndarray
     :return: a floating-point number representing the distance
     """
-    meanx = numpy.average(x)
-    meany = numpy.average(y)
+    # meanx = numpy.average(x)
+    # meany = numpy.average(y)
+    meanx = numpy.mean(x)
+    meany = numpy.mean(y)
     num = numpy.sum((x - meanx)*(y - meany))
     den = numpy.sum(numpy.square(x - meanx)) * numpy.sum(numpy.square(y - meany))
     return 1 - (num**2)/den
