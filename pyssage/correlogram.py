@@ -24,7 +24,8 @@ def morans_i(y: numpy.ndarray, weights: Connections, alt_weights: Optional[numpy
              variance: Optional[str] = "random"):
     check_variance_assumption(variance)
     n = len(y)
-    mean_y = numpy.average(y)
+    # mean_y = numpy.average(y)
+    mean_y = numpy.mean(y)
     dev_y = y - mean_y  # deviations from mean
     w = weights.as_binary()
     if alt_weights is not None:  # multiply to create non-binary weights, if necessary
@@ -57,7 +58,8 @@ def gearys_c(y: numpy.ndarray, weights: Connections, alt_weights: Optional[numpy
              variance: Optional[str] = "random"):
     check_variance_assumption(variance)
     n = len(y)
-    mean_y = numpy.average(y)
+    # mean_y = numpy.average(y)
+    mean_y = numpy.mean(y)
     dev_y = y - mean_y  # deviations from mean
     w = weights.as_binary()
     if alt_weights is not None:  # multiply to create non-binary weights, if necessary

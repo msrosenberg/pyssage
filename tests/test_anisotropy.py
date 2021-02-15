@@ -1,3 +1,4 @@
+from math import degrees
 import numpy
 import pyssage.anisotropy
 import pyssage.distances
@@ -51,6 +52,7 @@ def test_bearing_analysis():
     angles = pyssage.distances.euclidean_angle_matrix(coords[:, 0], coords[:, 1])
     output, output_text = pyssage.anisotropy.bearing_analysis(data_distances, distances, angles, 36)
     pyssage.graph.draw_bearing(numpy.array(output), figoutput=pyssage.graph.FigOutput(figshow=True))
+    pyssage.graph.draw_bearing(numpy.array(output), draw_polar=True, figoutput=pyssage.graph.FigOutput(figshow=True))
 
     for line in output_text:
         print(line)
@@ -72,3 +74,21 @@ def test_bearing_analysis_rand():
 
     for line in output_text:
         print(line)
+
+
+def test_angular_correlation_analysis():
+    # answer calculated from PASSaGE 2
+    data, _ = create_test_scattered()
+    coords = create_test_coords()
+    col = 22  # prostate cancer column
+    (r_max, theta_max, f, p_value, output,
+     output_text) = pyssage.anisotropy.angular_correlation_analysis(coords[:, 0], coords[:, 1], data[:, col])
+
+    for line in output_text:
+        print(line)
+
+    pyssage.graph.draw_angular_correlation(numpy.array(output), figoutput=pyssage.graph.FigOutput(figshow=True))
+    pyssage.graph.draw_angular_correlation(numpy.array(output), draw_polar=False,
+                                           figoutput=pyssage.graph.FigOutput(figshow=True))
+
+    assert round(r_max, 5) == 0.44382
