@@ -10,9 +10,9 @@ from matplotlib import collections, colors
 # import matplotlib.patches as mpatches
 import numpy
 
-__all__ = ["FigOutput", "draw_transect", "draw_bearing", "draw_bearing_correlogram", "draw_connections",
+__all__ = ["FigOutput", "draw_angular_correlation", "draw_bearing", "draw_bearing_correlogram", "draw_connections",
            "draw_correlogram", "draw_distance_class_distribution", "draw_quadvar_result", "draw_shortest_path",
-           "draw_tessellation", "draw_windrose_correlogram"]
+           "draw_tessellation", "draw_transect", "draw_windrose_correlogram"]
 
 
 class FigOutput:
@@ -584,4 +584,21 @@ def draw_bearing(data: numpy.ndarray, alpha: float = 0.05, title: str = "", figo
 
     axs.set_xlabel("Bearing")
     axs.set_ylabel("Mantel Correlation")
+    finalize_figure(fig, axs, figoutput, title)
+
+
+def draw_angular_correlation(data: numpy.ndarray, title: str = "", draw_polar: bool = True,
+                             figoutput: Optional[FigOutput] = None):
+    fig, axs = start_figure(figoutput, polar=draw_polar)
+    if draw_polar:
+        pos_mask = [r >= 0 for r in data[:, 1]]
+        pyplot.scatter(numpy.radians(data[pos_mask, 0]), numpy.abs(data[pos_mask, 1]), color="red", edgecolors="black")
+        neg_mask = numpy.invert(pos_mask)
+        pyplot.scatter(numpy.radians(data[neg_mask, 0]), numpy.abs(data[neg_mask, 1]), color="blue", edgecolors="black")
+        axs.set_ylim(0, 1)
+    else:
+        pyplot.scatter(data[:, 0],data[:, 1])
+        axs.set_xlabel("Bearing")
+        axs.set_ylabel("Correlation")
+        axs.set_ylim(-1, 1)
     finalize_figure(fig, axs, figoutput, title)
