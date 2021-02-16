@@ -91,8 +91,16 @@ def gearys_c(y: numpy.ndarray, weights: Connections, alt_weights: Optional[numpy
 
 def mantel_correl(y: numpy.ndarray, weights: Connections, alt_weights: Optional[numpy.ndarray] = None,
                   variance: Optional[str] = "random"):
-    r, p_value, _, _, _, _, z = pyssage.mantel.mantel(y, weights.as_reverse_binary(), [])
-    return weights.min_scale, weights.max_scale, weights.n_pairs(), 0, r, z, p_value
+    """
+    in order to get the bearing version to work right, we have to use normal binary weights, then reverse the sign
+    of the resulting Mantel correlation. if we use reverse binary weighting we end up multiplying the 'out of
+    class' weights of 1 versus the angles, which is not what we want to test
+    """
+    w = weights.as_binary()
+    if alt_weights is not None:  # multiply to create non-binary weights, if necessary
+        w *= alt_weights
+    r, p_value, _, _, _, _, z = pyssage.mantel.mantel(y, w, [])
+    return weights.min_scale, weights.max_scale, weights.n_pairs(), 0, -r, -z, p_value
 
 
 def correlogram(data: numpy.ndarray, dist_class_connections: list, metric: morans_i,
@@ -140,6 +148,9 @@ def bearing_correlogram(data: numpy.ndarray, dist_class_connections: list, angle
     elif metric == gearys_c:
         metric_title = "Geary's c"
         exp_format = "d"
+    elif metric == mantel_correl:
+        metric_title = "Mantel"
+        exp_format = "d"
     else:
         metric_title = ""
         exp_format = ""
@@ -167,8 +178,12 @@ def bearing_correlogram(data: numpy.ndarray, dist_class_connections: list, angle
     if variance is not None:
         output_text.append("Distribution assumption = {}".format(variance))
     output_text.append("")
-    col_headers = ("Min dist", "Max dist", "Bearing", "# pairs", "Expected", metric_title, "SD", "Z", "Prob")
-    col_formats = ("f", "f", "f", "d", exp_format, "f", "f", "f", "f")
+    if metric == mantel_correl:
+        col_headers = ("Min dist", "Max dist", "Bearing", "# pairs", "Expected", metric_title, "Z", "Prob")
+        col_formats = ("f", "f", "f", "d", exp_format, "f", "f", "f")
+    else:
+        col_headers = ("Min dist", "Max dist", "Bearing", "# pairs", "Expected", metric_title, "SD", "Z", "Prob")
+        col_formats = ("f", "f", "f", "d", exp_format, "f", "f", "f", "f")
     create_output_table(output_text, output, col_headers, col_formats)
 
     return output, output_text

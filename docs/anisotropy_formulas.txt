@@ -3,3 +3,26 @@ bearing formula
 
 G_{ij}=D_{ij}\cos^2\left(\theta-\alpha_{ij} \right )
 
+
+
+angular correlation formulas
+
+
+\begin{aligned}
+r\left(\theta\right)
+&=\frac{S_{xv}\cos\theta +S_{yv}\sin\theta }{\sqrt{\left(\S_{xx}cos^2\theta  +2 S_{xy}\sin\theta\cos\theta +S_{yy}\sin^2\theta  \right)S_{vv}}} \\
+&=\frac{S_{xv}+S_{yv}\tan\theta}{\sqrt{\left(S_{xx}+2S_{xy}\tan\theta+S_{yy}\tan^2\theta \right)S_{vv}}}
+\end{aligned}
+
+
+S_{xv} = \sum\left( x_i - \overline{x}\right)\left(v_i - \overline{v} \right)
+
+
+\theta_{max}=\tan^{-1}\left(\frac{S_{xv}S_{xy}-S_{yv}S_{xx}} {S_{yv}S_{xy}-S_{xv}S_{yy}} \right)
+
+
+r_{max} = \sqrt{\frac{S_{xv}^2 S_{yy} - 2S_{xv}S_{yv}S_{xy} + S_{yv}^2 S_{xx} }{\left( S_{xx}S_{yy}-S_{xy}^2
+\right)S_{vv}}}
+
+
+F=\frac{\left(n-3\right)r_{max}^2}{2\left(1-r_{max}^2\right)}

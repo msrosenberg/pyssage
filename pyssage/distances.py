@@ -514,10 +514,14 @@ def data_distance_matrix(data: numpy.ndarray, distance_measure=data_distance_euc
     :return: a square matrix containing the calculated distances among the rows of data
     """
     n = len(data)
+    shape = data.shape
     output = numpy.zeros((n, n), dtype=float)
     for i in range(n):
         for j in range(i):
-            dist = distance_measure(data[i, :], data[j, :])
+            if len(shape) > 1:
+                dist = distance_measure(data[i, :], data[j, :])
+            else:
+                dist = distance_measure(data[i], data[j])
             output[i, j] = dist
             output[j, i] = dist
     return output
