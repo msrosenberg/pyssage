@@ -58,13 +58,15 @@ So far the following analyses have been implemented:
 * Correlograms
   * Moran's *I* 
   * Geary's *c* 
-* Mantel Correlograms 
+  * Mantel Correlograms 
 
 ### Anisotropy
 * Bearing Analysis 
 * Bearing Correlograms
+  * Moran's *I*, Geary's *c*, and Mantel
 * Windrose Correlograms
-* Windrose Mantel Correlograms
+  * Moran's *I*, Geary's *c*, and Mantel
+* Angular Correlation Analysis
 
 ### Miscellaneous
 * Mantel tests 
