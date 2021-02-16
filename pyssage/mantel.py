@@ -204,15 +204,14 @@ def residuals_from_simple_matrix_regression(y: numpy.ndarray, x: numpy.ndarray) 
     if n != check_for_square_matrix(x):
         raise ValueError("matrices must be the same size")
 
-    # sumx = numpy.sum(x)
-    # sumy = numpy.sum(y)
+    sumx = numpy.sum(x)
+    sumy = numpy.sum(y)
     sumx2 = numpy.sum(numpy.square(x))
     sumxy = numpy.sum(numpy.multiply(x, y))
     count = n**2 - n  # number of off-diagonal elements
-    # xbar = sumx / count
-    # ybar = sumy / count
-    xbar = numpy.mean(x)
-    ybar = numpy.mean(y)
+    # means are calculated without including diagonals of matrices!
+    xbar = sumx / count
+    ybar = sumy / count
     beta = (sumxy - count*xbar*ybar) / (sumx2 - count*xbar**2)
     alpha = ybar - beta*xbar
 
