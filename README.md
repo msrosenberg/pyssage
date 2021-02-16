@@ -3,7 +3,7 @@
 PySSaGE is a collection of python versions of analyses originally part of the *PASSaGE* (Rosenberg 2001) and [*PASSaGE* 
 2]((https://www.passagesoftware.net)) (Rosenberg and Anderson 2011) software packages for spatial analysis.
 
-See the [PySSaGE wiki]((https://github.com/msrosenberg/pyssage/wiki)) for more information.
+See the [PySSaGE wiki](https://github.com/msrosenberg/pyssage/wiki) for more information.
 
 ---
 
