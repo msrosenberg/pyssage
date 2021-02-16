@@ -28,6 +28,9 @@ def mantel(input_matrix1: numpy.ndarray, input_matrix2: numpy.ndarray, partial, 
         raise ValueError("input matrices must be the same size")
 
     if len(partial) > 0:
+        for x in partial:
+            if n != check_for_square_matrix(x):
+                raise ValueError("input matrices must be the same size")
         matrix1 = residuals_from_matrix_regression(input_matrix1, partial)
         matrix2 = residuals_from_matrix_regression(input_matrix2, partial)
     else:
@@ -201,8 +204,9 @@ def residuals_from_simple_matrix_regression(y: numpy.ndarray, x: numpy.ndarray) 
     :return: matrix of residuals of the simple linear regression of y on x
     """
     n = check_for_square_matrix(y)
-    if n != check_for_square_matrix(x):
-        raise ValueError("matrices must be the same size")
+    # should have already been checked
+    # if n != check_for_square_matrix(x):
+    #     raise ValueError("matrices must be the same size")
 
     sumx = numpy.sum(x)
     sumy = numpy.sum(y)
@@ -226,9 +230,10 @@ def residuals_from_multi_matrix_regression(y: numpy.ndarray, x_list: list) -> nu
     performs a muliple linear regression of matrix y on all of the matrices in x and returns the residuals
     """
     n = check_for_square_matrix(y)
-    for x in x_list:
-        if n != check_for_square_matrix(x):
-            raise ValueError("matrices must be the same size")
+    # should have already been checked
+    # for x in x_list:
+    #     if n != check_for_square_matrix(x):
+    #         raise ValueError("matrices must be the same size")
 
     # create a column of y values
     ymat = y.flatten()
@@ -236,8 +241,12 @@ def residuals_from_multi_matrix_regression(y: numpy.ndarray, x_list: list) -> nu
     xmat = numpy.ones((len(ymat), len(x_list) + 1), dtype=float)
     for i, x in enumerate(x_list):
         xmat[:, i+1] = x.flatten()
-    b = numpy.outer(numpy.outer(numpy.linalg.inv(numpy.outer(xmat.T,  xmat)), xmat.T), ymat)
-    yhat = numpy.outer(xmat, b)
+    # xtx = numpy.matmul(xmat.T,  xmat)
+    # inv_xtx = numpy.linalg.inv(xtx)
+    # inv_xtx_x = numpy.matmul(inv_xtx, xmat.T)
+    # b = numpy.matmul(inv_xtx_x, ymat)
+    b = numpy.matmul(numpy.matmul(numpy.linalg.inv(numpy.matmul(xmat.T,  xmat)), xmat.T), ymat)
+    yhat = numpy.matmul(xmat, b)
     residuals = ymat - yhat
     return numpy.reshape(residuals, (n, n))
 
@@ -251,8 +260,9 @@ def square_matrix_covariance(x: numpy.ndarray, y: numpy.ndarray) -> float:
     :return: the covariance of the two matrices
     """
     n = check_for_square_matrix(y)
-    if n != check_for_square_matrix(x):
-        raise ValueError("matrices must be the same size")
+    # should have already been checked
+    # if n != check_for_square_matrix(x):
+    #     raise ValueError("matrices must be the same size")
 
     sumx = numpy.sum(x)
     sumy = numpy.sum(y)

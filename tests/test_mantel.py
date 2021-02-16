@@ -75,6 +75,58 @@ def test_mantel_with_partial_single():
     assert round(r, 5) == 0.26699
 
 
+def test_mantel_with_partial_single_permuted():
+    """
+
+    cannot formally test permutation results
+
+    """
+    data, _ = create_test_scattered()
+    coords = create_test_coords()
+    distances = pyssage.distances.euclidean_distance_matrix(coords[:, 0], coords[:, 1])
+    angles = pyssage.distances.euclidean_angle_matrix(coords[:, 0], coords[:, 1])
+    data_distances = pyssage.distances.data_distance_matrix(data, pyssage.distances.data_distance_euclidean)
+
+    r, p_value, output_text, _, _, _, _ = pyssage.mantel.mantel(data_distances, distances, [angles], permutations=100)
+    for line in output_text:
+        print(line)
+
+
+def test_mantel_with_partial_multi():
+    """
+
+    """
+    data, _ = create_test_scattered()
+    coords = create_test_coords()
+    distances = pyssage.distances.euclidean_distance_matrix(coords[:, 0], coords[:, 1])
+    angles = pyssage.distances.euclidean_angle_matrix(coords[:, 0], coords[:, 1])
+    data_distances1 = pyssage.distances.data_distance_matrix(data, pyssage.distances.data_distance_euclidean)
+    data_distances2 = pyssage.distances.data_distance_matrix(data, pyssage.distances.data_distance_manhattan)
+
+    r, p_value, output_text, _, _, _, _ = pyssage.mantel.mantel(data_distances1, data_distances2, [distances, angles])
+    for line in output_text:
+        print(line)
+
+
+def test_mantel_with_partial_multi_permuted():
+    """
+
+    cannot formally test permutation results
+
+    """
+    data, _ = create_test_scattered()
+    coords = create_test_coords()
+    distances = pyssage.distances.euclidean_distance_matrix(coords[:, 0], coords[:, 1])
+    angles = pyssage.distances.euclidean_angle_matrix(coords[:, 0], coords[:, 1])
+    data_distances1 = pyssage.distances.data_distance_matrix(data, pyssage.distances.data_distance_euclidean)
+    data_distances2 = pyssage.distances.data_distance_matrix(data, pyssage.distances.data_distance_manhattan)
+
+    r, p_value, output_text, _, _, _, _ = pyssage.mantel.mantel(data_distances1, data_distances2, [distances, angles],
+                                                                permutations=100)
+    for line in output_text:
+        print(line)
+
+
 # def test_code():
 #     x = numpy.array([[0, 1, 2, 3], [1, 0, 4, 5], [2, 4, 0, 6], [3, 5, 6, 0]])
 #     print()
