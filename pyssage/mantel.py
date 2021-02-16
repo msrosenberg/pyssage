@@ -1,4 +1,4 @@
-from pyssage.utils import check_for_square_matrix
+from pyssage.utils import check_for_square_matrix, flatten_without_diagonal, deflatten_without_diagonal
 from pyssage.common import OUT_FRMT
 from math import sqrt
 from typing import Tuple
@@ -28,6 +28,9 @@ def mantel(input_matrix1: numpy.ndarray, input_matrix2: numpy.ndarray, partial, 
         raise ValueError("input matrices must be the same size")
 
     if len(partial) > 0:
+        for x in partial:
+            if n != check_for_square_matrix(x):
+                raise ValueError("input matrices must be the same size")
         matrix1 = residuals_from_matrix_regression(input_matrix1, partial)
         matrix2 = residuals_from_matrix_regression(input_matrix2, partial)
     else:
@@ -201,18 +204,14 @@ def residuals_from_simple_matrix_regression(y: numpy.ndarray, x: numpy.ndarray) 
     :return: matrix of residuals of the simple linear regression of y on x
     """
     n = check_for_square_matrix(y)
-    if n != check_for_square_matrix(x):
-        raise ValueError("matrices must be the same size")
-
-    # sumx = numpy.sum(x)
-    # sumy = numpy.sum(y)
+    sumx = numpy.sum(x)
+    sumy = numpy.sum(y)
     sumx2 = numpy.sum(numpy.square(x))
     sumxy = numpy.sum(numpy.multiply(x, y))
     count = n**2 - n  # number of off-diagonal elements
-    # xbar = sumx / count
-    # ybar = sumy / count
-    xbar = numpy.mean(x)
-    ybar = numpy.mean(y)
+    # means are calculated without including diagonals of matrices!
+    xbar = sumx / count
+    ybar = sumy / count
     beta = (sumxy - count*xbar*ybar) / (sumx2 - count*xbar**2)
     alpha = ybar - beta*xbar
 
@@ -227,20 +226,16 @@ def residuals_from_multi_matrix_regression(y: numpy.ndarray, x_list: list) -> nu
     performs a muliple linear regression of matrix y on all of the matrices in x and returns the residuals
     """
     n = check_for_square_matrix(y)
-    for x in x_list:
-        if n != check_for_square_matrix(x):
-            raise ValueError("matrices must be the same size")
-
     # create a column of y values
-    ymat = y.flatten()
+    ymat = flatten_without_diagonal(y)
     # create an x matrix with the first column 1's and one additional column for each matrix in the x list
     xmat = numpy.ones((len(ymat), len(x_list) + 1), dtype=float)
     for i, x in enumerate(x_list):
-        xmat[:, i+1] = x.flatten()
-    b = numpy.outer(numpy.outer(numpy.linalg.inv(numpy.outer(xmat.T,  xmat)), xmat.T), ymat)
-    yhat = numpy.outer(xmat, b)
+        xmat[:, i+1] = flatten_without_diagonal(x)
+    b = numpy.matmul(numpy.matmul(numpy.linalg.inv(numpy.matmul(xmat.T,  xmat)), xmat.T), ymat)
+    yhat = numpy.matmul(xmat, b)
     residuals = ymat - yhat
-    return numpy.reshape(residuals, (n, n))
+    return deflatten_without_diagonal(residuals, n)
 
 
 def square_matrix_covariance(x: numpy.ndarray, y: numpy.ndarray) -> float:
@@ -252,9 +247,6 @@ def square_matrix_covariance(x: numpy.ndarray, y: numpy.ndarray) -> float:
     :return: the covariance of the two matrices
     """
     n = check_for_square_matrix(y)
-    if n != check_for_square_matrix(x):
-        raise ValueError("matrices must be the same size")
-
     sumx = numpy.sum(x)
     sumy = numpy.sum(y)
     sumxy = numpy.sum(numpy.multiply(x, y))
