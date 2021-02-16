@@ -135,7 +135,7 @@ def test_gearys_c():
 
 def test_mantel_correl():
     # The Passage 2 Mantel correlogram code appears to be buggy
-    # Some manual tests do seem to indiciate this is working correctly
+    # Some manual tests do seem to indicate this is working correctly
     data, _ = create_test_scattered()
     coords = create_test_coords()
     distances = pyssage.distances.euclidean_distance_matrix(coords[:, 0], coords[:, 1])
@@ -479,5 +479,25 @@ def test_mantel_windrose_correlogram():
                                             show_counts=True, figoutput=pyssage.graph.FigOutput(figshow=True))
     pyssage.graph.draw_windrose_correlogram(numpy.array(all_output), title="Mantel Windrose Correlogram",
                                             figoutput=pyssage.graph.FigOutput(figshow=True))
+    for line in output_text:
+        print(line)
+
+
+def test_bearing_correlogram_mantel():
+    # The Passage 2 Mantel correlogram code appears to be buggy, which effects the Mantel bearing correlogram as well
+    # There was also potentially a logic error in using "reverse binary weights" with non-binary weighting which
+    # also would have led to problematic results, even if the first error hadn't overridden everything
+    data, _ = create_test_scattered()
+    coords = create_test_coords()
+    distances = pyssage.distances.euclidean_distance_matrix(coords[:, 0], coords[:, 1])
+    angles = pyssage.distances.euclidean_angle_matrix(coords[:, 0], coords[:, 1])
+    data_distances = pyssage.distances.data_distance_matrix(data, pyssage.distances.data_distance_euclidean)
+    dist_classes = pyssage.distances.create_distance_classes(distances, "determine pair count", 15)
+    dc_con = pyssage.connections.distance_classes_to_connections(dist_classes, distances)
+
+    output, output_text = pyssage.correlogram.bearing_correlogram(data_distances, dc_con, angles,
+                                                                  metric=pyssage.correlogram.mantel_correl)
+    pyssage.graph.draw_bearing_correlogram(numpy.array(output), "Mantel Bearing Correlogram",
+                                           figoutput=pyssage.graph.FigOutput(figshow=True))
     for line in output_text:
         print(line)

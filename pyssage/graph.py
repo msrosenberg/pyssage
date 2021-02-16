@@ -357,11 +357,13 @@ def draw_bearing_correlogram(data: numpy.ndarray, title: str = "", symmetric: bo
     fig, axs = start_figure(figoutput, polar=True)
 
     # column order is: min_scale, max_scale, bearing, # pairs, expected, observed, sd, z, prob
+    _, ncols = data.shape
     mindist_col = 0
     b_col = 2
     exp_col = 4
     obs_col = 5
-    p_col = 8
+    # p_col = 8
+    p_col = ncols - 1
     dist_classes = sorted(set(data[:, mindist_col]))
     n_dists = len(dist_classes)
     deviation = data[:, obs_col] - data[:, exp_col]
@@ -386,7 +388,7 @@ def draw_bearing_correlogram(data: numpy.ndarray, title: str = "", symmetric: bo
     else:  # Moran's I
         normalize = colors.Normalize(vmin=-1, vmax=1)
     p_colors = pyplot.cm.bwr_r(normalize(data[:, obs_col]))
-    print(p_colors)
+    # print(p_colors)
     if symmetric:
         r = numpy.append(r, r)
         theta = numpy.append(theta, theta + pi)
@@ -395,7 +397,7 @@ def draw_bearing_correlogram(data: numpy.ndarray, title: str = "", symmetric: bo
         base_circle = numpy.append(base_circle, base_circle)
         edges = edges + edges
     drop_lines = [[(theta[i], base_circle[i]), (theta[i], r[i])] for i in range(len(r))]
-    print(p_colors)
+    # print(p_colors)
 
     drop_collection = collections.LineCollection(drop_lines, colors="silver", zorder=1)
     axs.add_collection(drop_collection)
