@@ -7,7 +7,7 @@ with open("README.md", "r") as infile:
 
 setuptools.setup(
     name="pyssage",
-    version="0.0.1",
+    version="0.1.1",
     author="Michael S. Rosenberg",
     author_email="msrosenberg@vcu.edu",
     description="python version of some of the analyses from PASSaGE 2",
@@ -16,10 +16,10 @@ setuptools.setup(
     url="https://github.com/msrosenberg/pyssage",
     license="GPLv3",
     packages=setuptools.find_packages(),
-    # classifiers=[
-    #     "Programming Language :: Python :: 3",
-    #     "License :: OSI Approved :: MIT License",
-    #     "Operating System :: OS Independent",
-    # ],
+    classifiers=[
+        "Programming Language :: Python :: 3",
+        # "License :: OSI Approved :: MIT License",
+        "Operating System :: OS Independent",
+    ],
     python_requires='>=3.6',
 )
