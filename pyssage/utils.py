@@ -17,6 +17,46 @@ def flatten_half(square_matrix: numpy.ndarray) -> numpy.ndarray:
     return numpy.array(output)
 
 
+def flatten_without_diagonal(square_matrix: numpy.ndarray) -> numpy.ndarray:
+    """
+    Given a square matrix, return the values from the non-diagonal elements in a single column
+
+    :param square_matrix: the input matrix, should be an n x n numpy.ndarray
+    :return: a single column numpy.ndarray
+    """
+    output = []
+    for i in range(len(square_matrix)):
+        for j in range(len(square_matrix)):
+            if i != j:
+                output.append(square_matrix[i, j])
+    return numpy.array(output)
+
+
+def deflatten_without_diagonal(vector: numpy.ndarray, n: int) -> numpy.ndarray:
+    """
+    Given a vector, recreate a square-matrix where the diagonal is assumed to be absent
+
+    :param vector: the input vector, should contain n(n-1) elements
+    :param n: the size of the desired n x n numpy.ndarray
+    :return: a single column numpy.ndarray
+    """
+    if len(vector) != n*(n-1):
+        raise ValueError("length of vector does not match desired output size of square matrix")
+    output = []
+    c = 0
+    for i in range(n):
+        row = []
+        for j in range(n):
+            if i != j:
+                row.append(vector[c])
+                c += 1
+            else:
+                row.append(0)
+        output.append(row)
+    return numpy.array(output)
+
+
+
 # def euc_dist(x1: float, x2: float, y1: float = 0, y2: float = 0, z1: float = 0, z2: float = 0) -> float:
 #     return sqrt((x1 - x2)**2 + (y1 - y2)**2 + (z1 - z2)**2)
 

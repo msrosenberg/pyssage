@@ -95,6 +95,19 @@ def test_mantel_with_partial_single_permuted():
 def test_mantel_with_partial_multi():
     """
 
+    Mantel Test
+    Matrix 1: Data Distance Matrix 1
+    Matrix 2: Data Distance Matrix 2
+    Matrices held constant: Distance Matrix 1, Angle Matrix 1
+      Matrices are 355 x 355
+
+    Observed Z = 44597376.68626
+    Correlation = 0.89973
+      t = 55.06521
+      Left-tailed p = 1.00000
+      Right-tailed p = 0.00000
+      Two-tailed p = 0.00000
+
     """
     data, _ = create_test_scattered()
     coords = create_test_coords()
@@ -106,6 +119,7 @@ def test_mantel_with_partial_multi():
     r, p_value, output_text, _, _, _, _ = pyssage.mantel.mantel(data_distances1, data_distances2, [distances, angles])
     for line in output_text:
         print(line)
+    assert round(r, 5) == 0.89973
 
 
 def test_mantel_with_partial_multi_permuted():
