@@ -1,5 +1,6 @@
 from math import sqrt, pi, degrees
 from typing import Optional, Tuple
+from collections import namedtuple
 import numpy
 import scipy.stats
 from pyssage.classes import Connections
@@ -178,7 +179,8 @@ def correlogram(data: numpy.ndarray, dist_class_connections: list, metric: moran
 
     create_output_table(output_text, output, col_headers, col_formats)
 
-    return output, output_text, all_permuted_values
+    correlogram_output = namedtuple("correlogram_output", ["output_values", "output_text", "permuted_values"])
+    return correlogram_output(output, output_text, all_permuted_values)
 
 
 def bearing_correlogram(data: numpy.ndarray, dist_class_connections: list, angles: numpy.ndarray, n_bearings: int = 18,
@@ -238,7 +240,8 @@ def bearing_correlogram(data: numpy.ndarray, dist_class_connections: list, angle
         col_formats.append("f")
     create_output_table(output_text, output, col_headers, col_formats)
 
-    return output, output_text, all_permuted_values
+    correlogram_output = namedtuple("correlogram_output", ["output_values", "output_text", "permuted_values"])
+    return correlogram_output(output, output_text, all_permuted_values)
 
 
 def windrose_sectors_per_annulus(segment_param: int, annulus: int) -> int:
@@ -347,4 +350,6 @@ def windrose_correlogram(data: numpy.ndarray, distances: numpy.ndarray, angles: 
         col_formats.append("f")
     create_output_table(output_text, output, col_headers, col_formats)
 
-    return output, output_text, all_output, all_permuted_values
+    windrose_correlogram_output = namedtuple("windrose_correlogram_output", ["output_values", "output_text",
+                                                                             "all_output", "permuted_values"])
+    return windrose_correlogram_output(output, output_text, all_output, all_permuted_values)
