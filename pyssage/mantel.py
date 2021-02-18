@@ -21,7 +21,7 @@ def check_tail(tail: str) -> None:
 
 
 def mantel(input_matrix1: numpy.ndarray, input_matrix2: numpy.ndarray, partial, permutations: int = 0,
-           tail: str = "both") -> Tuple[float, float, list, float, float, float, float]:
+           tail: str = "both") -> Tuple[float, float, list, float, float, float, list, float]:
     check_tail(tail)
     n = check_for_square_matrix(input_matrix1)
     if n != check_for_square_matrix(input_matrix2):
@@ -81,6 +81,7 @@ def mantel(input_matrix1: numpy.ndarray, input_matrix2: numpy.ndarray, partial, 
         p_value = 1 - p_value
 
     # perform permutation tests
+    permuted_r_list = [r]
     if permutations > 0:
         cumulative_left = 0
         cumulative_right = 0
@@ -94,31 +95,49 @@ def mantel(input_matrix1: numpy.ndarray, input_matrix2: numpy.ndarray, partial, 
 
             if len(partial) > 0:  # if partial, calculate residuals for permuted matrix
                 matrix1 = residuals_from_matrix_regression(matrix1, partial)
-            # If it is a two-tailed test, we need to calculate r, otherwise for one-tailed tests we can stick with
-            # Z which is faster
-            if tail == "both":
-                numerator = square_matrix_covariance(matrix1, matrix2)
-                if len(partial) > 0:
-                    denominator = sqrt(square_matrix_covariance(matrix1, matrix1) * sq_cov2)
-                else:  # for non-partial tests can save computation as denominator is fixed
-                    denominator = sqxy
-                permuted_r = numerator / denominator
-                if permuted_r < r:
-                    cumulative_left += 1
-                elif permuted_r > r:
-                    cumulative_right += 1
-                else:
-                    cumulative_equal += 1
-                if abs(permuted_r) >= abs(r):
-                    cumulative_total += 1
+
+            # if we want to save the permuted values, we cannot use the quick way for one-tailed tests
+            numerator = square_matrix_covariance(matrix1, matrix2)
+            if len(partial) > 0:
+                denominator = sqrt(square_matrix_covariance(matrix1, matrix1) * sq_cov2)
+            else:  # for non-partial tests can save computation as denominator is fixed
+                denominator = sqxy
+            permuted_r = numerator / denominator
+            if permuted_r < r:
+                cumulative_left += 1
+            elif permuted_r > r:
+                cumulative_right += 1
             else:
-                permuted_z = numpy.sum(numpy.multiply(matrix1, matrix2))
-                if permuted_z < observed_z:
-                    cumulative_left += 1
-                elif permuted_z > observed_z:
-                    cumulative_right += 1
-                else:
-                    cumulative_equal += 1
+                cumulative_equal += 1
+            if abs(permuted_r) >= abs(r):
+                cumulative_total += 1
+            permuted_r_list.append(permuted_r)
+
+            # # If it is a two-tailed test, we need to calculate r, otherwise for one-tailed tests we can stick with
+            # # Z which is faster
+            # if tail == "both":
+            #     numerator = square_matrix_covariance(matrix1, matrix2)
+            #     if len(partial) > 0:
+            #         denominator = sqrt(square_matrix_covariance(matrix1, matrix1) * sq_cov2)
+            #     else:  # for non-partial tests can save computation as denominator is fixed
+            #         denominator = sqxy
+            #     permuted_r = numerator / denominator
+            #     if permuted_r < r:
+            #         cumulative_left += 1
+            #     elif permuted_r > r:
+            #         cumulative_right += 1
+            #     else:
+            #         cumulative_equal += 1
+            #     if abs(permuted_r) >= abs(r):
+            #         cumulative_total += 1
+            # else:
+            #     permuted_z = numpy.sum(numpy.multiply(matrix1, matrix2))
+            #     if permuted_z < observed_z:
+            #         cumulative_left += 1
+            #     elif permuted_z > observed_z:
+            #         cumulative_right += 1
+            #     else:
+            #         cumulative_equal += 1
         permuted_right_p = (cumulative_equal + cumulative_right) / permutations
         permuted_left_p = (cumulative_equal + cumulative_left) / permutations
         if tail == "both":
@@ -141,8 +160,9 @@ def mantel(input_matrix1: numpy.ndarray, input_matrix2: numpy.ndarray, partial, 
         permuted_left_p, permuted_right_p, permuted_two_p = 1, 1, 1
 
     mantel_output = namedtuple("mantel_output", ["r", "p_value", "output_text", "permuted_left_p", "permuted_right_p",
-                                                 "permuted_two_p", "z_score"])
-    return mantel_output(r, p_value, output_text, permuted_left_p, permuted_right_p, permuted_two_p, z_score)
+                                                 "permuted_two_p", "permuted_r_list", "z_score"])
+    return mantel_output(r, p_value, output_text, permuted_left_p, permuted_right_p, permuted_two_p, permuted_r_list,
+                         z_score)
 
 
 def mantel_moments(x: numpy.ndarray, y: numpy.ndarray) -> Tuple[float, float]:
