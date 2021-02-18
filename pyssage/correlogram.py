@@ -134,7 +134,7 @@ def mantel_correl(y: numpy.ndarray, weights: Connections, alt_weights: Optional[
 
 
 def correlogram(data: numpy.ndarray, dist_class_connections: list, metric: morans_i,
-                variance: Optional[str] = "random", permutations: int = 0):
+                variance: Optional[str] = "random", permutations: int = 0) -> Tuple[list, list, list]:
     if metric == morans_i:
         metric_title = "Moran's I"
         exp_format = "f"
@@ -148,10 +148,12 @@ def correlogram(data: numpy.ndarray, dist_class_connections: list, metric: moran
         metric_title = ""
         exp_format = ""
     output = []
+    all_permuted_values = []
     for dc in dist_class_connections:
         *tmp_out, permuted_values = metric(data, dc, variance=variance, permutations=permutations)
         if permutations > 0:
             output.append(tmp_out)
+            all_permuted_values.append(permuted_values)
         else:
             output.append(tmp_out[:len(tmp_out)-1])
 
@@ -175,11 +177,12 @@ def correlogram(data: numpy.ndarray, dist_class_connections: list, metric: moran
 
     create_output_table(output_text, output, col_headers, col_formats)
 
-    return output, output_text
+    return output, output_text, all_permuted_values
 
 
 def bearing_correlogram(data: numpy.ndarray, dist_class_connections: list, angles: numpy.ndarray, n_bearings: int = 18,
-                        metric=morans_i, variance: Optional[str] = "random", permutations: int = 0):
+                        metric=morans_i, variance: Optional[str] = "random",
+                        permutations: int = 0) -> Tuple[list, list, list]:
     if metric == morans_i:
         metric_title = "Moran's I"
         exp_format = "f"
@@ -202,6 +205,7 @@ def bearing_correlogram(data: numpy.ndarray, dist_class_connections: list, angle
         bearing_weights.append(numpy.square(numpy.cos(angles - a)))
 
     output = []
+    all_permuted_values = []
     for i, b in enumerate(bearing_weights):
         for dc in dist_class_connections:
             *tmp_out, permuted_values = metric(data, dc, alt_weights=b, variance=variance, permutations=permutations)
@@ -209,6 +213,7 @@ def bearing_correlogram(data: numpy.ndarray, dist_class_connections: list, angle
             tmp_out.insert(2, degrees(bearings[i]))
             if permutations > 0:
                 output.append(tmp_out)
+                all_permuted_values.append(permuted_values)
             else:
                 output.append(tmp_out[:len(tmp_out)-1])
 
@@ -231,7 +236,7 @@ def bearing_correlogram(data: numpy.ndarray, dist_class_connections: list, angle
         col_formats.append("f")
     create_output_table(output_text, output, col_headers, col_formats)
 
-    return output, output_text
+    return output, output_text, all_permuted_values
 
 
 def windrose_sectors_per_annulus(segment_param: int, annulus: int) -> int:
@@ -257,7 +262,7 @@ def create_windrose_connections(distances: numpy.ndarray, angles: numpy.ndarray,
 def windrose_correlogram(data: numpy.ndarray, distances: numpy.ndarray, angles: numpy.ndarray,
                          radius_c: float, radius_d: float, radius_e: float, segment_param: int = 4,
                          min_pairs: int = 21, metric=morans_i, variance: Optional[str] = "random",
-                         permutations: int = 0):
+                         permutations: int = 0) -> Tuple[list, list, list, list]:
     if metric == morans_i:
         metric_title = "Moran's I"
         exp_format = "f"
@@ -283,6 +288,7 @@ def windrose_correlogram(data: numpy.ndarray, distances: numpy.ndarray, angles: 
     all_output = []
     # all_output is needed for graphing the output *if* we want to include those sectors with too few pairs, but
     # still more than zero
+    all_permuted_values = []
     for annulus in range(n_annuli):
         for sector in range(windrose_sectors_per_annulus(segment_param, annulus)):
             connection, min_ang, max_ang = create_windrose_connections(distances, angles, annulus, sector,
@@ -297,6 +303,7 @@ def windrose_correlogram(data: numpy.ndarray, distances: numpy.ndarray, angles: 
                 if permutations > 0:
                     output.append(tmp_out)
                     all_output.append(tmp_out)
+                    all_permuted_values.append(permuted_values)
                 else:
                     output.append(tmp_out[:len(tmp_out) - 1])
                     all_output.append(tmp_out[:len(tmp_out) - 1])
@@ -338,4 +345,4 @@ def windrose_correlogram(data: numpy.ndarray, distances: numpy.ndarray, angles: 
         col_formats.append("f")
     create_output_table(output_text, output, col_headers, col_formats)
 
-    return output, output_text, all_output
+    return output, output_text, all_output, all_permuted_values
