@@ -56,10 +56,6 @@ def deflatten_without_diagonal(vector: numpy.ndarray, n: int) -> numpy.ndarray:
     return numpy.array(output)
 
 
-# def euc_dist(x1: float, x2: float, y1: float = 0, y2: float = 0, z1: float = 0, z2: float = 0) -> float:
-#     return sqrt((x1 - x2)**2 + (y1 - y2)**2 + (z1 - z2)**2)
-
-
 def euclidean_angle(x1: float, y1: float, x2: float, y2: float, do360: bool = False) -> float:
     """
     This will calculate the angle between the two points
@@ -110,8 +106,8 @@ def create_output_table(output_text: list, table_data: list, col_headers: list, 
                         already have been instantiated
     :param table_data: a list of lists containing the data to appear in the table; each sublist represents a row
                        of the table and must contain the same number of columns
-    :param col_headers: a tuple containing strings representing headers for each column in the table
-    :param col_formats: a tuple containing basic string formatting codes, generally expected to be "f" of "d"
+    :param col_headers: a list containing strings representing headers for each column in the table
+    :param col_formats: a list containing basic string formatting codes, generally expected to be "f" of "d"
     :param out_dec: the number of decimal places to output floating point numbers in the table
     :param sbc: the number of spaces to use between each column in the table
     """
