@@ -484,6 +484,59 @@ def test_bearing_correlogram():
             assert round(output[i][j], 2) == round(ans, 2)
 
 
+def test_bearing_correlogram_perm():
+    data, _ = create_test_scattered()
+    coords = create_test_coords()
+    distances = pyssage.distances.euclidean_distance_matrix(coords[:, 0], coords[:, 1])
+    angles = pyssage.distances.euclidean_angle_matrix(coords[:, 0], coords[:, 1])
+    dist_classes = pyssage.distances.create_distance_classes(distances, "determine pair count", 15)
+    dc_con = pyssage.connections.distance_classes_to_connections(dist_classes, distances)
+    output, output_text = pyssage.correlogram.bearing_correlogram(data[:, 22], dc_con, angles, permutations=100)
+    # pyssage.graph.draw_bearing_correlogram_old(numpy.array(output), "Moran's I Bearing Correlogram")
+    pyssage.graph.draw_bearing_correlogram(numpy.array(output), "Moran's I Bearing Correlogram",
+                                           figoutput=pyssage.graph.FigOutput(figshow=True))
+    for line in output_text:
+        print(line)
+
+
+def test_bearing_correlogram_mantel():
+    # The Passage 2 Mantel correlogram code appears to be buggy, which effects the Mantel bearing correlogram as well
+    # There was also potentially a logic error in using "reverse binary weights" with non-binary weighting which
+    # also would have led to problematic results, even if the first error hadn't overridden everything
+    data, _ = create_test_scattered()
+    coords = create_test_coords()
+    distances = pyssage.distances.euclidean_distance_matrix(coords[:, 0], coords[:, 1])
+    angles = pyssage.distances.euclidean_angle_matrix(coords[:, 0], coords[:, 1])
+    data_distances = pyssage.distances.data_distance_matrix(data, pyssage.distances.data_distance_euclidean)
+    dist_classes = pyssage.distances.create_distance_classes(distances, "determine pair count", 15)
+    dc_con = pyssage.connections.distance_classes_to_connections(dist_classes, distances)
+
+    output, output_text = pyssage.correlogram.bearing_correlogram(data_distances, dc_con, angles,
+                                                                  metric=pyssage.correlogram.mantel_correl)
+    pyssage.graph.draw_bearing_correlogram(numpy.array(output), "Mantel Bearing Correlogram",
+                                           figoutput=pyssage.graph.FigOutput(figshow=True))
+    for line in output_text:
+        print(line)
+
+
+def test_bearing_correlogram_mantel_perm():
+    data, _ = create_test_scattered()
+    coords = create_test_coords()
+    distances = pyssage.distances.euclidean_distance_matrix(coords[:, 0], coords[:, 1])
+    angles = pyssage.distances.euclidean_angle_matrix(coords[:, 0], coords[:, 1])
+    data_distances = pyssage.distances.data_distance_matrix(data, pyssage.distances.data_distance_euclidean)
+    dist_classes = pyssage.distances.create_distance_classes(distances, "determine pair count", 15)
+    dc_con = pyssage.connections.distance_classes_to_connections(dist_classes, distances)
+
+    output, output_text = pyssage.correlogram.bearing_correlogram(data_distances, dc_con, angles,
+                                                                  metric=pyssage.correlogram.mantel_correl,
+                                                                  permutations=100)
+    pyssage.graph.draw_bearing_correlogram(numpy.array(output), "Mantel Bearing Correlogram",
+                                           figoutput=pyssage.graph.FigOutput(figshow=True))
+    for line in output_text:
+        print(line)
+
+
 def test_windrose_correlogram():
     data, _ = create_test_scattered()
     coords = create_test_coords()
@@ -508,7 +561,23 @@ def test_windrose_correlogram():
     # pyssage.graph.draw_windrose_correlogram(numpy.array(all_output), title="Moran's I Windrose Correlogram")
 
 
-def test_mantel_windrose_correlogram():
+def test_windrose_correlogram_perm():
+    data, _ = create_test_scattered()
+    coords = create_test_coords()
+    distances = pyssage.distances.euclidean_distance_matrix(coords[:, 0], coords[:, 1])
+    angles = pyssage.distances.euclidean_angle_matrix(coords[:, 0], coords[:, 1])
+    output, output_text, all_output = pyssage.correlogram.windrose_correlogram(data[:, 22], distances, angles,
+                                                                               radius_c=3, radius_d=0, radius_e=0,
+                                                                               permutations=100)
+    pyssage.graph.draw_windrose_correlogram(numpy.array(all_output), title="Moran's I Windrose Correlogram Pair Counts",
+                                            show_counts=True, figoutput=pyssage.graph.FigOutput(figshow=True))
+    pyssage.graph.draw_windrose_correlogram(numpy.array(all_output), title="Moran's I Windrose Correlogram",
+                                            figoutput=pyssage.graph.FigOutput(figshow=True))
+    for line in output_text:
+        print(line)
+
+
+def test_windrose_correlogram_mantel():
     data, _ = create_test_scattered()
     coords = create_test_coords()
     distances = pyssage.distances.euclidean_distance_matrix(coords[:, 0], coords[:, 1])
@@ -526,21 +595,20 @@ def test_mantel_windrose_correlogram():
         print(line)
 
 
-def test_bearing_correlogram_mantel():
-    # The Passage 2 Mantel correlogram code appears to be buggy, which effects the Mantel bearing correlogram as well
-    # There was also potentially a logic error in using "reverse binary weights" with non-binary weighting which
-    # also would have led to problematic results, even if the first error hadn't overridden everything
+def test_windrose_correlogram_mantel_perm():
     data, _ = create_test_scattered()
     coords = create_test_coords()
     distances = pyssage.distances.euclidean_distance_matrix(coords[:, 0], coords[:, 1])
     angles = pyssage.distances.euclidean_angle_matrix(coords[:, 0], coords[:, 1])
     data_distances = pyssage.distances.data_distance_matrix(data, pyssage.distances.data_distance_euclidean)
-    dist_classes = pyssage.distances.create_distance_classes(distances, "determine pair count", 15)
-    dc_con = pyssage.connections.distance_classes_to_connections(dist_classes, distances)
 
-    output, output_text = pyssage.correlogram.bearing_correlogram(data_distances, dc_con, angles,
-                                                                  metric=pyssage.correlogram.mantel_correl)
-    pyssage.graph.draw_bearing_correlogram(numpy.array(output), "Mantel Bearing Correlogram",
-                                           figoutput=pyssage.graph.FigOutput(figshow=True))
+    output, output_text, all_output = pyssage.correlogram.windrose_correlogram(data_distances, distances, angles,
+                                                                               radius_c=3, radius_d=0, radius_e=0,
+                                                                               metric=pyssage.correlogram.mantel_correl,
+                                                                               permutations=100)
+    pyssage.graph.draw_windrose_correlogram(numpy.array(all_output), title="Mantel Windrose Correlogram Pair Counts",
+                                            show_counts=True, figoutput=pyssage.graph.FigOutput(figshow=True))
+    pyssage.graph.draw_windrose_correlogram(numpy.array(all_output), title="Mantel Windrose Correlogram",
+                                            figoutput=pyssage.graph.FigOutput(figshow=True))
     for line in output_text:
         print(line)

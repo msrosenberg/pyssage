@@ -204,7 +204,7 @@ def bearing_correlogram(data: numpy.ndarray, dist_class_connections: list, angle
     output = []
     for i, b in enumerate(bearing_weights):
         for dc in dist_class_connections:
-            *tmp_out, permuted_values = metric(data, dc, alt_weights=b, variance=variance)
+            *tmp_out, permuted_values = metric(data, dc, alt_weights=b, variance=variance, permutations=permutations)
             tmp_out = list(tmp_out)
             tmp_out.insert(2, degrees(bearings[i]))
             if permutations > 0:
@@ -289,7 +289,7 @@ def windrose_correlogram(data: numpy.ndarray, distances: numpy.ndarray, angles: 
                                                                        segment_param, radius_c, radius_d, radius_e)
             np = connection.n_pairs()
             if np >= min_pairs:
-                *tmp_out, permuted_values = metric(data, connection, variance=variance)
+                *tmp_out, permuted_values = metric(data, connection, variance=variance, permutations=permutations)
                 tmp_out = list(tmp_out)
                 # add sector angles to output
                 tmp_out.insert(2, degrees(min_ang))
@@ -308,6 +308,8 @@ def windrose_correlogram(data: numpy.ndarray, distances: numpy.ndarray, angles: 
                 else:
                     tmp_out = [connection.min_scale, connection.max_scale, degrees(min_ang), degrees(max_ang),
                                np, 0, 0, 0, 0, -1]
+                if permutations > 0:
+                    tmp_out.append(-1)
                 all_output.append(tmp_out)
 
     # create basic output text
