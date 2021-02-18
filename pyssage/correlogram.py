@@ -6,6 +6,8 @@ from pyssage.classes import Connections
 from pyssage.utils import create_output_table, check_for_square_matrix
 import pyssage.mantel
 
+__all__ = ["bearing_correlogram", "correlogram", "windrose_correlogram"]
+
 
 def check_variance_assumption(x: Optional[str]) -> None:
     """
@@ -21,21 +23,35 @@ def check_variance_assumption(x: Optional[str]) -> None:
 
 
 def morans_i(y: numpy.ndarray, weights: Connections, alt_weights: Optional[numpy.ndarray] = None,
-             variance: Optional[str] = "random"):
+             variance: Optional[str] = "random", permutations: int = 0):
     check_variance_assumption(variance)
     n = len(y)
-    # mean_y = numpy.average(y)
     mean_y = numpy.mean(y)
     dev_y = y - mean_y  # deviations from mean
     w = weights.as_binary()
     if alt_weights is not None:  # multiply to create non-binary weights, if necessary
         w = w * alt_weights
-    sumyij = numpy.sum(numpy.outer(dev_y, dev_y) * w, dtype=numpy.float64)
     sumy2 = numpy.sum(numpy.square(dev_y), dtype=numpy.float64)  # sum of squared deviations from mean
     sumw = numpy.sum(w, dtype=numpy.float64)  # sum of weight matrix
     sumw2 = sumw**2
-    moran = n * sumyij / (sumw * sumy2)
     expected = -1 / (n - 1)
+    sumyij = numpy.sum(numpy.outer(dev_y, dev_y) * w, dtype=numpy.float64)
+    moran = n * sumyij / (sumw * sumy2)
+
+    # permutations
+    permuted_i_list = [moran]
+    perm_p = 1
+    if permutations > 0:
+        rand_y = numpy.copy(dev_y)
+        for k in range(permutations-1):
+            numpy.random.shuffle(rand_y)
+            perm_sumyij = numpy.sum(numpy.outer(rand_y, rand_y) * w, dtype=numpy.float64)
+            perm_moran = n * perm_sumyij / (sumw * sumy2)
+            permuted_i_list.append(perm_moran)
+            if abs(perm_moran-expected) >= abs(moran-expected):
+                perm_p += 1
+        perm_p /= permutations
+
     if variance is None:
         sd, z, p = None, None, None
     else:
@@ -51,24 +67,38 @@ def morans_i(y: numpy.ndarray, weights: Connections, alt_weights: Optional[numpy
         z = abs(moran - expected) / sd
         p = scipy.stats.norm.sf(z)*2  # two-tailed test
 
-    return weights.min_scale, weights.max_scale, weights.n_pairs(), expected, moran, sd, z, p
+    return weights.min_scale, weights.max_scale, weights.n_pairs(), expected, moran, sd, z, p, perm_p, permuted_i_list
 
 
 def gearys_c(y: numpy.ndarray, weights: Connections, alt_weights: Optional[numpy.ndarray] = None,
-             variance: Optional[str] = "random"):
+             variance: Optional[str] = "random", permutations: int = 0):
     check_variance_assumption(variance)
     n = len(y)
-    # mean_y = numpy.average(y)
     mean_y = numpy.mean(y)
     dev_y = y - mean_y  # deviations from mean
     w = weights.as_binary()
     if alt_weights is not None:  # multiply to create non-binary weights, if necessary
         w *= alt_weights
-    sumdif2 = numpy.sum(numpy.square(w * (dev_y[:, numpy.newaxis] - dev_y)), dtype=numpy.float64)
     sumy2 = numpy.sum(numpy.square(dev_y), dtype=numpy.float64)  # sum of squared deviations from mean
     sumw = numpy.sum(w, dtype=numpy.float64)  # sum of weight matrix
     sumw2 = sumw**2
+    sumdif2 = numpy.sum(numpy.square(w * (dev_y[:, numpy.newaxis] - dev_y)), dtype=numpy.float64)
     geary = (n - 1) * sumdif2 / (2 * sumw * sumy2)
+
+    # permutations
+    permuted_c_list = [geary]
+    perm_p = 1
+    if permutations > 0:
+        rand_y = numpy.copy(dev_y)
+        for k in range(permutations-1):
+            numpy.random.shuffle(rand_y)
+            perm_sumdif2 = numpy.sum(numpy.square(w * (rand_y[:, numpy.newaxis] - rand_y)), dtype=numpy.float64)
+            perm_geary = (n - 1) * perm_sumdif2 / (2 * sumw * sumy2)
+            permuted_c_list.append(perm_geary)
+            if abs(perm_geary - 1) >= abs(geary - 1):
+                perm_p += 1
+        perm_p /= permutations
+
     if variance is None:
         sd, z, p = None, None, None
     else:
@@ -86,11 +116,11 @@ def gearys_c(y: numpy.ndarray, weights: Connections, alt_weights: Optional[numpy
         z = abs(geary - 1) / sd
         p = scipy.stats.norm.sf(z)*2  # two-tailed test
 
-    return weights.min_scale, weights.max_scale, weights.n_pairs(), 1, geary, sd, z, p
+    return weights.min_scale, weights.max_scale, weights.n_pairs(), 1, geary, sd, z, p, perm_p, permuted_c_list
 
 
 def mantel_correl(y: numpy.ndarray, weights: Connections, alt_weights: Optional[numpy.ndarray] = None,
-                  variance: Optional[str] = "random"):
+                  variance=None, permutations: int = 0):
     """
     in order to get the bearing version to work right, we have to use normal binary weights, then reverse the sign
     of the resulting Mantel correlation. if we use reverse binary weighting we end up multiplying the 'out of
@@ -99,12 +129,12 @@ def mantel_correl(y: numpy.ndarray, weights: Connections, alt_weights: Optional[
     w = weights.as_binary()
     if alt_weights is not None:  # multiply to create non-binary weights, if necessary
         w *= alt_weights
-    r, p_value, _, _, _, _, z = pyssage.mantel.mantel(y, w, [])
-    return weights.min_scale, weights.max_scale, weights.n_pairs(), 0, -r, -z, p_value
+    r, p_value, _, _, _, permuted_two_p, permuted_rs, z = pyssage.mantel.mantel(y, w, [], permutations=permutations)
+    return weights.min_scale, weights.max_scale, weights.n_pairs(), 0, -r, -z, p_value, permuted_two_p, permuted_rs
 
 
 def correlogram(data: numpy.ndarray, dist_class_connections: list, metric: morans_i,
-                variance: Optional[str] = "random"):
+                variance: Optional[str] = "random", permutations: int = 0):
     if metric == morans_i:
         metric_title = "Moran's I"
         exp_format = "f"
@@ -119,7 +149,11 @@ def correlogram(data: numpy.ndarray, dist_class_connections: list, metric: moran
         exp_format = ""
     output = []
     for dc in dist_class_connections:
-        output.append(metric(data, dc, variance=variance))
+        *tmp_out, permuted_values = metric(data, dc, variance=variance, permutations=permutations)
+        if permutations > 0:
+            output.append(tmp_out)
+        else:
+            output.append(tmp_out[:len(tmp_out)-1])
 
     # create basic output text
     output_text = list()
@@ -130,18 +164,22 @@ def correlogram(data: numpy.ndarray, dist_class_connections: list, metric: moran
         output_text.append("Distribution assumption = {}".format(variance))
     output_text.append("")
     if metric == mantel_correl:
-        col_headers = ("Min dist", "Max dist", "# pairs", "Expected", metric_title, "Z", "Prob")
-        col_formats = ("f", "f", "d", exp_format, "f", "f", "f")
+        col_headers = ["Min dist", "Max dist", "# pairs", "Expected", metric_title, "Z", "Prob"]
+        col_formats = ["f", "f", "d", exp_format, "f", "f", "f"]
     else:
-        col_headers = ("Min dist", "Max dist", "# pairs", "Expected", metric_title, "SD", "Z", "Prob")
-        col_formats = ("f", "f", "d", exp_format, "f", "f", "f", "f")
+        col_headers = ["Min dist", "Max dist", "# pairs", "Expected", metric_title, "SD", "Z", "Prob"]
+        col_formats = ["f", "f", "d", exp_format, "f", "f", "f", "f"]
+    if permutations > 0:
+        col_headers.append("PermProb")
+        col_formats.append("f")
+
     create_output_table(output_text, output, col_headers, col_formats)
 
     return output, output_text
 
 
 def bearing_correlogram(data: numpy.ndarray, dist_class_connections: list, angles: numpy.ndarray, n_bearings: int = 18,
-                        metric=morans_i, variance: Optional[str] = "random"):
+                        metric=morans_i, variance: Optional[str] = "random", permutations: int = 0):
     if metric == morans_i:
         metric_title = "Moran's I"
         exp_format = "f"
@@ -166,9 +204,13 @@ def bearing_correlogram(data: numpy.ndarray, dist_class_connections: list, angle
     output = []
     for i, b in enumerate(bearing_weights):
         for dc in dist_class_connections:
-            tmp_out = list(metric(data, dc, alt_weights=b, variance=variance))
+            *tmp_out, permuted_values = metric(data, dc, alt_weights=b, variance=variance)
+            tmp_out = list(tmp_out)
             tmp_out.insert(2, degrees(bearings[i]))
-            output.append(tmp_out)
+            if permutations > 0:
+                output.append(tmp_out)
+            else:
+                output.append(tmp_out[:len(tmp_out)-1])
 
     # create basic output text
     output_text = list()
@@ -179,11 +221,14 @@ def bearing_correlogram(data: numpy.ndarray, dist_class_connections: list, angle
         output_text.append("Distribution assumption = {}".format(variance))
     output_text.append("")
     if metric == mantel_correl:
-        col_headers = ("Min dist", "Max dist", "Bearing", "# pairs", "Expected", metric_title, "Z", "Prob")
-        col_formats = ("f", "f", "f", "d", exp_format, "f", "f", "f")
+        col_headers = ["Min dist", "Max dist", "Bearing", "# pairs", "Expected", metric_title, "Z", "Prob"]
+        col_formats = ["f", "f", "f", "d", exp_format, "f", "f", "f"]
     else:
-        col_headers = ("Min dist", "Max dist", "Bearing", "# pairs", "Expected", metric_title, "SD", "Z", "Prob")
-        col_formats = ("f", "f", "f", "d", exp_format, "f", "f", "f", "f")
+        col_headers = ["Min dist", "Max dist", "Bearing", "# pairs", "Expected", metric_title, "SD", "Z", "Prob"]
+        col_formats = ["f", "f", "f", "d", exp_format, "f", "f", "f", "f"]
+    if permutations > 0:
+        col_headers.append("PermProb")
+        col_formats.append("f")
     create_output_table(output_text, output, col_headers, col_formats)
 
     return output, output_text
@@ -211,7 +256,8 @@ def create_windrose_connections(distances: numpy.ndarray, angles: numpy.ndarray,
 
 def windrose_correlogram(data: numpy.ndarray, distances: numpy.ndarray, angles: numpy.ndarray,
                          radius_c: float, radius_d: float, radius_e: float, segment_param: int = 4,
-                         min_pairs: int = 21, metric=morans_i, variance: Optional[str] = "random"):
+                         min_pairs: int = 21, metric=morans_i, variance: Optional[str] = "random",
+                         permutations: int = 0):
     if metric == morans_i:
         metric_title = "Moran's I"
         exp_format = "f"
@@ -243,12 +289,17 @@ def windrose_correlogram(data: numpy.ndarray, distances: numpy.ndarray, angles: 
                                                                        segment_param, radius_c, radius_d, radius_e)
             np = connection.n_pairs()
             if np >= min_pairs:
-                tmp_out = list(metric(data, connection, variance=variance))
+                *tmp_out, permuted_values = metric(data, connection, variance=variance)
+                tmp_out = list(tmp_out)
                 # add sector angles to output
                 tmp_out.insert(2, degrees(min_ang))
                 tmp_out.insert(3, degrees(max_ang))
-                output.append(tmp_out)
-                all_output.append(tmp_out)
+                if permutations > 0:
+                    output.append(tmp_out)
+                    all_output.append(tmp_out)
+                else:
+                    output.append(tmp_out[:len(tmp_out) - 1])
+                    all_output.append(tmp_out[:len(tmp_out) - 1])
             else:
                 # using -1 for the probability as an indicator that nothing was calculated
                 if metric == mantel_correl:
@@ -273,13 +324,16 @@ def windrose_correlogram(data: numpy.ndarray, distances: numpy.ndarray, angles: 
 
     output_text.append("")
     if metric == mantel_correl:
-        col_headers = ("Min dist", "Max dist", "Min angle", "Max angle", "# pairs", "Expected", metric_title,
-                       "Z", "Prob")
-        col_formats = ("f", "f", "f", "f", "d", exp_format, "f", "f", "f")
+        col_headers = ["Min dist", "Max dist", "Min angle", "Max angle", "# pairs", "Expected", metric_title,
+                       "Z", "Prob"]
+        col_formats = ["f", "f", "f", "f", "d", exp_format, "f", "f", "f"]
     else:
-        col_headers = ("Min dist", "Max dist", "Min angle", "Max angle", "# pairs", "Expected", metric_title, "SD",
-                       "Z", "Prob")
-        col_formats = ("f", "f", "f", "f", "d", exp_format, "f", "f", "f", "f")
+        col_headers = ["Min dist", "Max dist", "Min angle", "Max angle", "# pairs", "Expected", metric_title, "SD",
+                       "Z", "Prob"]
+        col_formats = ["f", "f", "f", "f", "d", exp_format, "f", "f", "f", "f"]
+    if permutations > 0:
+        col_headers.append("PermProb")
+        col_formats.append("f")
     create_output_table(output_text, output, col_headers, col_formats)
 
     return output, output_text, all_output

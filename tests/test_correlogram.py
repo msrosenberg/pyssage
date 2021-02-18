@@ -75,6 +75,20 @@ def test_morans_i():
             assert round(output[i][j], 5) == ans
 
 
+def test_morans_i_perm():
+    data, _ = create_test_scattered()
+    coords = create_test_coords()
+    distances = pyssage.distances.euclidean_distance_matrix(coords[:, 0], coords[:, 1])
+    dist_classes = pyssage.distances.create_distance_classes(distances, "determine pair count", 15)
+    dc_con = pyssage.connections.distance_classes_to_connections(dist_classes, distances)
+    output, output_text = pyssage.correlogram.correlogram(data[:, 0], dc_con, pyssage.correlogram.morans_i,
+                                                          permutations=100)
+    pyssage.graph.draw_correlogram(numpy.array(output), "Moran's I", "Correlogram",
+                                   figoutput=pyssage.graph.FigOutput(figshow=True))
+    for line in output_text:
+        print(line)
+
+
 def test_gearys_c():
     # answer calculated from PASSaGE 2 and exported to 5 decimals
     # tests both random and normal variance assumption
@@ -133,6 +147,20 @@ def test_gearys_c():
             assert round(output[i][j], 5) == ans
 
 
+def test_gearys_c_perm():
+    data, _ = create_test_scattered()
+    coords = create_test_coords()
+    distances = pyssage.distances.euclidean_distance_matrix(coords[:, 0], coords[:, 1])
+    dist_classes = pyssage.distances.create_distance_classes(distances, "determine pair count", 15)
+    dc_con = pyssage.connections.distance_classes_to_connections(dist_classes, distances)
+    output, output_text = pyssage.correlogram.correlogram(data[:, 0], dc_con, pyssage.correlogram.gearys_c,
+                                                          permutations=100)
+    pyssage.graph.draw_correlogram(numpy.array(output), "Geary's c", "Correlogram",
+                                   figoutput=pyssage.graph.FigOutput(figshow=True))
+    for line in output_text:
+        print(line)
+
+
 def test_mantel_correl():
     # The Passage 2 Mantel correlogram code appears to be buggy
     # Some manual tests do seem to indicate this is working correctly
@@ -144,6 +172,21 @@ def test_mantel_correl():
     data_distances = pyssage.distances.data_distance_matrix(data, pyssage.distances.data_distance_euclidean)
     output, output_text = pyssage.correlogram.correlogram(data_distances, dc_con, pyssage.correlogram.mantel_correl,
                                                           variance=None)
+    pyssage.graph.draw_correlogram(numpy.array(output), "Mantel r", "Correlogram",
+                                   figoutput=pyssage.graph.FigOutput(figshow=True))
+    for line in output_text:
+        print(line)
+
+
+def test_mantel_correl_perm():
+    data, _ = create_test_scattered()
+    coords = create_test_coords()
+    distances = pyssage.distances.euclidean_distance_matrix(coords[:, 0], coords[:, 1])
+    dist_classes = pyssage.distances.create_distance_classes(distances, "determine pair count", 15)
+    dc_con = pyssage.connections.distance_classes_to_connections(dist_classes, distances)
+    data_distances = pyssage.distances.data_distance_matrix(data, pyssage.distances.data_distance_euclidean)
+    output, output_text = pyssage.correlogram.correlogram(data_distances, dc_con, pyssage.correlogram.mantel_correl,
+                                                          variance=None, permutations=100)
     pyssage.graph.draw_correlogram(numpy.array(output), "Mantel r", "Correlogram",
                                    figoutput=pyssage.graph.FigOutput(figshow=True))
     for line in output_text:
