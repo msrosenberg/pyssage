@@ -165,12 +165,11 @@ def correlogram(data: numpy.ndarray, dist_class_connections: list, metric: moran
     if variance is not None:
         output_text.append("Distribution assumption = {}".format(variance))
     output_text.append("")
-    if metric == mantel_correl:
-        col_headers = ["Min dist", "Max dist", "# pairs", "Expected", metric_title, "Z", "Prob"]
-        col_formats = ["f", "f", "d", exp_format, "f", "f", "f"]
-    else:
-        col_headers = ["Min dist", "Max dist", "# pairs", "Expected", metric_title, "SD", "Z", "Prob"]
-        col_formats = ["f", "f", "d", exp_format, "f", "f", "f", "f"]
+    col_headers = ["Min dist", "Max dist", "# pairs", "Expected", metric_title, "Z", "Prob"]
+    col_formats = ["f", "f", "d", exp_format, "f", "f", "f"]
+    if metric != mantel_correl:
+        col_headers.insert(5, "SD")
+        col_formats.insert(5, "f")
     if permutations > 0:
         col_headers.append("PermProb")
         col_formats.append("f")
@@ -225,12 +224,11 @@ def bearing_correlogram(data: numpy.ndarray, dist_class_connections: list, angle
     if variance is not None:
         output_text.append("Distribution assumption = {}".format(variance))
     output_text.append("")
-    if metric == mantel_correl:
-        col_headers = ["Min dist", "Max dist", "Bearing", "# pairs", "Expected", metric_title, "Z", "Prob"]
-        col_formats = ["f", "f", "f", "d", exp_format, "f", "f", "f"]
-    else:
-        col_headers = ["Min dist", "Max dist", "Bearing", "# pairs", "Expected", metric_title, "SD", "Z", "Prob"]
-        col_formats = ["f", "f", "f", "d", exp_format, "f", "f", "f", "f"]
+    col_headers = ["Min dist", "Max dist", "Bearing", "# pairs", "Expected", metric_title, "Z", "Prob"]
+    col_formats = ["f", "f", "f", "d", exp_format, "f", "f", "f"]
+    if metric != mantel_correl:
+        col_headers.insert(6, "SD")
+        col_formats.insert(6, "f")
     if permutations > 0:
         col_headers.append("PermProb")
         col_formats.append("f")
@@ -332,14 +330,12 @@ def windrose_correlogram(data: numpy.ndarray, distances: numpy.ndarray, angles: 
         output_text.append("Distribution assumption = {}".format(variance))
 
     output_text.append("")
-    if metric == mantel_correl:
-        col_headers = ["Min dist", "Max dist", "Min angle", "Max angle", "# pairs", "Expected", metric_title,
-                       "Z", "Prob"]
-        col_formats = ["f", "f", "f", "f", "d", exp_format, "f", "f", "f"]
-    else:
-        col_headers = ["Min dist", "Max dist", "Min angle", "Max angle", "# pairs", "Expected", metric_title, "SD",
-                       "Z", "Prob"]
-        col_formats = ["f", "f", "f", "f", "d", exp_format, "f", "f", "f", "f"]
+    col_headers = ["Min dist", "Max dist", "Min angle", "Max angle", "# pairs", "Expected", metric_title,
+                   "Z", "Prob"]
+    col_formats = ["f", "f", "f", "f", "d", exp_format, "f", "f", "f"]
+    if metric != mantel_correl:
+        col_headers.insert(7, "SD")
+        col_formats.insert(7, "f")
     if permutations > 0:
         col_headers.append("PermProb")
         col_formats.append("f")
