@@ -65,6 +65,8 @@ def mantel(input_matrix1: numpy.ndarray, input_matrix2: numpy.ndarray, partial, 
     #    OutputAddLine(outstr);
     # end;
     output_text.append("Matrices are {0} x {0}".format(n))
+    if len(partial) > 0:
+        output_text.append("{} matrices held constant".format(len(partial)))
     output_text.append("")
     output_text.append("Observed Z = " + format(observed_z, OUT_FRMT))
     output_text.append("Correlation = " + format(r, OUT_FRMT))
@@ -138,6 +140,7 @@ def mantel(input_matrix1: numpy.ndarray, input_matrix2: numpy.ndarray, partial, 
             #         cumulative_right += 1
             #     else:
             #         cumulative_equal += 1
+
         permuted_right_p = (cumulative_equal + cumulative_right) / permutations
         permuted_left_p = (cumulative_equal + cumulative_left) / permutations
         if tail == "both":
