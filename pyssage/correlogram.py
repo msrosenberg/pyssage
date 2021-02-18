@@ -164,6 +164,8 @@ def correlogram(data: numpy.ndarray, dist_class_connections: list, metric: moran
     output_text.append("# of data points = {}".format(len(data)))
     if variance is not None:
         output_text.append("Distribution assumption = {}".format(variance))
+    if permutations > 0:
+        output_text.append("Permutation probability calculated from {} permutations".format(permutations))
     output_text.append("")
     col_headers = ["Min dist", "Max dist", "# pairs", "Expected", metric_title, "Z", "Prob"]
     col_formats = ["f", "f", "d", exp_format, "f", "f", "f"]
@@ -223,6 +225,8 @@ def bearing_correlogram(data: numpy.ndarray, dist_class_connections: list, angle
     output_text.append("# of data points = {}".format(len(data)))
     if variance is not None:
         output_text.append("Distribution assumption = {}".format(variance))
+    if permutations > 0:
+        output_text.append("Permutation probability calculated from {} permutations".format(permutations))
     output_text.append("")
     col_headers = ["Min dist", "Max dist", "Bearing", "# pairs", "Expected", metric_title, "Z", "Prob"]
     col_formats = ["f", "f", "f", "d", exp_format, "f", "f", "f"]
@@ -328,6 +332,8 @@ def windrose_correlogram(data: numpy.ndarray, distances: numpy.ndarray, angles: 
     output_text.append("")
     if variance is not None:
         output_text.append("Distribution assumption = {}".format(variance))
+    if permutations > 0:
+        output_text.append("Permutation probability calculated from {} permutations".format(permutations))
 
     output_text.append("")
     col_headers = ["Min dist", "Max dist", "Min angle", "Max angle", "# pairs", "Expected", metric_title,
