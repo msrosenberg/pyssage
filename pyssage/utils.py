@@ -56,7 +56,6 @@ def deflatten_without_diagonal(vector: numpy.ndarray, n: int) -> numpy.ndarray:
     return numpy.array(output)
 
 
-
 # def euc_dist(x1: float, x2: float, y1: float = 0, y2: float = 0, z1: float = 0, z2: float = 0) -> float:
 #     return sqrt((x1 - x2)**2 + (y1 - y2)**2 + (z1 - z2)**2)
 
@@ -100,7 +99,7 @@ def check_for_square_matrix(test_matrix: numpy.ndarray) -> int:
         return len(test_matrix)
 
 
-def create_output_table(output_text: list, table_data: list, col_headers: tuple, col_formats: tuple,
+def create_output_table(output_text: list, table_data: list, col_headers: list, col_formats: list,
                         out_dec: int = OUT_DEC, sbc: int = 3) -> None:
     """
     Create a well-formatted set of strings representing an output table, including headers and computationally
