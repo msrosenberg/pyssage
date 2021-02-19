@@ -5,8 +5,9 @@ import numpy
 from pyssage.classes import Point, Triangle, VoronoiEdge, VoronoiTessellation, VoronoiPolygon, Connections
 from pyssage.utils import euclidean_angle, check_for_square_matrix
 
-__all__ = ["delaunay_tessellation", "relative_neighborhood_network", "gabriel_network",
-           "minimum_spanning_tree", "connect_distance_range", "least_diagonal_network", "nearest_neighbor_connections"]
+__all__ = ["connect_distance_range", "delaunay_tessellation", "distance_classes_to_connections",
+           "gabriel_network", "least_diagonal_network", "minimum_spanning_tree", "nearest_neighbor_connections",
+           "relative_neighborhood_network"]
 
 
 def create_point_list(x: numpy.ndarray, y: numpy.ndarray) -> list:
