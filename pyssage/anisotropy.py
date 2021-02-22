@@ -1,4 +1,4 @@
-from math import pi, sin, cos, atan2, sqrt, degrees, tan
+from math import pi, sin, cos, atan2, sqrt, degrees
 from typing import Tuple
 from collections import namedtuple
 import pyssage.mantel
@@ -34,7 +34,7 @@ def bearing_analysis(data: numpy.ndarray, distances: numpy.ndarray, angles: nump
     for a in range(nbearings):
         test_angle = a * angle_width
         b_matrix = distances * numpy.square(numpy.cos(angles - test_angle))
-        r, p_value, _, _, _, rand_p,_, _ = pyssage.mantel.mantel(data, b_matrix, [], npermutations)
+        r, p_value, _, _, _, rand_p, _, _ = pyssage.mantel.mantel(data, b_matrix, [], npermutations)
         if npermutations > 0:
             output.append([a*180/nbearings, r, p_value, rand_p])
         else:
