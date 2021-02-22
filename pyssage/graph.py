@@ -64,6 +64,8 @@ def finalize_figure(fig, axs, figoutput: FigOutput, title: str = "") -> None:
 
     sets the title, saves to file (if appropriate), and displays on screen (if appropriate)
     """
+    if figoutput is None:
+        figoutput = FigOutput()
     if title != "":
         axs.set_title(title)
     if figoutput.figname != "":
@@ -617,8 +619,20 @@ def draw_angular_correlation(data: numpy.ndarray, title: str = "", draw_polar: b
         x = [data[0, 0], data[len(data) - 1, 0]]
         line = Line2D(x, y, color="silver", zorder=1)
         axs.add_line(line)
-        pyplot.scatter(data[:, 0],data[:, 1], zorder=2)
+        pyplot.scatter(data[:, 0], data[:, 1], zorder=2)
         axs.set_xlabel("Bearing")
         axs.set_ylabel("Correlation")
         axs.set_ylim(-1, 1)
+    finalize_figure(fig, axs, figoutput, title)
+
+
+def draw_histogram(data: numpy.ndarray, bins: int = 20, obs_value: Optional[Number] = None, obs_title: str = "",
+                   title: str = "", xlabel: str = "Bin", ylabel: str = "Frequency",
+                   figoutput: Optional[FigOutput] = None):
+    fig, axs = start_figure(figoutput)
+    n, bins, patches = axs.hist(data, bins=bins)
+    if obs_value is not None:
+        axs.scatter(obs_value, max(n), color="red", edgecolors="black", s=50)
+    axs.set_xlabel(xlabel)
+    axs.set_ylabel(ylabel)
     finalize_figure(fig, axs, figoutput, title)
