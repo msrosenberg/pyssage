@@ -1,0 +1,12 @@
+
+
+windrose formulas
+
+r_i=Ci^2 + Di + E
+
+n_i = Ai - 2
+
+
+bearing formula
+
+w_{ij}^{\prime} = w_{ij} \cos^2\left(\alpha_{ij} - \theta \right)
