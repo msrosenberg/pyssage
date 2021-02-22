@@ -11,8 +11,8 @@ from matplotlib import collections, colors
 import numpy
 
 __all__ = ["FigOutput", "draw_angular_correlation", "draw_bearing", "draw_bearing_correlogram", "draw_connections",
-           "draw_correlogram", "draw_distance_class_distribution", "draw_quadvar_result", "draw_shortest_path",
-           "draw_tessellation", "draw_transect", "draw_windrose_correlogram"]
+           "draw_correlogram", "draw_distance_class_distribution", "draw_histogram", "draw_quadvar_result",
+           "draw_shortest_path", "draw_tessellation", "draw_transect", "draw_windrose_correlogram"]
 
 
 class FigOutput:
@@ -626,13 +626,16 @@ def draw_angular_correlation(data: numpy.ndarray, title: str = "", draw_polar: b
     finalize_figure(fig, axs, figoutput, title)
 
 
-def draw_histogram(data: numpy.ndarray, bins: int = 20, obs_value: Optional[Number] = None, obs_title: str = "",
+def draw_histogram(data: numpy.ndarray, nbins: int = 20, obs_value: Optional[Number] = None, obs_title: str = "",
                    title: str = "", xlabel: str = "Bin", ylabel: str = "Frequency",
                    figoutput: Optional[FigOutput] = None):
     fig, axs = start_figure(figoutput)
-    n, bins, patches = axs.hist(data, bins=bins)
+    n, bins, patches = axs.hist(data, bins=nbins)
     if obs_value is not None:
-        axs.scatter(obs_value, max(n), color="red", edgecolors="black", s=50)
+        b = 1
+        while obs_value > bins[b]:
+            b += 1
+        axs.scatter(obs_value, n[b-1] + 5, color="red", edgecolors="black", s=50)
     axs.set_xlabel(xlabel)
     axs.set_ylabel(ylabel)
     finalize_figure(fig, axs, figoutput, title)
