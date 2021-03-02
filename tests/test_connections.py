@@ -10,7 +10,7 @@ def test_delaunay_tessellation():
 
     coords = create_test_coords()
     tessellation, connections = pyssage.connections.delaunay_tessellation(coords[:, 0], coords[:, 1])
-    pyssage.graph.draw_tessellation(tessellation, coords[:, 0], coords[:, 1], "Tessellation Test",
+    pyssage.graph.draw_tessellation(tessellation, coords[:, 0], coords[:, 1], title="Tessellation Test",
                                     figoutput=pyssage.graph.FigOutput(figshow=True))
     pyssage.graph.draw_connections(connections, coords[:, 0], coords[:, 1], title="Delaunay Connections Test",
                                    figoutput=pyssage.graph.FigOutput(figshow=True))
