@@ -50,11 +50,41 @@ class GradientPointStyle:
 
 
 class LineStyle:
-    def __init__(self, color: str = "#1f77b4", linestyle: str = "-", linewidth: float = 1, alpha: float = 1):
+    def __init__(self, color: str = "#1f77b4", linestyle: str = "solid", linewidth: float = 1, alpha: float = 1):
         self.color = color
         self.linestyle = linestyle
         self.linewidth = linewidth
         self.alpha = alpha
+
+
+class BarStyle:
+    def __init__(self, face_color: str = "#1f77b4", edge_color: str = "black", edge_width: float = 0, alpha: float = 1):
+        self.face_color = face_color
+        self.edge_color = edge_color
+        self.edge_width = edge_width
+        self.alpha = alpha
+
+
+class WindroseStyle:
+    def __init__(self, colormap: str = "bwr_r", edge_color: str = "black", edge_width: float = 1,
+                 edge_style: str = "solid", alpha: float = 1, ns_edge_color: str = "black", ns_edge_width: float = 1,
+                 ns_edge_style: str = "solid", ns_alpha: float = 1, min_face_color: str = "white",
+                 min_edge_color: str = "black", min_edge_width: float = 1, min_edge_style: str = "dashed",
+                 min_alpha: float = 1):
+        self.colormap = colormap
+        self.edge_color = edge_color
+        self.edge_width = edge_width
+        self.edge_style = edge_style
+        self.alpha = alpha
+        self.ns_edge_color = ns_edge_color
+        self.ns_edge_width = ns_edge_width
+        self.ns_edge_style = ns_edge_style
+        self.ns_alpha = ns_alpha
+        self.min_face_color = min_face_color
+        self.min_edge_color = min_edge_color
+        self.min_edge_width = min_edge_width
+        self.min_edge_style = min_edge_style
+        self.min_alpha = min_alpha
 
 
 def check_valid_graph_format(x: str) -> bool:
@@ -164,7 +194,7 @@ def draw_quadvar_result(quadvar: numpy.ndarray, inc_random: bool = False, title:
 
 
 def draw_tessellation(tessellation: VoronoiTessellation, xcoords: numpy.ndarray, ycoords: numpy.ndarray,
-                      point_style: Optional[PointStyle] = None, title: str = "", line_style: Optional[LineStyle] = None,
+                      title: str = "", point_style: Optional[PointStyle] = None, line_style: Optional[LineStyle] = None,
                       figoutput: Optional[FigOutput] = None) -> None:
     fig, axs = start_figure(figoutput)
     minx = min(xcoords)
@@ -511,9 +541,12 @@ def draw_bearing_correlogram(data: numpy.ndarray, title: str = "", symmetric: bo
 
 
 def draw_windrose_correlogram(data: numpy.ndarray, title: str = "", symmetric: bool = True, alpha: float = 0.05,
-                              show_counts: bool = False, colormap_name: str = "bwr_r",
+                              show_counts: bool = False, windrose_style: Optional[WindroseStyle] = None,
                               figoutput: Optional[FigOutput] = None):
     fig, axs = start_figure(figoutput, polar=True)
+
+    if windrose_style is None:
+        windrose_style = WindroseStyle()
 
     # pre-determined spacing between sectors in each annulus
     spacer = (14 * pi / 180, 10 * pi / 180, 8 * pi / 180, 6 * pi / 180, 4 * pi / 180, 3 * pi / 180, 2 * pi / 180)
@@ -529,10 +562,6 @@ def draw_windrose_correlogram(data: numpy.ndarray, title: str = "", symmetric: b
     exp_col = 5
     obs_col = 6
     p_col = ncols - 1
-    # if is_mantel:
-    #     p_col = 8
-    # else:
-    #     p_col = 9
     annuli = set(data[:, mindist_col])
     annuli = sorted(annuli)
     n_annuli = len(annuli)
@@ -545,7 +574,7 @@ def draw_windrose_correlogram(data: numpy.ndarray, title: str = "", symmetric: b
         normalize = colors.Normalize(vmin=0, vmax=2)  # technically larger than this, but should suffice
     else:  # Moran's I
         normalize = colors.Normalize(vmin=-1, vmax=1)
-    cmap = cm.get_cmap(colormap_name)
+    cmap = cm.get_cmap(windrose_style.colormap)
     s_colors = cmap(normalize(data[:, obs_col]))
 
     for annulus in range(n_annuli):
@@ -604,7 +633,9 @@ def draw_windrose_correlogram(data: numpy.ndarray, title: str = "", symmetric: b
                     plot_thetas.append(sig_annulus_thetas[i] + pi)
                     plot_widths.append(sig_annulus_widths[i] - space)
                     radii.append(sig_height)
-            axs.bar(plot_thetas, radii, width=plot_widths, bottom=bottom, color=sig_annulus_colors, edgecolor="black")
+            axs.bar(plot_thetas, radii, width=plot_widths, bottom=bottom, color=sig_annulus_colors,
+                    edgecolor=windrose_style.edge_color, linestyle=windrose_style.edge_style,
+                    linewidth=windrose_style.edge_width, alpha=windrose_style.alpha)
 
             # non-significant sectors in this annulus
             bottom = annulus + (1 - sig_height/2)
@@ -624,7 +655,9 @@ def draw_windrose_correlogram(data: numpy.ndarray, title: str = "", symmetric: b
                     plot_thetas.append(ns_annulus_thetas[i] + pi)
                     plot_widths.append(ns_annulus_widths[i] - space)
                     radii.append(sig_height/2)
-            axs.bar(plot_thetas, radii, width=plot_widths, bottom=bottom, color=ns_annulus_colors, edgecolor="black")
+            axs.bar(plot_thetas, radii, width=plot_widths, bottom=bottom, color=ns_annulus_colors,
+                    edgecolor=windrose_style.ns_edge_color, linestyle=windrose_style.ns_edge_style,
+                    linewidth=windrose_style.ns_edge_width, alpha=windrose_style.ns_alpha)
 
             # sectors below the pair threshold in this annulus
             dash_mask = [p == -1 for p in annulus_data[:, p_col]]  # could be no pairs or too few pairs
@@ -645,8 +678,9 @@ def draw_windrose_correlogram(data: numpy.ndarray, title: str = "", symmetric: b
                         plot_thetas.append(dash_annulus_thetas[i] + pi)
                         plot_widths.append(dash_annulus_widths[i] - space)
                         radii.append(sig_height/2)
-            axs.bar(plot_thetas, radii, width=plot_widths, bottom=bottom, linestyle="--", color="white",
-                    edgecolor="black")
+            axs.bar(plot_thetas, radii, width=plot_widths, bottom=bottom, color=windrose_style.min_face_color,
+                    edgecolor=windrose_style.min_edge_color, linestyle=windrose_style.min_edge_style,
+                    linewidth=windrose_style.min_edge_width, alpha=windrose_style.min_alpha)
 
     if not symmetric:
         axs.set_xlim(0, pi)
@@ -759,11 +793,14 @@ def draw_angular_correlation(data: numpy.ndarray, title: str = "", draw_polar: b
 
 
 def draw_histogram(data: numpy.ndarray, nbins: int = 20, obs_value: Optional[Number] = None,
-                   obs_title: str = "observed", obs_y_adj: int = 5, obs_style: Optional[PointStyle] = None,
-                   title: str = "", xlabel: str = "Bin",
-                   ylabel: str = "Frequency", figoutput: Optional[FigOutput] = None):
+                   obs_title: str = "observed", obs_y_adj: int = 5,  title: str = "", xlabel: str = "Bin",
+                   ylabel: str = "Frequency", bar_style: Optional[BarStyle] = None,
+                   obs_style: Optional[PointStyle] = None, figoutput: Optional[FigOutput] = None):
     fig, axs = start_figure(figoutput)
-    n, bins, patches = axs.hist(data, bins=nbins, zorder=1)
+    if bar_style is None:
+        bar_style = BarStyle()
+    n, bins, patches = axs.hist(data, bins=nbins, zorder=1, color=bar_style.face_color, edgecolor=bar_style.edge_color,
+                                linewidth=bar_style.edge_width, alpha=bar_style.alpha)
     if obs_value is not None:
         # find bin containing obs_value so we can pick a y-axis value for it
         b = 1
