@@ -81,12 +81,17 @@ def test_morans_i_perm():
     distances = pyssage.distances.euclidean_distance_matrix(coords[:, 0], coords[:, 1])
     dist_classes = pyssage.distances.create_distance_classes(distances, "determine pair count", 15)
     dc_con = pyssage.connections.distance_classes_to_connections(dist_classes, distances)
-    output, output_text, _ = pyssage.correlogram.correlogram(data[:, 0], dc_con, pyssage.correlogram.morans_i,
-                                                             permutations=100)
+    output, output_text, perm_values = pyssage.correlogram.correlogram(data[:, 0], dc_con, pyssage.correlogram.morans_i,
+                                                                       permutations=1000)
     pyssage.graph.draw_correlogram(numpy.array(output), "Moran's I", "Correlogram",
                                    figoutput=pyssage.graph.FigOutput(figshow=True))
     for line in output_text:
         print(line)
+
+    test_values = perm_values[3]
+    pyssage.graph.draw_histogram(test_values, nbins=50, obs_value=test_values[0], title="4th distance class")
+    test_values = perm_values[4]
+    pyssage.graph.draw_histogram(test_values, nbins=50, obs_value=test_values[0], title="5th distance class")
 
 
 def test_gearys_c():

@@ -1,7 +1,6 @@
 from tests.test_common import create_test_coords, create_test_scattered
 import pyssage.distances
 import pyssage.mantel
-# import numpy
 
 
 def test_mantel():
@@ -40,7 +39,7 @@ def test_mantel_with_permutation():
     coords = create_test_coords()
     distances = pyssage.distances.euclidean_distance_matrix(coords[:, 0], coords[:, 1])
     angles = pyssage.distances.euclidean_angle_matrix(coords[:, 0], coords[:, 1])
-    r, p_value, output_text, _, _, _, _, _ = pyssage.mantel.mantel(distances, angles, [], permutations=100)
+    r, p_value, output_text, _, _, _, perm_values, _ = pyssage.mantel.mantel(distances, angles, [], permutations=100)
     for line in output_text:
         print(line)
 
@@ -87,7 +86,8 @@ def test_mantel_with_partial_single_permuted():
     angles = pyssage.distances.euclidean_angle_matrix(coords[:, 0], coords[:, 1])
     data_distances = pyssage.distances.data_distance_matrix(data, pyssage.distances.data_distance_euclidean)
 
-    r, p_value, output_text, _, _, _, _, _ = pyssage.mantel.mantel(data_distances, distances, [angles], permutations=100)
+    r, p_value, output_text, _, _, _, _, _ = pyssage.mantel.mantel(data_distances, distances, [angles],
+                                                                   permutations=100)
     for line in output_text:
         print(line)
 

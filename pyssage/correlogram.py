@@ -126,6 +126,9 @@ def mantel_correl(y: numpy.ndarray, weights: Connections, alt_weights: Optional[
     in order to get the bearing version to work right, we have to use normal binary weights, then reverse the sign
     of the resulting Mantel correlation. if we use reverse binary weighting we end up multiplying the 'out of
     class' weights of 1 versus the angles, which is not what we want to test
+
+    the variance variable is not needed except as a placeholder so the function fits with the Moran's I and
+    Geary's c requirements
     """
     w = weights.as_binary()
     if alt_weights is not None:  # multiply to create non-binary weights, if necessary
