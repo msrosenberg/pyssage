@@ -814,3 +814,36 @@ def draw_histogram(data: numpy.ndarray, nbins: int = 20, obs_value: Optional[Num
     axs.set_xlabel(xlabel)
     axs.set_ylabel(ylabel)
     finalize_figure(fig, axs, figoutput, title)
+
+
+def draw_variogram(data: numpy.ndarray, metric_title: str = "g", title: str = "",
+                   point_style: Optional[PointStyle] = None, line_style: Optional[LineStyle] = None,
+                   figoutput: Optional[FigOutput] = None):
+    fig, axs = start_figure(figoutput)
+
+    # column order is: min_scale, max_scale, # pairs, observed
+    min_col = 0
+    max_col = 1
+    obs_col = 3
+
+    # plot at midpoint of distance range
+    scale = numpy.array([x[min_col] + (x[max_col] - x[min_col])/2 for x in data])
+
+    # draw base line
+    if line_style is None:
+        line_style = LineStyle()
+    axs.plot(scale, data[:, obs_col], zorder=2, color=line_style.color, linewidth=line_style.linewidth,
+             linestyle=line_style.linestyle, alpha=line_style.alpha)
+
+    # draw points
+    x = scale
+    y = data[:, obs_col]
+    if point_style is None:
+        point_style = PointStyle(face_color="black", edge_color="black", size=25)
+    pyplot.scatter(x, y, color=point_style.face_color, edgecolors=point_style.edge_color,
+                   s=point_style.size, linewidths=point_style.edge_width, marker=point_style.marker,
+                   alpha=point_style.alpha, zorder=3)
+
+    axs.set_xlabel("Scale")
+    axs.set_ylabel(metric_title)
+    finalize_figure(fig, axs, figoutput, title)
