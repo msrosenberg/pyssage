@@ -117,6 +117,8 @@ def start_figure(figoutput: Optional[FigOutput] = None, polar: bool = False):
         axs = fig.add_subplot(projection="polar")
     else:
         axs = fig.add_subplot()
+        axs.spines["right"].set_visible(False)
+        axs.spines["top"].set_visible(False)
     return fig, axs
 
 
@@ -847,3 +849,167 @@ def draw_variogram(data: numpy.ndarray, metric_title: str = "g", title: str = ""
     axs.set_xlabel("Scale")
     axs.set_ylabel(metric_title)
     finalize_figure(fig, axs, figoutput, title)
+
+
+def draw_wavelet_template(x: list, y: list, title: str = "", figoutput: Optional[FigOutput] = None):
+    fig, axs = start_figure(figoutput)
+    axs.plot(x, y)
+    finalize_figure(fig, axs, figoutput, title)
+
+
+def draw_wavelet_result(v_matrix, p_matrix, w_matrix, inc_positional_var: bool = True, inc_scale_var: bool = True,
+                        title: str = "", figoutput: Optional[FigOutput] = None):
+    if figoutput is None:
+        figoutput = FigOutput(figsize=(8, 8))
+
+    # if polar:
+    #     axs = fig.add_subplot(projection="polar")
+    # else:
+    #     axs = fig.add_subplot()
+    # return fig, axs
+    # fig, axs = start_figure(figoutput)
+
+    # if inc_scale_var:
+    #     ncols = 2
+    # else:
+    #     ncols = 1
+    # if inc_positional_var:
+    #     nrows = 2
+    # else:
+    #     nrows = 1
+
+    # fig, axs = pyplot.subplots(nrows, ncols, figsize=figoutput.figsize, dpi=figoutput.dpi)
+    # w_axes = axs[0]
+    # if inc_scale_var:
+    #     scale_axs = axes[1]
+    #     if inc_positional_var:
+    #         pos_axs = axes[2]
+    # elif inc_positional_var:
+    #     pos_axs = axes[1]
+
+    # w_axs = fig.add_subplot(nrows, ncols, 1)
+    # v_axs = None
+    # p_axs = None
+    # if inc_scale_var:
+    #     v_axs = fig.add_subplot(nrows, ncols, 2)
+    #     if inc_positional_var:
+    #         p_axs = fig.add_subplot(nrows, ncols, 3)
+    # elif inc_positional_var:
+    #     p_axs = fig.add_subplot(nrows, ncols, 2)
+
+    # fig, axs = pyplot.subplots(nrows, ncols, sharex="col", sharey="row", figsize=figoutput.figsize, dpi=figoutput.dpi)
+    # if inc_positional_var and inc_scale_var:
+    #     w_axs = axs[0][0]
+    #     v_axs = axs[0][1]
+    #     p_axs = axs[1][0]
+    # elif inc_scale_var:
+    #     w_axs = axs[0]
+    #     v_axs = axs[1]
+    #     p_axs = None
+    # elif inc_positional_var:
+    #     w_axs = axs[0]
+    #     p_axs = axs[1]
+    #     v_axs = None
+    # else:
+    #     w_axs = axs
+    #     v_axs = None
+    #     p_axs = None
+
+    fig = pyplot.figure(figsize=figoutput.figsize, dpi=figoutput.dpi)
+    if inc_positional_var and inc_scale_var:
+        gs = fig.add_gridspec(2, 2, width_ratios=(2, 1), height_ratios=(2, 1), left=0.1, right=0.9, bottom=0.1, top=0.9,
+                              wspace=0.05, hspace=0.05)
+        w_axs = fig.add_subplot(gs[0, 0])
+        v_axs = fig.add_subplot(gs[0, 1], sharey=w_axs)
+        p_axs = fig.add_subplot(gs[1, 0], sharex=w_axs)
+
+        w_axs.get_xaxis().set_visible(False)
+        w_axs.get_yaxis().set_visible(False)
+        w_axs.spines["right"].set_visible(False)
+        w_axs.spines["top"].set_visible(False)
+        w_axs.spines["bottom"].set_visible(False)
+        w_axs.spines["left"].set_visible(False)
+
+        v_axs.spines["top"].set_visible(False)
+        v_axs.spines["left"].set_visible(False)
+        v_axs.yaxis.tick_right()
+        v_axs.yaxis.set_label_position("right")
+        v_axs.set_xlabel("Variance")
+        v_axs.set_ylabel("Scale")
+
+        p_axs.spines["right"].set_visible(False)
+        p_axs.spines["top"].set_visible(False)
+        p_axs.set_xlabel("Position")
+        p_axs.set_ylabel("Variance")
+
+    elif inc_scale_var:
+        gs = fig.add_gridspec(1, 2, width_ratios=(2, 1), left=0.1, right=0.9, bottom=0.1, top=0.9,
+                              wspace=0.05, hspace=0.05)
+        w_axs = fig.add_subplot(gs[0, 0])
+        v_axs = fig.add_subplot(gs[0, 1], sharey=w_axs)
+        p_axs = None
+
+        w_axs.get_yaxis().set_visible(False)
+        w_axs.spines["right"].set_visible(False)
+        w_axs.spines["top"].set_visible(False)
+        w_axs.spines["left"].set_visible(False)
+        w_axs.set_xlabel("Position")
+
+        v_axs.spines["top"].set_visible(False)
+        v_axs.spines["left"].set_visible(False)
+        v_axs.yaxis.tick_right()
+        v_axs.yaxis.set_label_position("right")
+        v_axs.set_xlabel("Variance")
+        v_axs.set_ylabel("Scale")
+
+    elif inc_positional_var:
+        gs = fig.add_gridspec(2, 1, height_ratios=(2, 1), left=0.1, right=0.9, bottom=0.1, top=0.9,
+                              wspace=0.05, hspace=0.05)
+        w_axs = fig.add_subplot(gs[0, 0])
+        v_axs = None
+        p_axs = fig.add_subplot(gs[1, 0], sharex=w_axs)
+
+        w_axs.get_xaxis().set_visible(False)
+        w_axs.spines["right"].set_visible(False)
+        w_axs.spines["top"].set_visible(False)
+        w_axs.spines["bottom"].set_visible(False)
+        w_axs.set_ylabel("Scale")
+
+        p_axs.spines["right"].set_visible(False)
+        p_axs.spines["top"].set_visible(False)
+        p_axs.set_xlabel("Position")
+        p_axs.set_ylabel("Variance")
+
+    else:
+        w_axs = fig.add_subplot()
+        w_axs.set_ylabel("Scale")
+        w_axs.set_xlabel("Position")
+        w_axs.spines["right"].set_visible(False)
+        w_axs.spines["top"].set_visible(False)
+        v_axs = None
+        p_axs = None
+
+    # w_axs.imshow(w_matrix, cmap="inferno", origin="lower", aspect="auto")
+    # this approach should allow for rescaled units
+    x, y = numpy.meshgrid(p_matrix[:, 0], v_matrix[:, 0])
+    w_axs.pcolormesh(x, y, w_matrix, cmap="inferno")
+
+    line_style = None
+    if inc_scale_var:
+        if line_style is None:
+            line_style = LineStyle()
+        v_axs.plot(v_matrix[:, 1], v_matrix[:, 0], color=line_style.color, linewidth=line_style.linewidth,
+                 linestyle=line_style.linestyle, alpha=line_style.alpha)
+
+    if inc_positional_var:
+        if line_style is None:
+            line_style = LineStyle()
+        p_axs.plot(p_matrix[:, 0], p_matrix[:, 1], color=line_style.color, linewidth=line_style.linewidth,
+                 linestyle=line_style.linestyle, alpha=line_style.alpha)
+
+    # finalize_figure(fig, axs, figoutput, title)
+    if figoutput.figname != "":
+        if check_valid_graph_format(figoutput.figformat):
+            fig.savefig(figoutput.figname, format=figoutput.figformat, dpi=figoutput.dpi)
+    if figoutput.figshow:
+        pyplot.show()
