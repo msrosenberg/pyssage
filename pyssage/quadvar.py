@@ -2,32 +2,13 @@ from typing import Tuple
 from collections import namedtuple
 import numpy
 from pyssage.classes import Number
+from pyssage.utils import check_block_size
 # from datetime import datetime
 
 __all__ = ["ttlqv", "three_tlqv", "pqv", "tqv", "two_nlv", "three_nlv", "four_tlqv", "five_qv", "nine_tlqv",
            "quadrat_variance_randomization"]
 
 _2D_FUNCS = ("four_tlqv", "five_qv", "nine_tlqv")
-
-
-def check_block_size(max_block_size: int, n: int, x: int) -> int:
-    """
-    Check the maximum block size to be sure it doesn't exceed limits for the particular analysis and input data
-
-    :param max_block_size: the requested largest block size
-    :param n: the length of the transect
-    :param x: the number of "blocks" that make up the analysis; this affects the maximum allowable size
-    :return: the maximum block size that will actually be used in the analysis
-    """
-    if max_block_size == 0:
-        max_block_size = n // x
-    if max_block_size < 2:
-        max_block_size = 2
-    elif max_block_size > n // x:
-        max_block_size = n // x
-        print("Maximum block size cannot exceed {:0.1f}% of transect length. Reduced to {}.".format(100 / x,
-                                                                                                    max_block_size))
-    return max_block_size
 
 
 def ttlqv(transect: numpy.ndarray, min_block_size: int = 1, max_block_size: int = 0, block_step: int = 1,
