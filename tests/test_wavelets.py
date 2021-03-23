@@ -5,43 +5,53 @@ from tests.test_common import create_test_transect
 
 def test_haar_wavelet_analysis():
     w_out, v_out, p_out = pyssage.wavelets.wavelet_analysis(create_test_transect(), max_block_size=100)
-    # pyssage.graph.draw_quadvar_result(v_out, title="Scale Variance", figoutput=pyssage.graph.FigOutput(figshow=True))
-    # pyssage.graph.draw_quadvar_result(p_out, title="Positional Variance",
-    #                                   figoutput=pyssage.graph.FigOutput(figshow=True))
     pyssage.graph.draw_wavelet_result(v_out, p_out, w_out, figoutput=pyssage.graph.FigOutput(figshow=True))
+    # draw all alternative configurations
+    pyssage.graph.draw_wavelet_result(v_out, p_out, w_out, inc_positional_var=False,
+                                      figoutput=pyssage.graph.FigOutput(figshow=True))
+    pyssage.graph.draw_wavelet_result(v_out, p_out, w_out, inc_scale_var=False,
+                                      figoutput=pyssage.graph.FigOutput(figshow=True))
+    pyssage.graph.draw_wavelet_result(v_out, p_out, w_out, inc_scale_x_pos=False,
+                                      figoutput=pyssage.graph.FigOutput(figshow=True))
+    pyssage.graph.draw_wavelet_result(v_out, p_out, w_out, inc_positional_var=False, inc_scale_var=False,
+                                      figoutput=pyssage.graph.FigOutput(figshow=True))
+    pyssage.graph.draw_wavelet_result(v_out, p_out, w_out, inc_positional_var=False, inc_scale_x_pos=False,
+                                      figoutput=pyssage.graph.FigOutput(figshow=True))
+    pyssage.graph.draw_wavelet_result(v_out, p_out, w_out, inc_scale_x_pos=False, inc_scale_var=False,
+                                      figoutput=pyssage.graph.FigOutput(figshow=True))
 
-    pyssage.graph.draw_wavelet_result(v_out, p_out, w_out, inc_positional_var=False, figoutput=pyssage.graph.FigOutput(figshow=True))
-    pyssage.graph.draw_wavelet_result(v_out, p_out, w_out, inc_scale_var=False, figoutput=pyssage.graph.FigOutput(figshow=True))
-    pyssage.graph.draw_wavelet_result(v_out, p_out, w_out, inc_positional_var=False, inc_scale_var=False, figoutput=pyssage.graph.FigOutput(figshow=True))
-
-    for x in v_out:
-        print(x)
-
-    for x in p_out:
-        print(x)
 
 def test_haar_wavelet_analysis_rescaled():
     w_out, v_out, p_out = pyssage.wavelets.wavelet_analysis(create_test_transect(), max_block_size=100, unit_scale=0.1)
-    # pyssage.graph.draw_quadvar_result(v_out, title="Scale Variance", figoutput=pyssage.graph.FigOutput(figshow=True))
-    # pyssage.graph.draw_quadvar_result(p_out, title="Positional Variance",
-    #                                   figoutput=pyssage.graph.FigOutput(figshow=True))
     pyssage.graph.draw_wavelet_result(v_out, p_out, w_out, figoutput=pyssage.graph.FigOutput(figshow=True))
-
-    pyssage.graph.draw_wavelet_result(v_out, p_out, w_out, inc_positional_var=False, figoutput=pyssage.graph.FigOutput(figshow=True))
-    pyssage.graph.draw_wavelet_result(v_out, p_out, w_out, inc_scale_var=False, figoutput=pyssage.graph.FigOutput(figshow=True))
-    pyssage.graph.draw_wavelet_result(v_out, p_out, w_out, inc_positional_var=False, inc_scale_var=False, figoutput=pyssage.graph.FigOutput(figshow=True))
 
 
 def test_french_tophat_wavelet_analysis():
     w_out, v_out, p_out = pyssage.wavelets.wavelet_analysis(create_test_transect(), max_block_size=100,
                                                             wavelet=pyssage.wavelets.french_tophat_wavelet)
-    pyssage.graph.draw_quadvar_result(v_out, title="Scale Variance", figoutput=pyssage.graph.FigOutput(figshow=True))
-    pyssage.graph.draw_quadvar_result(p_out, title="Positional Variance",
-                                      figoutput=pyssage.graph.FigOutput(figshow=True))
+    pyssage.graph.draw_wavelet_result(v_out, p_out, w_out, figoutput=pyssage.graph.FigOutput(figshow=True))
+
+
+def test_sine_wavelet_analysis():
+    w_out, v_out, p_out = pyssage.wavelets.wavelet_analysis(create_test_transect(), max_block_size=100,
+                                                            wavelet=pyssage.wavelets.sine_wavelet)
+    pyssage.graph.draw_wavelet_result(v_out, p_out, w_out, figoutput=pyssage.graph.FigOutput(figshow=True))
+
+
+def test_mexican_hat_wavelet_analysis():
+    w_out, v_out, p_out = pyssage.wavelets.wavelet_analysis(create_test_transect(), max_block_size=100,
+                                                            wavelet=pyssage.wavelets.mexican_hat_wavelet)
+    pyssage.graph.draw_wavelet_result(v_out, p_out, w_out, figoutput=pyssage.graph.FigOutput(figshow=True))
+
+
+def test_morlet_wavelet_analysis():
+    w_out, v_out, p_out = pyssage.wavelets.wavelet_analysis(create_test_transect(), max_block_size=100,
+                                                            wavelet=pyssage.wavelets.morlet_wavelet)
     pyssage.graph.draw_wavelet_result(v_out, p_out, w_out, figoutput=pyssage.graph.FigOutput(figshow=True))
 
 
 def test_haar_wavelet():
+    # draw the Haar wavelet
     nsteps = 100
     y = []
     x = []
@@ -53,6 +63,7 @@ def test_haar_wavelet():
 
 
 def test_french_tophat_wavelet():
+    # draw the French Tophat wavelet
     nsteps = 100
     y = []
     x = []
@@ -64,6 +75,7 @@ def test_french_tophat_wavelet():
 
 
 def test_mexican_hat_wavelet():
+    # draw the Mexican hat wavelet
     nsteps = 100
     y = []
     x = []
@@ -75,6 +87,7 @@ def test_mexican_hat_wavelet():
 
 
 def test_morlet_wavelet():
+    # draw the Morlet wavelet
     nsteps = 1200
     y = []
     x = []
@@ -86,6 +99,7 @@ def test_morlet_wavelet():
 
 
 def test_sine_wavelet():
+    # draw the sine wavelet
     nsteps = 100
     y = []
     x = []

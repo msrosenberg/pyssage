@@ -60,9 +60,15 @@ def wavelet_analysis(transect: numpy.ndarray, wavelet=haar_wavelet, min_block_si
     :return: a two column numpy array, with the first column containing the scaled block size and the second the
              calculated variance
     """
+    win_width = 1
+    if wavelet == french_tophat_wavelet:
+        win_width = 1.5
+    elif wavelet == mexican_hat_wavelet:
+        win_width = 2
+    elif wavelet == morlet_wavelet:
+        win_width = 6
     n = len(transect)
-    # output = []
-    max_block_size = check_block_size(max_block_size, n, 2)
+    max_block_size = check_block_size(max_block_size, n, win_width*2)
     if wrap:
         _transect = numpy.append(transect, transect)
         _transect = numpy.append(transect, _transect)
@@ -70,23 +76,12 @@ def wavelet_analysis(transect: numpy.ndarray, wavelet=haar_wavelet, min_block_si
         _transect = transect
     start_start_pos = n
     end_start_pos = 2*n
-    win_width = 0.5
-    if wavelet == french_tophat_wavelet:
-        win_width = 1.5
-    elif wavelet == mexican_hat_wavelet:
-        win_width = 2
-    elif wavelet == morlet_wavelet:
-        win_width = 6
 
     v_output = []
-    # w_output = {}
     w_output = []
     for b in range(min_block_size, max_block_size + 1, block_step):
-        # for p in range(n):  # set default value for w_output matrix
-        #     w_output[b, p] = None
-        w_row = [numpy.NaN for p in range(n)]
+        w_row = [numpy.nan for _ in range(n)]
         w_output.append(w_row)
-
         v = 0
         if not wrap:
             start_start_pos = round(win_width*b)
@@ -98,7 +93,7 @@ def wavelet_analysis(transect: numpy.ndarray, wavelet=haar_wavelet, min_block_si
             else:
                 actual_p = start_pos - n
             startq = start_pos - round(win_width * b)
-            endq = start_pos + round(win_width * b)
+            endq = start_pos + round(win_width * b) + 1
             if not wrap:
                 startq = max(startq, 0)
                 endq = min(endq, n)
@@ -106,28 +101,27 @@ def wavelet_analysis(transect: numpy.ndarray, wavelet=haar_wavelet, min_block_si
             for i in range(startq, endq):
                 d = (i - start_pos) / b
                 tmp_sum += _transect[i] * wavelet(d)
-            # w_output[b, actual_p] = tmp_sum/b
             w_row[actual_p] = tmp_sum/b
 
             v += (tmp_sum/b)**2
             cnt += 1
-        if cnt > 0:
+        try:
             v_output.append([b*unit_scale, v/cnt])
+        except ZeroDivisionError:
+            v_output.append([b*unit_scale, numpy.nan])
     p_output = []
     for p in range(n):
         pv = 0
         cnt = 0
-        # for b in range(min_block_size, max_block_size + 1, block_step):
-        #     if (b, p) in w_output:
-        #         pv += w_output[b, p]**2
-        #         cnt += 1
         for b in range(len(w_output)):
-            if w_output[b][p] != numpy.NaN:
+            if w_output[b][p] is not numpy.nan:
                 pv += w_output[b][p]**2
                 cnt += 1
 
-        if cnt > 0:
+        try:
             p_output.append([p*unit_scale, pv / cnt])
+        except ZeroDivisionError:
+            p_output.append([p*unit_scale, numpy.nan])
 
     wavelet_output_tuple = namedtuple("wavelet_output_tuple", ["w_output", "v_output", "p_output"])
     return wavelet_output_tuple(numpy.array(w_output), numpy.array(v_output), numpy.array(p_output))
