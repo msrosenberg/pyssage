@@ -859,9 +859,10 @@ def draw_wavelet_template(x: list, y: list, title: str = "", figoutput: Optional
 
 
 def draw_wavelet_result(v_matrix, p_matrix, w_matrix, inc_positional_var: bool = True, inc_scale_var: bool = True,
-                        inc_scale_x_pos: bool = True, title: str = "", scale_line_style: Optional[LineStyle] = None,
-                        pos_line_style: Optional[LineStyle] = None, w_colormap: str = "inferno",
-                        figoutput: Optional[FigOutput] = None):
+                        inc_scale_x_pos: bool = True, inc_random: bool = False, title: str = "",
+                        scale_line_style: Optional[LineStyle] = None, pos_line_style: Optional[LineStyle] = None,
+                        w_colormap: str = "inferno", rand_scale_line_style: Optional[LineStyle] = None,
+                        rand_pos_line_style: Optional[LineStyle] = None, figoutput: Optional[FigOutput] = None):
     if figoutput is None:
         figoutput = FigOutput()
 
@@ -882,8 +883,6 @@ def draw_wavelet_result(v_matrix, p_matrix, w_matrix, inc_positional_var: bool =
         v_axs.spines["left"].set_visible(False)
         v_axs.yaxis.tick_right()
         v_axs.yaxis.set_label_position("right")
-        v_axs.set_xlabel("Variance")
-        v_axs.set_ylabel("Scale")
     elif inc_scale_var and inc_scale_x_pos:
         gs = fig.add_gridspec(1, 2, width_ratios=(2, 1), left=0.1, right=0.9, bottom=0.1, top=0.9,
                               wspace=0.05, hspace=0.05)
@@ -894,8 +893,6 @@ def draw_wavelet_result(v_matrix, p_matrix, w_matrix, inc_positional_var: bool =
         v_axs.spines["left"].set_visible(False)
         v_axs.yaxis.tick_right()
         v_axs.yaxis.set_label_position("right")
-        v_axs.set_xlabel("Variance")
-        v_axs.set_ylabel("Scale")
     elif inc_positional_var and inc_scale_x_pos:
         gs = fig.add_gridspec(2, 1, height_ratios=(2, 1), left=0.1, right=0.9, bottom=0.1, top=0.9,
                               wspace=0.05, hspace=0.05)
@@ -907,8 +904,6 @@ def draw_wavelet_result(v_matrix, p_matrix, w_matrix, inc_positional_var: bool =
     elif inc_positional_var and inc_scale_var:
         p_axs = fig.add_subplot(1, 2, 1)
         v_axs = fig.add_subplot(1, 2, 2)
-        v_axs.set_xlabel("Scale")
-        v_axs.set_ylabel("Variance")
         v_axs.spines["right"].set_visible(False)
     elif inc_scale_x_pos:
         w_axs = fig.add_subplot()
@@ -917,8 +912,6 @@ def draw_wavelet_result(v_matrix, p_matrix, w_matrix, inc_positional_var: bool =
     elif inc_scale_var:
         v_axs = fig.add_subplot()
         v_axs.spines["right"].set_visible(False)
-        v_axs.set_xlabel("Scale")
-        v_axs.set_ylabel("Variance")
     else:
         raise ValueError("At least one of the include plot options must be True")
 
@@ -930,7 +923,20 @@ def draw_wavelet_result(v_matrix, p_matrix, w_matrix, inc_positional_var: bool =
         w_axs.set_ylabel("Scale")
         w_axs.set_xlabel("Position")
         x, y = numpy.meshgrid(p_matrix[:, 0], v_matrix[:, 0])
-        w_axs.pcolormesh(x, y, w_matrix, cmap=w_colormap)
+        if inc_random:
+            nv = len(v_matrix)
+            np = len(p_matrix)
+            # w_data = w_matrix[:, :, 0]
+            w_data = numpy.empty((nv, np))
+            for v in range(nv):
+                for p in range(np):
+                    if w_matrix[v, p, 1] < w_matrix[v, p, 0] < w_matrix[v, p, 2]:
+                        w_data[v, p] = numpy.nan
+                    else:
+                        w_data[v, p] = w_matrix[v, p, 0]
+        else:
+            w_data = w_matrix
+        w_axs.pcolormesh(x, y, w_data, cmap=w_colormap)
 
     if inc_scale_var:
         if scale_line_style is None:
@@ -938,12 +944,27 @@ def draw_wavelet_result(v_matrix, p_matrix, w_matrix, inc_positional_var: bool =
         if inc_scale_x_pos:
             x = v_matrix[:, 1]
             y = v_matrix[:, 0]
+            v_axs.set_xlabel("Variance")
+            v_axs.set_ylabel("Scale")
         else:
             x = v_matrix[:, 0]
             y = v_matrix[:, 1]
+            v_axs.set_xlabel("Scale")
+            v_axs.set_ylabel("Variance")
         v_axs.spines["top"].set_visible(False)
         v_axs.plot(x, y, color=scale_line_style.color, linewidth=scale_line_style.linewidth,
                    linestyle=scale_line_style.linestyle, alpha=scale_line_style.alpha)
+        if inc_random:
+            if inc_scale_x_pos:
+                x = v_matrix[:, 2]
+                y = v_matrix[:, 0]
+            else:
+                x = v_matrix[:, 0]
+                y = v_matrix[:, 2]
+            if rand_scale_line_style is None:
+                rand_scale_line_style = LineStyle(color="red")
+            v_axs.plot(x, y, color=rand_scale_line_style.color, linewidth=rand_scale_line_style.linewidth,
+                       linestyle=rand_scale_line_style.linestyle, alpha=rand_scale_line_style.alpha)
 
     if inc_positional_var:
         if pos_line_style is None:
@@ -954,5 +975,11 @@ def draw_wavelet_result(v_matrix, p_matrix, w_matrix, inc_positional_var: bool =
         p_axs.set_ylabel("Variance")
         p_axs.plot(p_matrix[:, 0], p_matrix[:, 1], color=pos_line_style.color, linewidth=pos_line_style.linewidth,
                    linestyle=pos_line_style.linestyle, alpha=pos_line_style.alpha)
+        if inc_random:
+            if rand_pos_line_style is None:
+                rand_pos_line_style = LineStyle(color="red")
+            p_axs.plot(p_matrix[:, 0], p_matrix[:, 2], color=rand_pos_line_style.color,
+                       linewidth=rand_pos_line_style.linewidth, linestyle=rand_pos_line_style.linestyle,
+                       alpha=rand_pos_line_style.alpha)
 
     finalize_figure(fig, figoutput, title)

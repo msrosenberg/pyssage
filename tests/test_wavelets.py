@@ -4,7 +4,7 @@ from tests.test_common import create_test_transect
 
 
 def test_haar_wavelet_analysis():
-    w_out, v_out, p_out = pyssage.wavelets.wavelet_analysis(create_test_transect(), max_block_size=100)
+    w_out, v_out, p_out, _, _, _ = pyssage.wavelets.wavelet_analysis(create_test_transect(), max_block_size=100)
     pyssage.graph.draw_wavelet_result(v_out, p_out, w_out, figoutput=pyssage.graph.FigOutput(figshow=True))
     # draw all alternative configurations
     pyssage.graph.draw_wavelet_result(v_out, p_out, w_out, inc_positional_var=False,
@@ -22,32 +22,42 @@ def test_haar_wavelet_analysis():
 
 
 def test_haar_wavelet_analysis_rescaled():
-    w_out, v_out, p_out = pyssage.wavelets.wavelet_analysis(create_test_transect(), max_block_size=100, unit_scale=0.1)
+    w_out, v_out, p_out, _, _, _ = pyssage.wavelets.wavelet_analysis(create_test_transect(), max_block_size=100,
+                                                                     unit_scale=0.1)
     pyssage.graph.draw_wavelet_result(v_out, p_out, w_out, figoutput=pyssage.graph.FigOutput(figshow=True))
 
 
 def test_french_tophat_wavelet_analysis():
-    w_out, v_out, p_out = pyssage.wavelets.wavelet_analysis(create_test_transect(), max_block_size=100,
-                                                            wavelet=pyssage.wavelets.french_tophat_wavelet)
+    w_out, v_out, p_out, _, _, _ = pyssage.wavelets.wavelet_analysis(create_test_transect(), max_block_size=100,
+                                                                     wavelet=pyssage.wavelets.french_tophat_wavelet)
     pyssage.graph.draw_wavelet_result(v_out, p_out, w_out, figoutput=pyssage.graph.FigOutput(figshow=True))
 
 
 def test_sine_wavelet_analysis():
-    w_out, v_out, p_out = pyssage.wavelets.wavelet_analysis(create_test_transect(), max_block_size=100,
-                                                            wavelet=pyssage.wavelets.sine_wavelet)
+    w_out, v_out, p_out, _, _, _ = pyssage.wavelets.wavelet_analysis(create_test_transect(), max_block_size=100,
+                                                                     wavelet=pyssage.wavelets.sine_wavelet)
     pyssage.graph.draw_wavelet_result(v_out, p_out, w_out, figoutput=pyssage.graph.FigOutput(figshow=True))
 
 
 def test_mexican_hat_wavelet_analysis():
-    w_out, v_out, p_out = pyssage.wavelets.wavelet_analysis(create_test_transect(), max_block_size=100,
-                                                            wavelet=pyssage.wavelets.mexican_hat_wavelet)
+    w_out, v_out, p_out, _, _, _ = pyssage.wavelets.wavelet_analysis(create_test_transect(), max_block_size=100,
+                                                                     wavelet=pyssage.wavelets.mexican_hat_wavelet)
     pyssage.graph.draw_wavelet_result(v_out, p_out, w_out, figoutput=pyssage.graph.FigOutput(figshow=True))
 
 
 def test_morlet_wavelet_analysis():
-    w_out, v_out, p_out = pyssage.wavelets.wavelet_analysis(create_test_transect(), max_block_size=100,
-                                                            wavelet=pyssage.wavelets.morlet_wavelet)
+    w_out, v_out, p_out, _, _, _ = pyssage.wavelets.wavelet_analysis(create_test_transect(), max_block_size=100,
+                                                                     wavelet=pyssage.wavelets.morlet_wavelet)
     pyssage.graph.draw_wavelet_result(v_out, p_out, w_out, figoutput=pyssage.graph.FigOutput(figshow=True))
+
+
+def test_sine_wavelet_analysis_permutation():
+    w_out, v_out, p_out, w_all, v_all, p_all = pyssage.wavelets.wavelet_analysis(create_test_transect(),
+                                                                                 max_block_size=100,
+                                                                                 wavelet=pyssage.wavelets.sine_wavelet,
+                                                                                 npermutations=50)
+    pyssage.graph.draw_wavelet_result(v_out, p_out, w_out, inc_random=True,
+                                      figoutput=pyssage.graph.FigOutput(figshow=True))
 
 
 def test_haar_wavelet_template():
