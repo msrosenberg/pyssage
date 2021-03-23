@@ -50,7 +50,7 @@ def test_morlet_wavelet_analysis():
     pyssage.graph.draw_wavelet_result(v_out, p_out, w_out, figoutput=pyssage.graph.FigOutput(figshow=True))
 
 
-def test_haar_wavelet():
+def test_haar_wavelet_template():
     # draw the Haar wavelet
     nsteps = 100
     y = []
@@ -62,7 +62,7 @@ def test_haar_wavelet():
     pyssage.graph.draw_wavelet_template(x, y, figoutput=pyssage.graph.FigOutput(figshow=True))
 
 
-def test_french_tophat_wavelet():
+def test_french_tophat_wavelet_template():
     # draw the French Tophat wavelet
     nsteps = 100
     y = []
@@ -74,7 +74,7 @@ def test_french_tophat_wavelet():
     pyssage.graph.draw_wavelet_template(x, y, figoutput=pyssage.graph.FigOutput(figshow=True))
 
 
-def test_mexican_hat_wavelet():
+def test_mexican_hat_wavelet_template():
     # draw the Mexican hat wavelet
     nsteps = 100
     y = []
@@ -86,7 +86,7 @@ def test_mexican_hat_wavelet():
     pyssage.graph.draw_wavelet_template(x, y, figoutput=pyssage.graph.FigOutput(figshow=True))
 
 
-def test_morlet_wavelet():
+def test_morlet_wavelet_template():
     # draw the Morlet wavelet
     nsteps = 1200
     y = []
@@ -98,7 +98,7 @@ def test_morlet_wavelet():
     pyssage.graph.draw_wavelet_template(x, y, figoutput=pyssage.graph.FigOutput(figshow=True))
 
 
-def test_sine_wavelet():
+def test_sine_wavelet_template():
     # draw the sine wavelet
     nsteps = 100
     y = []
