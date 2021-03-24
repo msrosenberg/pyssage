@@ -916,17 +916,18 @@ def draw_wavelet_result(v_matrix, p_matrix, w_matrix, inc_positional_var: bool =
         raise ValueError("At least one of the include plot options must be True")
 
     if inc_scale_x_pos:
-        # w_axs.imshow(w_matrix, cmap="inferno", origin="lower", aspect="auto")
-        # this approach should allow for rescaled units
+        # use pcolormesh to allow for units which match the scale and position
         w_axs.spines["right"].set_visible(False)
         w_axs.spines["top"].set_visible(False)
         w_axs.set_ylabel("Scale")
         w_axs.set_xlabel("Position")
         x, y = numpy.meshgrid(p_matrix[:, 0], v_matrix[:, 0])
         if inc_random:
+            # this is probably an automatic way to mask the matrix for values which meet criteria vs nan
+            # but it is not obviously to me how to do it. the efficiency loss here is fairly minimal as this
+            # is not a highly repeated loop
             nv = len(v_matrix)
             np = len(p_matrix)
-            # w_data = w_matrix[:, :, 0]
             w_data = numpy.empty((nv, np))
             for v in range(nv):
                 for p in range(np):

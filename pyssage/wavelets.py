@@ -5,6 +5,8 @@ import numpy
 from pyssage.classes import Number
 from pyssage.utils import check_block_size
 
+__all__ = ["wavelet_analysis"]
+
 
 #  ---------------Wavelet Functions---------------
 def haar_wavelet(d: float) -> int:
@@ -114,9 +116,13 @@ def wavelet_analysis(transect: numpy.ndarray, wavelet=haar_wavelet, min_block_si
     :param unit_scale: represents the unit scale of a single block (default = 1). Can be used to rescale the units of
            the output, e.g., if the blocks are measured in centimeters, you could use a scale of 0.01 to have the
            output expressed in meters.
-    :return: a tuple of three numpy arrays, the first a matrix containing scale x position variances, the second
+    :param npermutations: the number of permutations to conduct if a randomization test is performed (default = 0)
+    :param alpha: the desired significance level if using a randomization test (default = 0.05)
+    :return: a tuple of six numpy arrays, the first a matrix containing scale x position variances, the second
              a two column array containing variances by scale, and the third a two column array containing variances
-             by positions
+             by positions. The fourth, fifth, and six entries are None if a randomization is not conducted, and
+             matrices containing the raw randomization outputs of w, v, and p, respectively, if a randomization is
+             conducted
     """
     win_width = 1
     if wavelet == french_tophat_wavelet:
