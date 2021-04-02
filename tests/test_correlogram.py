@@ -651,3 +651,24 @@ def test_variogram():
     for i, row in enumerate(answer):
         for j, ans in enumerate(row):
             assert round(output[i][j], 5) == ans
+
+
+def test_correlogram_tutorial():
+    data, _ = create_test_scattered()
+    coords = create_test_coords()
+    distances = pyssage.distances.spherical_distance_matrix(coords[:, 0], coords[:, 1])
+    dist_classes = pyssage.distances.create_distance_classes(distances, "determine pair count", 15)
+    print(dist_classes)
+    pyssage.graph.draw_distance_class_distribution(distances, dist_classes,
+                                                   figoutput=pyssage.graph.FigOutput(figshow=True,
+                                                                                     figname="tutorial_correl_dc.svg",
+                                                                                     figformat="svg"))
+
+    dc_con = pyssage.connections.distance_classes_to_connections(dist_classes, distances)
+    output, output_text, _ = pyssage.correlogram.correlogram(data[:, 0], dc_con, pyssage.correlogram.morans_i)
+    for line in output_text:
+        print(line)
+
+    pyssage.graph.draw_correlogram(numpy.array(output), metric_title="Moran's I",
+                                   figoutput=pyssage.graph.FigOutput(figshow=True, figname="tutorial_correl.svg",
+                                                                     figformat="svg"))
