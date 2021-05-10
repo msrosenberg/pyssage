@@ -126,3 +126,4 @@ dmypy.json
 
 .idea/
 venv39/
+private/
