@@ -1,6 +1,7 @@
 import numpy
 from math import pi, atan2
 from pyssage.common import OUT_DEC
+from pyssage.classes import Number
 
 
 def flatten_half(square_matrix: numpy.ndarray) -> numpy.ndarray:
@@ -162,3 +163,17 @@ def check_block_size(max_block_size: int, n: int, x: int) -> int:
         print("Maximum block size cannot exceed {:0.1f}% of transect length. Reduced to {}.".format(100 / x,
                                                                                                     max_block_size))
     return max_block_size
+
+
+def str_to_number(numstr: str) -> Number:
+    """
+    Convert a string into an integer (if possible) or a floating-point number. Essentially a safe replacement
+    for eval()
+
+    :param numstr: the input string to be converted to a number
+    :return: the value as a numeric type, integer if possible, otherwise a float
+    """
+    try:
+        return int(numstr)
+    except ValueError:
+        return float(numstr)

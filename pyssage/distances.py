@@ -3,7 +3,7 @@ from math import sqrt, sin, cos, acos, pi, atan2, radians
 from collections import namedtuple
 import numpy
 from pyssage.classes import Number, Connections
-from pyssage.utils import flatten_half, euclidean_angle
+from pyssage.utils import flatten_half, euclidean_angle, str_to_number
 
 # __all__ = ["euc_dist_matrix"]
 
@@ -325,7 +325,7 @@ def create_distance_classes(dist_matrix: numpy.ndarray, class_mode: str, mode_va
         maxdist = numpy.max(dist_matrix)
     else:
         if isinstance(set_max_dist, str):
-            p = eval(set_max_dist)
+            p = str_to_number(set_max_dist)
             if not (0 < p <= 1):
                 raise ValueError()
             maxdist = p * numpy.max(dist_matrix)

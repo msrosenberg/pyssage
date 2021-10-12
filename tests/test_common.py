@@ -1,4 +1,5 @@
 import numpy
+from pyssage.utils import str_to_number
 
 
 def create_test_transect():
@@ -387,7 +388,7 @@ def create_test_surface():
             data = line.strip().split()
             row = []
             for d in data:
-                row.append(eval(d))
+                row.append(str_to_number(d))
             surface.append(row)
     return numpy.array(surface)
 
@@ -399,7 +400,7 @@ def load_answer(filename: str) -> numpy.ndarray:
             if line.strip() != "":
                 dat = line.strip().split("\t")
                 for i in range(len(dat)):
-                    dat[i] = eval(dat[i])  # convert to numbers
+                    dat[i] = str_to_number(dat[i])  # convert to numbers
             data.append(dat)
     return numpy.array(data)
 
@@ -418,6 +419,6 @@ def create_test_scattered():
                 rowdat = line.strip().split()
                 row = []
                 for d in rowdat:
-                    row.append(eval(d))
+                    row.append(str_to_number(d))
                 data.append(row)
     return numpy.array(data), headers
