@@ -7,7 +7,7 @@ with open("README.md", "r") as infile:
 
 setuptools.setup(
     name="pyssage",
-    version="0.1.2",
+    version="0.1.3",
     author="Michael S. Rosenberg",
     author_email="msrosenberg@vcu.edu",
     description="python version of some of the analyses from PASSaGE 2",

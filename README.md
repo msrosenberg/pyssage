@@ -28,6 +28,13 @@ So far the following analyses have been implemented:
 * 9TLQV: Nine-Term Local Quadrat Variance Analysis
 * 5QV: Pentuplet Quadrat Variance
 
+### Wavelets
+* Haar
+* French Top Hat
+* Mexican Hat
+* Morlet
+* Sine
+
 ### Distance Calculations
 * Euclidean distances/angles from 1, 2, and 3-dimensional points
 * Spherical distances/angles from latitudes and longitudes
@@ -59,6 +66,7 @@ So far the following analyses have been implemented:
   * Moran's *I* 
   * Geary's *c* 
   * Mantel Correlograms 
+* Variograms
 
 ### Anisotropy
 * Bearing Analysis 
