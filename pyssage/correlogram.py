@@ -7,7 +7,7 @@ from pyssage.classes import Connections
 from pyssage.utils import create_output_table, check_for_square_matrix
 import pyssage.mantel
 
-__all__ = ["bearing_correlogram", "correlogram", "windrose_correlogram"]
+__all__ = ["bearing_correlogram", "correlogram", "variogram", "windrose_correlogram"]
 
 
 def check_variance_assumption(x: Optional[str]) -> None:
@@ -356,3 +356,33 @@ def windrose_correlogram(data: numpy.ndarray, distances: numpy.ndarray, angles: 
     windrose_correlogram_output = namedtuple("windrose_correlogram_output", ["output_values", "output_text",
                                                                              "all_output", "permuted_values"])
     return windrose_correlogram_output(output, output_text, all_output, all_permuted_values)
+
+
+def semivariogram_calc(y: numpy.ndarray, weights: Connections, alt_weights: Optional[numpy.ndarray] = None):
+    w = weights.as_binary()
+    if alt_weights is not None:  # multiply to create non-binary weights, if necessary
+        w *= alt_weights
+    sumw = numpy.sum(w, dtype=numpy.float64)  # sum of weight matrix
+    sumdif2 = numpy.sum(numpy.square(w * (y[:, numpy.newaxis] - y)), dtype=numpy.float64)
+    g = sumdif2 / (2 * sumw)
+    return weights.min_scale, weights.max_scale, weights.n_pairs(), g
+
+
+def variogram(data: numpy.ndarray, dist_class_connections: list) -> Tuple[list, list]:
+    output = []
+    for dc in dist_class_connections:
+        output.append(semivariogram_calc(data, dc))
+
+    # create basic output text
+    output_text = list()
+    output_text.append("Variogram")
+    output_text.append("")
+    output_text.append("# of data points = {}".format(len(data)))
+    output_text.append("")
+    col_headers = ["Min dist", "Max dist", "# pairs", "Variogram"]
+    col_formats = ["f", "f", "d", "f"]
+
+    create_output_table(output_text, output, col_headers, col_formats)
+
+    variogram_output = namedtuple("variogram_output", ["output_values", "output_text"])
+    return variogram_output(output, output_text)

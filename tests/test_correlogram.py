@@ -619,3 +619,56 @@ def test_windrose_correlogram_mantel_perm():
                                             figoutput=pyssage.graph.FigOutput(figshow=True))
     for line in output_text:
         print(line)
+
+
+def test_variogram():
+    # answers calculated from PASSaGE 2 and exported to 5 decimals
+    answer = [(0, 2.44706, 4187, 8.99665),
+              (2.44706, 3.79348, 4190, 22.43976), 
+              (3.79348, 4.89556, 4189, 27.44699), 
+              (4.89556, 5.8996, 4189, 29.28249), 
+              (5.8996, 6.878, 4189, 31.84884), 
+              (6.878, 7.83495, 4188, 33.77297), 
+              (7.83495, 8.80877, 4190, 33.90388), 
+              (8.80877, 9.86668, 4189, 35.98614), 
+              (9.86668, 10.96444, 4189, 35.60848), 
+              (10.96444, 12.14837, 4189, 33.04122), 
+              (12.14837, 13.4679, 4189, 30.55862), 
+              (13.4679, 14.96656, 4189, 30.3905), 
+              (14.96656, 16.90406, 4189, 27.3023), 
+              (16.90406, 20.06888, 4189, 18.53366)]
+
+    data, _ = create_test_scattered()
+    coords = create_test_coords()
+    distances = pyssage.distances.euclidean_distance_matrix(coords[:, 0], coords[:, 1])
+    dist_classes = pyssage.distances.create_distance_classes(distances, "determine pair count", 15)
+    dc_con = pyssage.connections.distance_classes_to_connections(dist_classes, distances)
+    output, output_text = pyssage.correlogram.variogram(data[:, 0], dc_con)
+    pyssage.graph.draw_variogram(numpy.array(output), figoutput=pyssage.graph.FigOutput(figshow=True))
+    for line in output_text:
+        print(line)
+
+    for i, row in enumerate(answer):
+        for j, ans in enumerate(row):
+            assert round(output[i][j], 5) == ans
+
+
+def test_correlogram_tutorial():
+    data, _ = create_test_scattered()
+    coords = create_test_coords()
+    distances = pyssage.distances.spherical_distance_matrix(coords[:, 0], coords[:, 1])
+    dist_classes = pyssage.distances.create_distance_classes(distances, "determine pair count", 15)
+    print(dist_classes)
+    pyssage.graph.draw_distance_class_distribution(distances, dist_classes,
+                                                   figoutput=pyssage.graph.FigOutput(figshow=True,
+                                                                                     figname="tutorial_correl_dc.svg",
+                                                                                     figformat="svg"))
+
+    dc_con = pyssage.connections.distance_classes_to_connections(dist_classes, distances)
+    output, output_text, _ = pyssage.correlogram.correlogram(data[:, 0], dc_con, pyssage.correlogram.morans_i)
+    for line in output_text:
+        print(line)
+
+    pyssage.graph.draw_correlogram(numpy.array(output), metric_title="Moran's I",
+                                   figoutput=pyssage.graph.FigOutput(figshow=True, figname="tutorial_correl.svg",
+                                                                     figformat="svg"))

@@ -117,10 +117,12 @@ def start_figure(figoutput: Optional[FigOutput] = None, polar: bool = False):
         axs = fig.add_subplot(projection="polar")
     else:
         axs = fig.add_subplot()
+        axs.spines["right"].set_visible(False)
+        axs.spines["top"].set_visible(False)
     return fig, axs
 
 
-def finalize_figure(fig, axs, figoutput: FigOutput, title: str = "") -> None:
+def finalize_figure(fig, figoutput: FigOutput, title: str = "") -> None:
     """
     common function for ending graphs and figures
 
@@ -129,7 +131,8 @@ def finalize_figure(fig, axs, figoutput: FigOutput, title: str = "") -> None:
     if figoutput is None:
         figoutput = FigOutput()
     if title != "":
-        axs.set_title(title)
+        fig.suptitle(title)
+        # axs.set_title(title)
     if figoutput.figname != "":
         if check_valid_graph_format(figoutput.figformat):
             fig.savefig(figoutput.figname, format=figoutput.figformat, dpi=figoutput.dpi)
@@ -147,7 +150,7 @@ def draw_transect(transect: numpy.array, unit_scale: Number = 1, title: str = ""
              alpha=line_style.alpha)
     axs.set_xlabel("Position")
     axs.set_ylabel("Value")
-    finalize_figure(fig, axs, figoutput, title)
+    finalize_figure(fig, figoutput, title)
 
 
 def draw_quadvar_result(quadvar: numpy.ndarray, inc_random: bool = False, title: str = "",
@@ -166,7 +169,7 @@ def draw_quadvar_result(quadvar: numpy.ndarray, inc_random: bool = False, title:
         pyplot.legend(loc="upper right")
     axs.set_xlabel("Scale")
     axs.set_ylabel("Variance")
-    finalize_figure(fig, axs, figoutput, title)
+    finalize_figure(fig, figoutput, title)
 
 
 # def draw_triangles(triangles: list, coords, title: str = "") -> None:
@@ -216,7 +219,7 @@ def draw_tessellation(tessellation: VoronoiTessellation, xcoords: numpy.ndarray,
                    alpha=point_style.alpha)
     axs.set_xlim(minx-1, maxx+1)
     axs.set_ylim(miny-1, maxy+1)
-    finalize_figure(fig, axs, figoutput, title)
+    finalize_figure(fig, figoutput, title)
 
 
 def check_connection_format(con_frmt: str) -> None:
@@ -276,7 +279,7 @@ def draw_connections(connections, xcoords: numpy.ndarray, ycoords: numpy.ndarray
                    alpha=point_style.alpha, zorder=2)
     axs.set_xlim(minx-1, maxx+1)
     axs.set_ylim(miny-1, maxy+1)
-    finalize_figure(fig, axs, figoutput, title)
+    finalize_figure(fig, figoutput, title)
 
 
 def draw_shortest_path(connections, xcoords: numpy.ndarray, ycoords: numpy.ndarray, trace_dict: dict,
@@ -309,7 +312,7 @@ def draw_shortest_path(connections, xcoords: numpy.ndarray, ycoords: numpy.ndarr
                    alpha=point_style.alpha, zorder=2)
     axs.set_xlim(minx-1, maxx+1)
     axs.set_ylim(miny-1, maxy+1)
-    finalize_figure(fig, axs, figoutput, title)
+    finalize_figure(fig, figoutput, title)
 
 
 def draw_distance_class_distribution(dist_matrix: numpy.ndarray, dist_class: numpy.ndarray, title: str = "",
@@ -348,7 +351,7 @@ def draw_distance_class_distribution(dist_matrix: numpy.ndarray, dist_class: num
 
     axs.set_xlabel("Distance")
     axs.set_ylabel("Cumulative Count")
-    finalize_figure(fig, axs, figoutput, title)
+    finalize_figure(fig, figoutput, title)
 
 
 def draw_correlogram(data: numpy.ndarray, metric_title: str = "", title: str = "", alpha: float = 0.05,
@@ -408,7 +411,7 @@ def draw_correlogram(data: numpy.ndarray, metric_title: str = "", title: str = "
 
     axs.set_xlabel("Scale")
     axs.set_ylabel(metric_title)
-    finalize_figure(fig, axs, figoutput, title)
+    finalize_figure(fig, figoutput, title)
 
 
 # def draw_bearing_correlogram_old(data: numpy.ndarray, title: str = "", symmetric: bool = True, alpha: float = 0.05,
@@ -537,7 +540,7 @@ def draw_bearing_correlogram(data: numpy.ndarray, title: str = "", symmetric: bo
         axs.set_xlim(0, pi)
 
     pyplot.colorbar(cm.ScalarMappable(norm=normalize, cmap=cmap), ax=axs)
-    finalize_figure(fig, axs, figoutput, title)
+    finalize_figure(fig, figoutput, title)
 
 
 def draw_windrose_correlogram(data: numpy.ndarray, title: str = "", symmetric: bool = True, alpha: float = 0.05,
@@ -687,7 +690,7 @@ def draw_windrose_correlogram(data: numpy.ndarray, title: str = "", symmetric: b
     pyplot.axis("off")
     if not show_counts:
         pyplot.colorbar(pyplot.cm.ScalarMappable(norm=normalize, cmap=cmap), ax=axs)
-    finalize_figure(fig, axs, figoutput, title)
+    finalize_figure(fig, figoutput, title)
 
 
 def draw_bearing(data: numpy.ndarray, alpha: float = 0.05, title: str = "", draw_polar: bool = False,
@@ -746,7 +749,7 @@ def draw_bearing(data: numpy.ndarray, alpha: float = 0.05, title: str = "", draw
                    s=ns_style.size, linewidths=ns_style.edge_width, marker=ns_style.marker,
                    alpha=ns_style.alpha, zorder=3)
 
-    finalize_figure(fig, axs, figoutput, title)
+    finalize_figure(fig, figoutput, title)
 
 
 def draw_angular_correlation(data: numpy.ndarray, title: str = "", draw_polar: bool = True,
@@ -789,7 +792,7 @@ def draw_angular_correlation(data: numpy.ndarray, title: str = "", draw_polar: b
         axs.set_xlabel("Bearing")
         axs.set_ylabel("Correlation")
         axs.set_ylim(-1, 1)
-    finalize_figure(fig, axs, figoutput, title)
+    finalize_figure(fig, figoutput, title)
 
 
 def draw_histogram(data: numpy.ndarray, nbins: int = 20, obs_value: Optional[Number] = None,
@@ -813,4 +816,171 @@ def draw_histogram(data: numpy.ndarray, nbins: int = 20, obs_value: Optional[Num
                     alpha=obs_style.alpha, label=obs_title, zorder=2)
     axs.set_xlabel(xlabel)
     axs.set_ylabel(ylabel)
-    finalize_figure(fig, axs, figoutput, title)
+    finalize_figure(fig, figoutput, title)
+
+
+def draw_variogram(data: numpy.ndarray, metric_title: str = "g", title: str = "",
+                   point_style: Optional[PointStyle] = None, line_style: Optional[LineStyle] = None,
+                   figoutput: Optional[FigOutput] = None):
+    fig, axs = start_figure(figoutput)
+
+    # column order is: min_scale, max_scale, # pairs, observed
+    min_col = 0
+    max_col = 1
+    obs_col = 3
+
+    # plot at midpoint of distance range
+    scale = numpy.array([x[min_col] + (x[max_col] - x[min_col])/2 for x in data])
+
+    # draw base line
+    if line_style is None:
+        line_style = LineStyle()
+    axs.plot(scale, data[:, obs_col], zorder=2, color=line_style.color, linewidth=line_style.linewidth,
+             linestyle=line_style.linestyle, alpha=line_style.alpha)
+
+    # draw points
+    x = scale
+    y = data[:, obs_col]
+    if point_style is None:
+        point_style = PointStyle(face_color="black", edge_color="black", size=25)
+    pyplot.scatter(x, y, color=point_style.face_color, edgecolors=point_style.edge_color,
+                   s=point_style.size, linewidths=point_style.edge_width, marker=point_style.marker,
+                   alpha=point_style.alpha, zorder=3)
+
+    axs.set_xlabel("Scale")
+    axs.set_ylabel(metric_title)
+    finalize_figure(fig, figoutput, title)
+
+
+def draw_wavelet_template(x: list, y: list, title: str = "", figoutput: Optional[FigOutput] = None):
+    fig, axs = start_figure(figoutput)
+    axs.plot(x, y)
+    finalize_figure(fig, figoutput, title)
+
+
+def draw_wavelet_result(v_matrix, p_matrix, w_matrix, inc_positional_var: bool = True, inc_scale_var: bool = True,
+                        inc_scale_x_pos: bool = True, inc_random: bool = False, title: str = "",
+                        scale_line_style: Optional[LineStyle] = None, pos_line_style: Optional[LineStyle] = None,
+                        w_colormap: str = "inferno", rand_scale_line_style: Optional[LineStyle] = None,
+                        rand_pos_line_style: Optional[LineStyle] = None, figoutput: Optional[FigOutput] = None):
+    if figoutput is None:
+        figoutput = FigOutput()
+
+    fig = pyplot.figure(figsize=figoutput.figsize, dpi=figoutput.dpi)
+    p_axs = None
+    w_axs = None
+    v_axs = None
+    if inc_positional_var and inc_scale_var and inc_scale_x_pos:
+        gs = fig.add_gridspec(2, 2, width_ratios=(2, 1), height_ratios=(2, 1), left=0.1, right=0.9, bottom=0.1, top=0.9,
+                              wspace=0.05, hspace=0.05)
+        w_axs = fig.add_subplot(gs[0, 0])
+        v_axs = fig.add_subplot(gs[0, 1], sharey=w_axs)
+        p_axs = fig.add_subplot(gs[1, 0], sharex=w_axs)
+        w_axs.get_xaxis().set_visible(False)
+        w_axs.get_yaxis().set_visible(False)
+        w_axs.spines["bottom"].set_visible(False)
+        w_axs.spines["left"].set_visible(False)
+        v_axs.spines["left"].set_visible(False)
+        v_axs.yaxis.tick_right()
+        v_axs.yaxis.set_label_position("right")
+    elif inc_scale_var and inc_scale_x_pos:
+        gs = fig.add_gridspec(1, 2, width_ratios=(2, 1), left=0.1, right=0.9, bottom=0.1, top=0.9,
+                              wspace=0.05, hspace=0.05)
+        w_axs = fig.add_subplot(gs[0, 0])
+        v_axs = fig.add_subplot(gs[0, 1], sharey=w_axs)
+        w_axs.get_yaxis().set_visible(False)
+        w_axs.spines["left"].set_visible(False)
+        v_axs.spines["left"].set_visible(False)
+        v_axs.yaxis.tick_right()
+        v_axs.yaxis.set_label_position("right")
+    elif inc_positional_var and inc_scale_x_pos:
+        gs = fig.add_gridspec(2, 1, height_ratios=(2, 1), left=0.1, right=0.9, bottom=0.1, top=0.9,
+                              wspace=0.05, hspace=0.05)
+        w_axs = fig.add_subplot(gs[0, 0])
+        p_axs = fig.add_subplot(gs[1, 0], sharex=w_axs)
+
+        w_axs.get_xaxis().set_visible(False)
+        w_axs.spines["bottom"].set_visible(False)
+    elif inc_positional_var and inc_scale_var:
+        p_axs = fig.add_subplot(1, 2, 1)
+        v_axs = fig.add_subplot(1, 2, 2)
+        v_axs.spines["right"].set_visible(False)
+    elif inc_scale_x_pos:
+        w_axs = fig.add_subplot()
+    elif inc_positional_var:
+        p_axs = fig.add_subplot()
+    elif inc_scale_var:
+        v_axs = fig.add_subplot()
+        v_axs.spines["right"].set_visible(False)
+    else:
+        raise ValueError("At least one of the include plot options must be True")
+
+    if inc_scale_x_pos:
+        # use pcolormesh to allow for units which match the scale and position
+        w_axs.spines["right"].set_visible(False)
+        w_axs.spines["top"].set_visible(False)
+        w_axs.set_ylabel("Scale")
+        w_axs.set_xlabel("Position")
+        x, y = numpy.meshgrid(p_matrix[:, 0], v_matrix[:, 0])
+        if inc_random:
+            # this is probably an automatic way to mask the matrix for values which meet criteria vs nan
+            # but it is not obviously to me how to do it. the efficiency loss here is fairly minimal as this
+            # is not a highly repeated loop
+            nv = len(v_matrix)
+            np = len(p_matrix)
+            w_data = numpy.empty((nv, np))
+            for v in range(nv):
+                for p in range(np):
+                    if w_matrix[v, p, 1] < w_matrix[v, p, 0] < w_matrix[v, p, 2]:
+                        w_data[v, p] = numpy.nan
+                    else:
+                        w_data[v, p] = w_matrix[v, p, 0]
+        else:
+            w_data = w_matrix
+        w_axs.pcolormesh(x, y, w_data, cmap=w_colormap)
+
+    if inc_scale_var:
+        if scale_line_style is None:
+            scale_line_style = LineStyle()
+        if inc_scale_x_pos:
+            x = v_matrix[:, 1]
+            y = v_matrix[:, 0]
+            v_axs.set_xlabel("Variance")
+            v_axs.set_ylabel("Scale")
+        else:
+            x = v_matrix[:, 0]
+            y = v_matrix[:, 1]
+            v_axs.set_xlabel("Scale")
+            v_axs.set_ylabel("Variance")
+        v_axs.spines["top"].set_visible(False)
+        v_axs.plot(x, y, color=scale_line_style.color, linewidth=scale_line_style.linewidth,
+                   linestyle=scale_line_style.linestyle, alpha=scale_line_style.alpha)
+        if inc_random:
+            if inc_scale_x_pos:
+                x = v_matrix[:, 2]
+                y = v_matrix[:, 0]
+            else:
+                x = v_matrix[:, 0]
+                y = v_matrix[:, 2]
+            if rand_scale_line_style is None:
+                rand_scale_line_style = LineStyle(color="red")
+            v_axs.plot(x, y, color=rand_scale_line_style.color, linewidth=rand_scale_line_style.linewidth,
+                       linestyle=rand_scale_line_style.linestyle, alpha=rand_scale_line_style.alpha)
+
+    if inc_positional_var:
+        if pos_line_style is None:
+            pos_line_style = LineStyle()
+        p_axs.spines["right"].set_visible(False)
+        p_axs.spines["top"].set_visible(False)
+        p_axs.set_xlabel("Position")
+        p_axs.set_ylabel("Variance")
+        p_axs.plot(p_matrix[:, 0], p_matrix[:, 1], color=pos_line_style.color, linewidth=pos_line_style.linewidth,
+                   linestyle=pos_line_style.linestyle, alpha=pos_line_style.alpha)
+        if inc_random:
+            if rand_pos_line_style is None:
+                rand_pos_line_style = LineStyle(color="red")
+            p_axs.plot(p_matrix[:, 0], p_matrix[:, 2], color=rand_pos_line_style.color,
+                       linewidth=rand_pos_line_style.linewidth, linestyle=rand_pos_line_style.linestyle,
+                       alpha=rand_pos_line_style.alpha)
+
+    finalize_figure(fig, figoutput, title)
