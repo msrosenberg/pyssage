@@ -1,0 +1,15 @@
+This file contains raw latex representations of formulas that might appear in the manual. They are being stored
+separately here as they may be required to be "translated" prior to use in formal pages and it save on effort if
+they need to be recreated or edited.
+
+
+W\left ( b_k, p_x \right )=\frac{1}{b_k} \sum_{i=1}^{n_x} d\left ( p_i \right )g \left[
+\frac{f \left ( p_x, p_i \right )}{b_k} \right]
+
+
+
+V\left ( b_k \right )=\frac{1}{n_x} \sum_{i=1}^{n_x} W^2 \left ( b_k, p_i \right )
+
+
+P\left ( p_i \right )=\frac{1}{m} \sum_{i=1}^{m} W^2 \left ( b_k, p_i \right )
+
